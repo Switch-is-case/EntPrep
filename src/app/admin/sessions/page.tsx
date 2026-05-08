@@ -1,0 +1,248 @@
+"use client";
+
+import React, { useEffect, useState, useCallback } from "react";
+import { useApp } from "@/components/Providers";
+
+interface Session {
+  id: string;
+  userId: string;
+  testType: string;
+  subjects: string[];
+  totalQuestions: number;
+  correctAnswers: number;
+  skippedAnswers: number;
+  wrongAnswers: number;
+  score: number;
+  completed: boolean;
+  startedAt: string;
+  completedAt: string | null;
+  user: { id: string; name: string; email: string } | null;
+}
+
+export default function AdminSessions() {
+  const { token, authHeaders } = useApp();
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [filterType, setFilterType] = useState("");
+
+  const fetchSessions = useCallback(async () => {
+    if (!token) return;
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: "20",
+    });
+    if (filterType) params.set("testType", filterType);
+
+    const res = await fetch(`/api/admin/sessions?${params}`, { headers: authHeaders() });
+
+    if (res.ok) {
+      const data = await res.json();
+      setSessions(data.sessions);
+      setTotalPages(data.totalPages);
+    }
+
+    setLoading(false);
+  }, [token, page, filterType]);
+
+  useEffect(() => {
+    fetchSessions();
+  }, [fetchSessions]);
+
+  const getTestTypeName = (type: string) => {
+    switch (type) {
+      case "diagnostic":
+        return "Диагностический";
+      case "full":
+        return "Полный ЕНТ";
+      case "practice":
+        return "Практика";
+      default:
+        return type;
+    }
+  };
+
+  const formatDuration = (start: string, end: string | null) => {
+    if (!end) return "—";
+    const ms = new Date(end).getTime() - new Date(start).getTime();
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    return `${minutes}м ${seconds}с`;
+  };
+
+  return (
+    <div>
+      <h1 className="text-2xl font-bold text-white mb-6">Тестовые сессии</h1>
+
+      {/* Filter */}
+      <div className="mb-6">
+        <select
+          value={filterType}
+          onChange={(e) => {
+            setFilterType(e.target.value);
+            setPage(1);
+          }}
+          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
+        >
+          <option value="">Все типы</option>
+          <option value="diagnostic">Диагностический</option>
+          <option value="full">Полный ЕНТ</option>
+          <option value="practice">Практика</option>
+        </select>
+      </div>
+
+      {/* Table */}
+      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        {loading ? (
+          <div className="flex items-center justify-center h-48">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-700/50">
+                <tr className="text-left text-slate-300">
+                  <th className="px-4 py-3 font-medium">Пользователь</th>
+                  <th className="px-4 py-3 font-medium">Тип</th>
+                  <th className="px-4 py-3 font-medium">Результат</th>
+                  <th className="px-4 py-3 font-medium">Детали</th>
+                  <th className="px-4 py-3 font-medium">Статус</th>
+                  <th className="px-4 py-3 font-medium">Время</th>
+                  <th className="px-4 py-3 font-medium">Дата</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-700">
+                {sessions.map((session) => (
+                  <tr key={session.id} className="hover:bg-slate-700/30">
+                    <td className="px-4 py-3">
+                      {session.user ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
+                            {session.user.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-white text-sm font-medium">
+                              {session.user.name}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {session.user.email}
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-xs px-2 py-1 rounded ${
+                          session.testType === "diagnostic"
+                            ? "bg-primary/20 text-primary"
+                            : session.testType === "full"
+                            ? "bg-accent/20 text-accent"
+                            : "bg-slate-700 text-slate-300"
+                        }`}
+                      >
+                        {getTestTypeName(session.testType)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`text-lg font-bold ${
+                          session.score >= 80
+                            ? "text-success"
+                            : session.score >= 60
+                            ? "text-primary"
+                            : session.score >= 40
+                            ? "text-warning"
+                            : "text-danger"
+                        }`}
+                      >
+                        {session.score}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-300">
+                      <div className="flex items-center gap-3">
+                        <span className="text-success">
+                          ✓{session.correctAnswers}
+                        </span>
+                        <span className="text-danger">
+                          ✗{session.wrongAnswers}
+                        </span>
+                        <span className="text-warning">
+                          ?{session.skippedAnswers}
+                        </span>
+                        <span className="text-slate-500">
+                          /{session.totalQuestions}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      {session.completed ? (
+                        <span className="text-success text-xs">
+                          Завершён
+                        </span>
+                      ) : (
+                        <span className="text-warning text-xs">
+                          В процессе
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">
+                      {formatDuration(session.startedAt, session.completedAt)}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">
+                      {new Date(session.startedAt).toLocaleString("ru-RU", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        year: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </td>
+                  </tr>
+                ))}
+                {sessions.length === 0 && (
+                  <tr>
+                    <td
+                      colSpan={7}
+                      className="px-4 py-8 text-center text-slate-400"
+                    >
+                      Нет тестовых сессий
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <button
+            onClick={() => setPage(Math.max(1, page - 1))}
+            disabled={page === 1}
+            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
+          >
+            ←
+          </button>
+          <span className="text-slate-300 text-sm">
+            {page} / {totalPages}
+          </span>
+          <button
+            onClick={() => setPage(Math.min(totalPages, page + 1))}
+            disabled={page === totalPages}
+            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
+          >
+            →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
