@@ -106,6 +106,8 @@ export async function POST(request: NextRequest) {
       correctAnswer,
       difficulty,
       topic,
+      imageUrl,
+      optionImages,
     } = body;
 
     if (!subject || !questionTextRu || !optionsRu || correctAnswer === undefined) {
@@ -128,6 +130,8 @@ export async function POST(request: NextRequest) {
         correctAnswer,
         difficulty: difficulty || "medium",
         topic: topic || null,
+        imageUrl: imageUrl || null,
+        optionImages: optionImages || null,
       })
       .returning();
 

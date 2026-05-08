@@ -4,12 +4,20 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
+import { t, type Lang } from "@/lib/i18n";
+
+const langLabels: Record<Lang, string> = {
+  kz: "Қаз",
+  ru: "Рус",
+  en: "Eng",
+};
 
 const adminNav = [
-  { href: "/admin", label: "Дашборд", icon: "D" },
-  { href: "/admin/questions", label: "Вопросы", icon: "Q" },
-  { href: "/admin/users", label: "Пользователи", icon: "U" },
-  { href: "/admin/sessions", label: "Тесты", icon: "T" },
+  { href: "/admin", labelKey: "admin.nav.dashboard", icon: "D" },
+  { href: "/admin/questions", labelKey: "admin.nav.questions", icon: "Q" },
+  { href: "/admin/users", labelKey: "admin.nav.users", icon: "U" },
+  { href: "/admin/sessions", labelKey: "admin.nav.sessions", icon: "S" },
+  { href: "/admin/universities", labelKey: "admin.nav.universities", icon: "V" },
 ];
 
 export default function AdminLayout({
@@ -17,7 +25,7 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, token, authHeaders } = useApp();
+  const { user, token, authHeaders, lang, setLang } = useApp();
   const router = useRouter();
   const pathname = usePathname();
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -105,7 +113,7 @@ export default function AdminLayout({
               }`}
             >
               <span className="text-xs font-bold w-5 h-5 rounded bg-slate-600 flex items-center justify-center">{item.icon}</span>
-              {item.label}
+              {t(item.labelKey as any, lang)}
             </Link>
           ))}
         </nav>
@@ -116,7 +124,7 @@ export default function AdminLayout({
             className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
-            К сайту
+            {t("admin.nav.backToSite" as any, lang)}
           </Link>
         </div>
       </aside>
@@ -143,10 +151,29 @@ export default function AdminLayout({
               />
             </svg>
           </button>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-300">{user?.name}</span>
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold">
-              {user?.name?.charAt(0).toUpperCase()}
+          <div className="flex items-center gap-4">
+            {/* Language switcher */}
+            <div className="flex bg-slate-700 rounded-lg p-0.5">
+              {(["kz", "ru", "en"] as Lang[]).map((l) => (
+                <button
+                  key={l}
+                  onClick={() => setLang(l)}
+                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                    lang === l
+                      ? "bg-slate-800 text-primary shadow-sm"
+                      : "text-slate-400 hover:text-slate-200"
+                  }`}
+                >
+                  {langLabels[l]}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-slate-300">{user?.name}</span>
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold">
+                {user?.name?.charAt(0).toUpperCase()}
+              </div>
             </div>
           </div>
         </header>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Providers from "@/components/Providers";
-import Navbar from "@/components/Navbar";
+import NavbarWrapper from "@/components/NavbarWrapper";
 
 export const metadata: Metadata = {
   title: "ENT Prep AI — Подготовка к ЕНТ с помощью AI",
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ru">
       <body className="bg-bg text-text antialiased min-h-screen">
         <Providers>
-          <Navbar />
+          <NavbarWrapper />
           <main>{children}</main>
         </Providers>
       </body>

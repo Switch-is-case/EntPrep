@@ -21,7 +21,9 @@ export default function Navbar() {
     ? [
         { href: "/tests", label: t("nav.tests", lang) },
         { href: "/practice", label: t("nav.practice", lang) },
+        { href: "/universities", label: t("nav.universities", lang) },
         { href: "/progress", label: t("nav.progress", lang) },
+        { href: "/history", label: t("nav.history", lang) },
         { href: "/profile", label: t("nav.profile", lang) },
       ]
     : [];

@@ -6,10 +6,20 @@ export const translations = {
   "nav.tests": { kz: "Тесттер", ru: "Тесты", en: "Tests" },
   "nav.practice": { kz: "Жаттығу", ru: "Практика", en: "Practice" },
   "nav.progress": { kz: "Прогресс", ru: "Прогресс", en: "Progress" },
+  "nav.history": { kz: "Тарих", ru: "История", en: "History" },
   "nav.profile": { kz: "Профиль", ru: "Профиль", en: "Profile" },
+  "nav.universities": { kz: "Университеттер", ru: "Университеты", en: "Universities" },
   "nav.login": { kz: "Кіру", ru: "Войти", en: "Login" },
   "nav.register": { kz: "Тіркелу", ru: "Регистрация", en: "Register" },
   "nav.logout": { kz: "Шығу", ru: "Выйти", en: "Logout" },
+
+  // Admin Navigation
+  "admin.nav.dashboard": { kz: "Бақылау тақтасы", ru: "Дашборд", en: "Dashboard" },
+  "admin.nav.questions": { kz: "Сұрақтар", ru: "Вопросы", en: "Questions" },
+  "admin.nav.users": { kz: "Қолданушылар", ru: "Пользователи", en: "Users" },
+  "admin.nav.sessions": { kz: "Тесттер", ru: "Тесты", en: "Tests" },
+  "admin.nav.universities": { kz: "Университеттер", ru: "Университеты", en: "Universities" },
+  "admin.nav.backToSite": { kz: "Сайтқа қайту", ru: "К сайту", en: "Back to site" },
 
   // Home page
   "home.hero.title": {

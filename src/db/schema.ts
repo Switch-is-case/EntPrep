@@ -34,6 +34,8 @@ export const questions = pgTable("questions", {
   correctAnswer: integer("correct_answer").notNull(),
   difficulty: varchar("difficulty", { length: 20 }).default("medium").notNull(),
   topic: varchar("topic", { length: 255 }),
+  imageUrl: text("image_url"),
+  optionImages: jsonb("option_images").$type<(string | null)[]>(),
 });
 
 export const testSessions = pgTable("test_sessions", {
@@ -73,4 +75,32 @@ export const progress = pgTable("progress", {
   lastScore: integer("last_score").default(0).notNull(),
   bestScore: integer("best_score").default(0).notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const universities = pgTable("universities", {
+  id: serial("id").primaryKey(),
+  nameRu: varchar("name_ru", { length: 255 }).notNull(),
+  nameKz: varchar("name_kz", { length: 255 }).notNull(),
+  nameEn: varchar("name_en", { length: 255 }).notNull(),
+  cityRu: varchar("city_ru", { length: 100 }).notNull(),
+  cityKz: varchar("city_kz", { length: 100 }).notNull(),
+  cityEn: varchar("city_en", { length: 100 }).notNull(),
+  descriptionRu: text("description_ru"),
+  descriptionKz: text("description_kz"),
+  descriptionEn: text("description_en"),
+  logoUrl: text("logo_url"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const universityPrograms = pgTable("university_programs", {
+  id: serial("id").primaryKey(),
+  universityId: integer("university_id").notNull().references(() => universities.id, { onDelete: "cascade" }),
+  nameRu: varchar("name_ru", { length: 255 }).notNull(),
+  nameKz: varchar("name_kz", { length: 255 }).notNull(),
+  nameEn: varchar("name_en", { length: 255 }).notNull(),
+  passingScore: integer("passing_score").notNull(),
+  descriptionRu: text("description_ru"),
+  descriptionKz: text("description_kz"),
+  descriptionEn: text("description_en"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
 });

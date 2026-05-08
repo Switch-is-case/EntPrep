@@ -198,8 +198,8 @@ export default function HomePage() {
               </h3>
               <div className="space-y-3">
                 {[
-                  { name: lang === "ru" ? "Математическая грамотность" : lang === "kz" ? "Математикалық сауаттылық" : "Math Literacy", q: 15 },
-                  { name: lang === "ru" ? "Грамотность чтения" : lang === "kz" ? "Оқу сауаттылығы" : "Reading Literacy", q: 15 },
+                  { name: lang === "ru" ? "Математическая грамотность" : lang === "kz" ? "Математикалық сауаттылық" : "Math Literacy", q: 10 },
+                  { name: lang === "ru" ? "Грамотность чтения" : lang === "kz" ? "Оқу сауаттылығы" : "Reading Literacy", q: 10 },
                   { name: lang === "ru" ? "История Казахстана" : lang === "kz" ? "Қазақстан тарихы" : "History of KZ", q: 20 },
                 ].map((s, i) => (
                   <div key={i} className="flex items-center justify-between bg-bg rounded-lg p-3">
@@ -226,7 +226,7 @@ export default function HomePage() {
                     {lang === "ru" ? "Профильный предмет 1" : lang === "kz" ? "Профильдік пән 1" : "Profile Subject 1"}
                   </span>
                   <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full font-medium">
-                    45 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
+                    40 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between bg-bg rounded-lg p-3">
@@ -234,7 +234,7 @@ export default function HomePage() {
                     {lang === "ru" ? "Профильный предмет 2" : lang === "kz" ? "Профильдік пән 2" : "Profile Subject 2"}
                   </span>
                   <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full font-medium">
-                    45 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
+                    40 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
                   </span>
                 </div>
               </div>

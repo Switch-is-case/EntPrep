@@ -16,6 +16,8 @@ interface Question {
   correctAnswer: number;
   difficulty: string;
   topic: string | null;
+  imageUrl: string | null;
+  optionImages: (string | null)[] | null;
 }
 
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
@@ -32,6 +34,15 @@ export default function AdminQuestions() {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Bulk import state
+  const [showBulkModal, setShowBulkModal] = useState(false);
+  const [bulkJson, setBulkJson] = useState("");
+  const [bulkParsed, setBulkParsed] = useState<unknown[] | null>(null);
+  const [bulkParseError, setBulkParseError] = useState("");
+  const [bulkImporting, setBulkImporting] = useState(false);
+  const [bulkResult, setBulkResult] = useState<{ imported: number; message: string } | null>(null);
+  const [bulkErrors, setBulkErrors] = useState<string[]>([]);
+
   // Form state
   const [form, setForm] = useState({
     subject: "math_literacy",
@@ -44,7 +55,11 @@ export default function AdminQuestions() {
     correctAnswer: 0,
     difficulty: "medium",
     topic: "",
+    imageUrl: "",
+    optionImages: [null, null, null, null] as (string | null)[],
   });
+  const [imageUploading, setImageUploading] = useState(false);
+  const [optionImageUploading, setOptionImageUploading] = useState<boolean[]>([false, false, false, false]);
 
   const fetchQuestions = useCallback(async () => {
     if (!token) return;
@@ -89,7 +104,10 @@ export default function AdminQuestions() {
       correctAnswer: 0,
       difficulty: "medium",
       topic: "",
+      imageUrl: "",
+      optionImages: [null, null, null, null],
     });
+    setOptionImageUploading([false, false, false, false]);
     setEditingQuestion(null);
   };
 
@@ -111,6 +129,8 @@ export default function AdminQuestions() {
       correctAnswer: q.correctAnswer,
       difficulty: q.difficulty,
       topic: q.topic || "",
+      imageUrl: q.imageUrl || "",
+      optionImages: q.optionImages || [null, null, null, null],
     });
     setShowModal(true);
   };
@@ -127,7 +147,11 @@ export default function AdminQuestions() {
     const res = await fetch(url, {
       headers: authHeaders(),
       method,
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        imageUrl: form.imageUrl || null,
+        optionImages: form.optionImages.some(Boolean) ? form.optionImages : null,
+      }),
     });
 
     if (res.ok) {
@@ -137,6 +161,69 @@ export default function AdminQuestions() {
     }
 
     setSaving(false);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImageUploading(true);
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      headers: authHeaders(),
+      body: fd,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setForm((f) => ({ ...f, imageUrl: data.url }));
+    } else {
+      alert("Ошибка загрузки изображения");
+    }
+    setImageUploading(false);
+  };
+
+  const handleOptionImageUpload = async (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setOptionImageUploading((prev) => {
+      const next = [...prev];
+      next[index] = true;
+      return next;
+    });
+    const fd = new FormData();
+    fd.append("file", file);
+    const res = await fetch("/api/admin/upload", {
+      method: "POST",
+      headers: authHeaders(),
+      body: fd,
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setForm((f) => {
+        const newImages = [...f.optionImages];
+        newImages[index] = data.url;
+        return { ...f, optionImages: newImages };
+      });
+    } else {
+      alert("Ошибка загрузки изображения");
+    }
+    setOptionImageUploading((prev) => {
+      const next = [...prev];
+      next[index] = false;
+      return next;
+    });
+  };
+
+  const removeOptionImage = (index: number) => {
+    setForm((f) => {
+      const newImages = [...f.optionImages];
+      newImages[index] = null;
+      return { ...f, optionImages: newImages };
+    });
   };
 
   const handleDelete = async (id: number) => {
@@ -164,16 +251,81 @@ export default function AdminQuestions() {
     setForm({ ...form, [key]: newOptions });
   };
 
+  const handleBulkJsonChange = (value: string) => {
+    setBulkJson(value);
+    setBulkParseError("");
+    setBulkParsed(null);
+    setBulkResult(null);
+    setBulkErrors([]);
+    if (!value.trim()) return;
+    try {
+      const parsed = JSON.parse(value);
+      if (!Array.isArray(parsed)) {
+        setBulkParseError("JSON должен быть массивом [ {...}, {...} ]");
+        return;
+      }
+      setBulkParsed(parsed);
+    } catch {
+      setBulkParseError("Неверный формат JSON");
+    }
+  };
+
+  const handleBulkFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      handleBulkJsonChange(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleBulkImport = async () => {
+    if (!bulkParsed || !token) return;
+    setBulkImporting(true);
+    setBulkErrors([]);
+    setBulkResult(null);
+    const res = await fetch("/api/admin/questions/bulk", {
+      method: "POST",
+      headers: { ...authHeaders(), "Content-Type": "application/json" },
+      body: JSON.stringify(bulkParsed),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setBulkResult(data);
+      fetchQuestions();
+    } else {
+      setBulkErrors(data.details || [data.error || "Ошибка импорта"]);
+    }
+    setBulkImporting(false);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Вопросы</h1>
-        <button
-          onClick={openCreate}
-          className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
-        >
-          <span className="text-lg">+</span> Добавить вопрос
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              setShowBulkModal(true);
+              setBulkJson("");
+              setBulkParsed(null);
+              setBulkParseError("");
+              setBulkResult(null);
+              setBulkErrors([]);
+            }}
+            className="border border-slate-600 text-slate-300 px-4 py-2 rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm"
+          >
+            Массовый импорт
+          </button>
+          <button
+            onClick={openCreate}
+            className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
+          >
+            <span className="text-lg">+</span> Добавить вопрос
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -256,15 +408,15 @@ export default function AdminQuestions() {
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEdit(q)}
-                          className="text-primary hover:text-primary-light"
+                          className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                         >
-                          ✏️
+                          Изменить
                         </button>
                         <button
                           onClick={() => handleDelete(q.id)}
-                          className="text-danger hover:text-red-400"
+                          className="text-xs font-medium px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
                         >
-                          🗑️
+                          Удалить
                         </button>
                       </div>
                     </td>
@@ -419,6 +571,44 @@ export default function AdminQuestions() {
                 </div>
               </div>
 
+              {/* Image Upload */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                  Изображение к вопросу (необязательно)
+                </label>
+                <div className="flex items-start gap-4">
+                  <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageUploading ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-400" : "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"}`}>
+                    {imageUploading ? "Загрузка..." : "Выбрать файл"}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      className="hidden"
+                      disabled={imageUploading}
+                      onChange={handleImageUpload}
+                    />
+                  </label>
+                  {form.imageUrl && (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={form.imageUrl}
+                        alt="Preview"
+                        className="h-16 w-16 object-cover rounded-lg border border-slate-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
+                        className="text-xs text-danger hover:text-red-400"
+                      >
+                        Удалить
+                      </button>
+                    </div>
+                  )}
+                </div>
+                <p className="text-xs text-slate-500 mt-1">
+                  JPEG, PNG, WebP или GIF — максимум 5 МБ
+                </p>
+              </div>
+
               {/* Options */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-3">
@@ -475,6 +665,35 @@ export default function AdminQuestions() {
                           className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-white text-sm"
                         />
                       </div>
+                      {/* Option image upload */}
+                      <div className="mt-2 flex items-center gap-3">
+                        <label className={`flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded border text-xs font-medium transition-colors ${optionImageUploading[i] ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-500" : "border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white"}`}>
+                          {optionImageUploading[i] ? "Загрузка..." : "Картинка к ответу"}
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            className="hidden"
+                            disabled={optionImageUploading[i]}
+                            onChange={(e) => handleOptionImageUpload(i, e)}
+                          />
+                        </label>
+                        {form.optionImages[i] && (
+                          <>
+                            <img
+                              src={form.optionImages[i]!}
+                              alt={`Option ${String.fromCharCode(65 + i)}`}
+                              className="h-10 w-10 object-cover rounded border border-slate-600"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeOptionImage(i)}
+                              className="text-xs text-danger hover:text-red-400"
+                            >
+                              Удалить
+                            </button>
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -494,6 +713,118 @@ export default function AdminQuestions() {
                 className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
               >
                 {saving ? "Сохранение..." : "Сохранить"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Import Modal */}
+      {showBulkModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-auto">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl my-8">
+            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white">Массовый импорт вопросов</h2>
+              <button
+                onClick={() => setShowBulkModal(false)}
+                className="text-slate-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {/* Format hint */}
+              <div className="bg-slate-700/50 rounded-lg p-4 text-xs text-slate-300 font-mono leading-relaxed">
+                <p className="text-slate-400 mb-2 font-sans font-medium text-sm">Формат JSON-файла:</p>
+                {`[
+  {
+    "subject": "math_literacy",
+    "questionTextRu": "Вопрос на русском",
+    "questionTextKz": "Сұрақ қазақша",
+    "questionTextEn": "Question in English",
+    "optionsRu": ["Вариант A", "Вариант B", "Вариант C", "Вариант D"],
+    "optionsKz": ["A нұсқа", "B нұсқа", "C нұсқа", "D нұсқа"],
+    "optionsEn": ["Option A", "Option B", "Option C", "Option D"],
+    "correctAnswer": 0,
+    "difficulty": "medium",
+    "topic": "Алгебра"
+  }
+]`}
+              </div>
+
+              {/* File upload */}
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer border border-dashed border-slate-600 rounded-lg p-4 text-slate-400 hover:border-primary hover:text-white transition-colors text-sm">
+                  Загрузить .json файл
+                  <input
+                    type="file"
+                    accept=".json,application/json"
+                    className="hidden"
+                    onChange={handleBulkFileUpload}
+                  />
+                </label>
+              </div>
+
+              {/* Textarea */}
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  или вставьте JSON вручную
+                </label>
+                <textarea
+                  value={bulkJson}
+                  onChange={(e) => handleBulkJsonChange(e.target.value)}
+                  rows={8}
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-mono resize-none"
+                  placeholder='[{"subject": "math_literacy", "questionTextRu": "...", ...}]'
+                />
+              </div>
+
+              {/* Parse error */}
+              {bulkParseError && (
+                <div className="bg-danger/10 text-danger text-sm rounded-lg p-3 border border-danger/20">
+                  {bulkParseError}
+                </div>
+              )}
+
+              {/* Preview count */}
+              {bulkParsed && !bulkParseError && (
+                <div className="bg-success/10 text-success text-sm rounded-lg p-3 border border-success/20">
+                  Готово к импорту: <strong>{bulkParsed.length}</strong> вопросов
+                </div>
+              )}
+
+              {/* Import errors */}
+              {bulkErrors.length > 0 && (
+                <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 max-h-40 overflow-y-auto">
+                  <p className="text-danger text-sm font-medium mb-1">Ошибки валидации:</p>
+                  {bulkErrors.map((e, i) => (
+                    <p key={i} className="text-danger/80 text-xs">{e}</p>
+                  ))}
+                </div>
+              )}
+
+              {/* Success result */}
+              {bulkResult && (
+                <div className="bg-success/10 text-success text-sm rounded-lg p-3 border border-success/20 font-medium">
+                  ✓ {bulkResult.message}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-700 flex justify-end gap-3">
+              <button
+                onClick={() => setShowBulkModal(false)}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+              >
+                Закрыть
+              </button>
+              <button
+                onClick={handleBulkImport}
+                disabled={!bulkParsed || bulkImporting || !!bulkParseError}
+                className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+              >
+                {bulkImporting ? "Импорт..." : "Импортировать"}
               </button>
             </div>
           </div>

@@ -29,8 +29,7 @@ export default function PracticePage() {
   const [questionCount, setQuestionCount] = useState(10);
   const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showAnswer, setShowAnswer] = useState(false);
+  const [answers, setAnswers] = useState<Record<number, number | null>>({});
   const [score, setScore] = useState({ correct: 0, wrong: 0, skipped: 0 });
   const [loading, setLoading] = useState(false);
 
@@ -53,8 +52,7 @@ export default function PracticePage() {
       if (res.ok) {
         setQuestions(data.questions);
         setCurrentIndex(0);
-        setSelectedAnswer(null);
-        setShowAnswer(false);
+        setAnswers({});
         setScore({ correct: 0, wrong: 0, skipped: 0 });
         setState("practicing");
       }
@@ -65,26 +63,16 @@ export default function PracticePage() {
     }
   };
 
-  const checkAnswer = () => {
-    setShowAnswer(true);
-    const q = questions[currentIndex];
-    if (selectedAnswer === null) {
-      setScore((prev) => ({ ...prev, skipped: prev.skipped + 1 }));
-    } else if (selectedAnswer === q.correctAnswer) {
-      setScore((prev) => ({ ...prev, correct: prev.correct + 1 }));
-    } else {
-      setScore((prev) => ({ ...prev, wrong: prev.wrong + 1 }));
-    }
-  };
-
-  const nextQuestion = () => {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex((prev) => prev + 1);
-      setSelectedAnswer(null);
-      setShowAnswer(false);
-    } else {
-      setState("review");
-    }
+  const finishPractice = () => {
+    let correct = 0, wrong = 0, skipped = 0;
+    questions.forEach((q, idx) => {
+      const ans = answers[idx];
+      if (ans === undefined || ans === null) skipped++;
+      else if (ans === q.correctAnswer) correct++;
+      else wrong++;
+    });
+    setScore({ correct, wrong, skipped });
+    setState("review");
   };
 
   if (!user) return null;
@@ -195,131 +183,212 @@ export default function PracticePage() {
     const q = questions[currentIndex];
     const options = getOptions(q);
     const progress = ((currentIndex + 1) / questions.length) * 100;
+    
+    const answeredCount = Object.values(answers).filter((v) => v !== null && v !== undefined).length;
+    const skippedCount = Object.values(answers).filter((v) => v === null).length;
+    const allAnswered = Object.keys(answers).length === questions.length;
+    const selectedAnswer = answers[currentIndex];
+
+    const resetAnswers = () => {
+      if (confirm(lang === "ru" ? "Сбросить все ответы?" : lang === "kz" ? "Барлық жауаптарды тазалау?" : "Reset all answers?")) {
+        setAnswers({});
+        setCurrentIndex(0);
+      }
+    };
 
     return (
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-text-secondary">
-              {t("test.question", lang)} {currentIndex + 1} {t("test.of", lang)} {questions.length}
-            </span>
-            <div className="flex items-center gap-3 text-xs">
-              <span className="text-success font-medium">✓ {score.correct}</span>
-              <span className="text-danger font-medium">✗ {score.wrong}</span>
-              <span className="text-warning font-medium">? {score.skipped}</span>
+      <div className="flex gap-5 min-h-[calc(100vh-4rem)] bg-gray-50 px-4 py-4">
+
+        {/* ── SIDEBAR CARD ── */}
+        <aside className="w-80 shrink-0">
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-5 flex flex-col gap-4 sticky top-4 min-h-[calc(100vh-6rem)]">
+            
+            <p className="text-base font-bold text-text">
+              {lang === "ru" ? "Вопросы" : lang === "kz" ? "Сұрақтар" : "Questions"}
+            </p>
+
+            {/* Legend */}
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="w-3.5 h-3.5 rounded-full bg-success shrink-0" />
+                {lang === "ru" ? "Ответил" : lang === "kz" ? "Жауап берді" : "Answered"}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="w-3.5 h-3.5 rounded-full bg-warning shrink-0" />
+                {lang === "ru" ? "Отметил «Не знаю»" : lang === "kz" ? "«Білмеймін»" : "Don't know"}
+              </div>
+              <div className="flex items-center gap-2 text-xs text-text-secondary">
+                <span className="w-3.5 h-3.5 rounded-full bg-gray-200 border border-gray-300 shrink-0" />
+                {lang === "ru" ? "Не отвечено" : lang === "kz" ? "Жауапсыз" : "Unanswered"}
+              </div>
             </div>
-          </div>
-          <div className="w-full bg-gray-100 rounded-full h-2">
-            <div className="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
 
-        {/* Question */}
-        <div className="bg-white rounded-2xl border border-border p-6 md:p-8 mb-6">
-          {q.topic && (
-            <div className="text-xs text-text-secondary mb-3">{q.topic}</div>
-          )}
-          <h2 className="text-lg md:text-xl font-semibold text-text mb-6">
-            {getQuestionText(q)}
-          </h2>
-
-          <div className="space-y-3">
-            {options.map((option, idx) => {
-              let cls = "border-border hover:border-primary/30 hover:bg-gray-50";
-              if (showAnswer) {
-                if (idx === q.correctAnswer) {
-                  cls = "border-success bg-success/5";
-                } else if (idx === selectedAnswer && idx !== q.correctAnswer) {
-                  cls = "border-danger bg-danger/5";
-                } else {
-                  cls = "border-border opacity-50";
-                }
-              } else if (selectedAnswer === idx) {
-                cls = "border-primary bg-primary/5";
-              }
-
-              return (
-                <button
-                  key={idx}
-                  onClick={() => !showAnswer && setSelectedAnswer(idx)}
-                  disabled={showAnswer}
-                  className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${cls}`}
-                >
-                  <div
-                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold shrink-0 ${
-                      showAnswer && idx === q.correctAnswer
-                        ? "border-success bg-success text-white"
-                        : showAnswer && idx === selectedAnswer
-                        ? "border-danger bg-danger text-white"
-                        : selectedAnswer === idx
-                        ? "border-primary bg-primary text-white"
-                        : "border-gray-300 text-text-secondary"
+            {/* Number grid */}
+            <div className="flex flex-wrap gap-2.5">
+              {questions.map((_, idx) => {
+                const ans = answers[idx];
+                const isAnswered = ans !== undefined && ans !== null;
+                const isSkipped = ans === null;
+                const isCurrent = idx === currentIndex;
+                
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`w-14 h-14 rounded-2xl text-base font-bold transition-all border-2 shadow-sm ${
+                      isSkipped
+                        ? "bg-warning border-warning text-white"
+                        : isAnswered
+                        ? "bg-success border-success text-white"
+                        : isCurrent
+                        ? "bg-white border-primary text-primary"
+                        : "bg-white border-gray-200 text-gray-700 hover:border-gray-300 disabled:opacity-50"
                     }`}
                   >
-                    {showAnswer && idx === q.correctAnswer ? "✓" : showAnswer && idx === selectedAnswer ? "✗" : String.fromCharCode(65 + idx)}
-                  </div>
-                  <span className="text-sm">{option}</span>
-                </button>
-              );
-            })}
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Spacer */}
+            <div className="flex-1" />
+
+            {/* Stats */}
+            <div className="space-y-0.5">
+              <p className="text-xs text-text-secondary">
+                {lang === "ru" ? "Отвечено" : "Answered"}:{" "}
+                <span className="font-semibold text-text">{answeredCount} {lang === "ru" ? "из" : "of"} {questions.length}</span>
+              </p>
+              <p className="text-xs text-text-secondary">
+                {lang === "ru" ? "Отмечено «Не знаю»" : "Don't know"}:{" "}
+                <span className="font-semibold text-text">{skippedCount}</span>
+              </p>
+            </div>
+            
+            {/* Reset button */}
+            <button
+              onClick={resetAnswers}
+              className="w-full flex items-center justify-center gap-1.5 px-3 py-2.5 text-sm border border-gray-200 rounded-xl text-text-secondary hover:bg-gray-50 transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              {lang === "ru" ? "Сбросить ответы" : lang === "kz" ? "Тазалау" : "Reset"}
+            </button>
+          </div>
+        </aside>
+
+        {/* ── MAIN CONTENT ── */}
+        <div className="flex-1">
+          {/* Progress */}
+          <div className="mb-4 max-w-4xl">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-text-secondary">
+                {lang === "ru" ? "Вопрос" : "Question"} {currentIndex + 1} {lang === "ru" ? "из" : "of"} {questions.length}
+              </span>
+              <span className="text-xs px-2 py-1 rounded-full bg-primary/10 text-primary font-medium">
+                {getSubjectName(selectedSubject)}
+              </span>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="bg-primary h-1.5 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+            </div>
           </div>
 
-          {/* I don't know */}
-          {!showAnswer && (
+          {/* Question */}
+          <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 mb-4 max-w-4xl">
+            {q.topic && (
+              <div className="text-xs text-text-secondary mb-2">{q.topic}</div>
+            )}
+            <h2 className="text-2xl font-bold text-text mb-6">
+              {getQuestionText(q)}
+            </h2>
+
+            <div className="space-y-3">
+              {options.map((option, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: idx }))}
+                  className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-center gap-3 ${
+                    selectedAnswer === idx
+                      ? "border-warning bg-warning/5"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-semibold shrink-0 ${
+                    selectedAnswer === idx ? "border-warning text-warning" : "border-gray-300 text-gray-400"
+                  }`}>
+                    {String.fromCharCode(65 + idx)}
+                  </div>
+                  <span className="text-sm text-text">{option}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* I don't know */}
             <button
-              onClick={() => {
-                setSelectedAnswer(null);
-                checkAnswer();
-              }}
-              className="w-full mt-4 p-3 rounded-xl border-2 border-dashed border-border text-sm font-medium text-text-secondary hover:border-warning hover:text-warning transition-all"
+              onClick={() => setAnswers((prev) => ({ ...prev, [currentIndex]: null }))}
+              className={`w-full mt-3 p-3 rounded-xl border-2 text-sm font-medium transition-all ${
+                selectedAnswer === null && answers[currentIndex] !== undefined
+                  ? "border-warning bg-warning/5 text-warning"
+                  : "border-dashed border-gray-200 text-gray-400 hover:border-warning hover:text-warning"
+              }`}
             >
               {t("test.iDontKnow", lang)}
             </button>
-          )}
+          </div>
 
-          {/* Correct answer explanation */}
-          {showAnswer && (
-            <div className={`mt-4 p-4 rounded-xl border ${
-              selectedAnswer === q.correctAnswer
-                ? "bg-success/5 border-success/20"
-                : "bg-danger/5 border-danger/20"
-            }`}>
-              <p className="text-sm font-medium">
-                {selectedAnswer === q.correctAnswer
-                  ? (lang === "ru" ? "Правильно!" : lang === "kz" ? "Дұрыс!" : "Correct!")
-                  : selectedAnswer === null
-                  ? (lang === "ru" ? "Пропущено" : lang === "kz" ? "Өткізілді" : "Skipped")
-                  : (lang === "ru" ? "Неправильно" : lang === "kz" ? "Қате" : "Wrong")}
-              </p>
-              <p className="text-sm text-text-secondary mt-1">
-                {lang === "ru" ? "Правильный ответ: " : lang === "kz" ? "Дұрыс жауап: " : "Correct answer: "}
-                <strong>{String.fromCharCode(65 + q.correctAnswer)}) {options[q.correctAnswer]}</strong>
-              </p>
+          {/* Navigation */}
+          <div className="flex items-start justify-between w-full">
+            {/* Back & Next constrained to Question Card width */}
+            <div className="flex items-center justify-between w-full max-w-4xl">
+              <button
+                onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
+                disabled={currentIndex === 0}
+                className="px-6 py-3 rounded-xl border border-gray-200 bg-white shadow-sm text-text-secondary font-medium hover:border-gray-300 hover:text-text transition-all disabled:opacity-30"
+              >
+                ← {t("test.prev", lang)}
+              </button>
+
+              {currentIndex < questions.length - 1 ? (
+                <button
+                  onClick={() => setCurrentIndex(Math.min(questions.length - 1, currentIndex + 1))}
+                  className="px-6 py-3 rounded-xl bg-primary shadow-sm text-white font-medium hover:bg-primary-dark hover:shadow transition-all"
+                >
+                  {t("test.next", lang)} →
+                </button>
+              ) : (
+                <div />
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Navigation */}
-        <div className="flex justify-end">
-          {!showAnswer ? (
-            <button
-              onClick={checkAnswer}
-              disabled={selectedAnswer === null && selectedAnswer !== null}
-              className="px-8 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
-            >
-              {lang === "ru" ? "Проверить" : lang === "kz" ? "Тексеру" : "Check"}
-            </button>
-          ) : (
-            <button
-              onClick={nextQuestion}
-              className="px-8 py-3 rounded-lg bg-primary text-white font-semibold hover:bg-primary-dark transition-colors"
-            >
-              {currentIndex < questions.length - 1
-                ? t("test.next", lang) + " →"
-                : t("test.results", lang)}
-            </button>
-          )}
+            {/* Finish test on the far right */}
+            <div className="relative group shrink-0 ml-4">
+              <button
+                onClick={allAnswered ? finishPractice : undefined}
+                className={`px-6 py-3 rounded-xl text-sm font-semibold shadow-sm transition-all ${
+                  allAnswered
+                    ? "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    : "bg-gray-200/50 text-gray-400 cursor-not-allowed"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  {!allAnswered && (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  )}
+                  {lang === "ru" ? "Завершить тест" : lang === "kz" ? "Тестті аяқтау" : "Finish test"}
+                </span>
+              </button>
+              {!allAnswered && (
+                <div className="absolute top-full mt-2 right-0 w-56 text-gray-400 text-xs text-right leading-relaxed">
+                  {lang === "ru" ? "Ответьте на все вопросы, чтобы завершить тест" : "Answer all questions to finish"}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     );

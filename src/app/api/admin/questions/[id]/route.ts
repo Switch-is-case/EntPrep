@@ -70,6 +70,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       correctAnswer,
       difficulty,
       topic,
+      imageUrl,
+      optionImages,
     } = body;
 
     const [updated] = await db
@@ -85,6 +87,8 @@ export async function PUT(request: NextRequest, context: RouteContext) {
         correctAnswer,
         difficulty,
         topic,
+        imageUrl: imageUrl ?? null,
+        optionImages: optionImages ?? null,
       })
       .where(eq(questions.id, questionId))
       .returning();
