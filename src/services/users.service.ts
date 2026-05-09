@@ -45,7 +45,24 @@ export class UsersService {
     throw new ForbiddenError("Admin already exists. Use admin secret to become admin.");
   }
 
-  private mapToProfileDTO(user: User): UserProfileDTO {
+  async setAdminStatus(requesterId: string, targetId: string, isAdmin: boolean): Promise<UserProfileDTO> {
+    if (requesterId === targetId && isAdmin === false) {
+      throw new ForbiddenError("Cannot remove your own admin status");
+    }
+    const updated = await this.usersRepository.setAdminStatus(targetId, isAdmin);
+    if (!updated) throw new NotFoundError("User not found");
+    return this.mapToProfileDTO(updated);
+  }
+
+  async deleteUser(requesterId: string, targetId: string): Promise<void> {
+    if (requesterId === targetId) {
+      throw new ForbiddenError("Cannot delete yourself");
+    }
+    const deleted = await this.usersRepository.deleteById(targetId);
+    if (!deleted) throw new NotFoundError("User not found");
+  }
+
+  private mapToProfileDTO(user: User): UserProfileDTO & { isAdmin?: boolean } {
     return {
       id: user.id,
       email: user.email,
@@ -53,6 +70,7 @@ export class UsersService {
       language: user.language,
       profileSubject1: user.profileSubject1,
       profileSubject2: user.profileSubject2,
+      isAdmin: user.isAdmin ?? false,
     };
   }
 }

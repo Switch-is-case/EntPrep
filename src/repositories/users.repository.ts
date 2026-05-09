@@ -84,6 +84,25 @@ export class UsersRepository {
     return (updated as User) || null;
   }
 
+  async setAdminStatus(id: string, isAdmin: boolean): Promise<User | null> {
+    const [updated] = await db
+      .update(users)
+      .set({ isAdmin })
+      .where(eq(users.id, id))
+      .returning();
+
+    return (updated as User) || null;
+  }
+
+  async deleteById(id: string): Promise<boolean> {
+    const result = await db
+      .delete(users)
+      .where(eq(users.id, id))
+      .returning({ id: users.id });
+
+    return result.length > 0;
+  }
+
   async countAdmins(): Promise<number> {
     const [adminCount] = await db
       .select({ count: sql<number>`count(*)` })

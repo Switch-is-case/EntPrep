@@ -1,98 +1,62 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { usersService } from "@/lib/container";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function PUT(request: NextRequest, context: RouteContext) {
+async function getRequesterAdminId(request: NextRequest): Promise<string | null> {
   const userId = getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!userId) return null;
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
+  const profile = await usersService.getUserProfile(userId);
+  if (!profile || !(profile as any).isAdmin) return null;
+  return userId;
+}
 
-  if (!user?.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+export async function PUT(request: NextRequest, context: RouteContext) {
+  const requesterId = await getRequesterAdminId(request);
+  if (!requesterId) {
+    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
   }
 
   const { id } = await context.params;
 
   try {
-    const body = await request.json();
-    const { isAdmin } = body;
-
-    // Prevent removing own admin status
-    if (id === userId && isAdmin === false) {
+    const { isAdmin } = await request.json();
+    const updated = await usersService.setAdminStatus(requesterId, id, isAdmin);
+    return NextResponse.json({ user: updated });
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
       return NextResponse.json(
-        { error: "Cannot remove your own admin status" },
-        { status: 400 }
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
       );
     }
-
-    const [updated] = await db
-      .update(users)
-      .set({ isAdmin })
-      .where(eq(users.id, id))
-      .returning();
-
-    return NextResponse.json({
-      user: {
-        id: updated.id,
-        name: updated.name,
-        email: updated.email,
-        isAdmin: updated.isAdmin,
-      },
-    });
-  } catch (error) {
     console.error("Update user error:", error);
-    return NextResponse.json(
-      { error: "Failed to update user" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
   }
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  if (!user?.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const requesterId = await getRequesterAdminId(request);
+  if (!requesterId) {
+    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
   }
 
   const { id } = await context.params;
 
-  // Prevent self-deletion
-  if (id === userId) {
-    return NextResponse.json(
-      { error: "Cannot delete yourself" },
-      { status: 400 }
-    );
-  }
-
   try {
-    await db.delete(users).where(eq(users.id, id));
+    await usersService.deleteUser(requesterId, id);
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
     console.error("Delete user error:", error);
-    return NextResponse.json(
-      { error: "Failed to delete user" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
   }
 }
