@@ -5,46 +5,12 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
-interface Session {
-  id: string;
-  testType: string;
-  totalQuestions: number;
-  correctAnswers: number;
-  skippedAnswers: number;
-  wrongAnswers: number;
-  score: number;
-  startedAt: string;
-}
+import { useHistory } from "@/hooks/useHistory";
 
 export default function HistoryPage() {
-  const { lang, user, token, authHeaders, ready } = useApp();
+  const { lang } = useApp();
   const router = useRouter();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (ready && !user && !token) {
-      router.push("/login");
-      return;
-    }
-    if (!user || !token) return;
-
-    const fetchHistory = async () => {
-      try {
-        const res = await fetch("/api/history", { headers: authHeaders() });
-        if (res.ok) {
-          const data = await res.json();
-          setSessions(data.sessions || []);
-        }
-      } catch {
-        // ignore
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchHistory();
-  }, [ready, user, token, router]);
+  const { sessions, loading, user } = useHistory();
 
   if (!user) return null;
 

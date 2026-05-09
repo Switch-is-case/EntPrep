@@ -95,7 +95,7 @@ export default function TestsPage() {
       }
     } catch { /* ignore */ }
     finally { setLoading(false); }
-  }, [token, sessionId, questions, answers]);
+  }, [token, sessionId, questions, answers, authHeaders]);
 
   if (!user) return null;
 

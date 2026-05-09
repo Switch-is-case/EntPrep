@@ -4,62 +4,17 @@ import React, { useEffect, useState } from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
-interface Stats {
-  totalUsers: number;
-  totalQuestions: number;
-  totalSessions: number;
-  totalAnswers: number;
-}
-
-interface QuestionsBySubject {
-  subject: string;
-  count: number;
-}
-
-interface RecentSession {
-  id: string;
-  testType: string;
-  score: number;
-  completed: boolean;
-  startedAt: string;
-}
-
-interface RecentUser {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  isAdmin: boolean;
-}
+import { useAdminStats } from "@/hooks/useAdminStats";
 
 export default function AdminDashboard() {
-  const { token, lang, authHeaders } = useApp();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [questionsBySubject, setQuestionsBySubject] = useState<
-    QuestionsBySubject[]
-  >([]);
-  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
-  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (!token) return;
-
-    fetch("/api/admin/stats", { headers: authHeaders() })
-      .then((res) => res.json())
-      .then((data) => {
-        setStats(data.stats);
-        setQuestionsBySubject(data.questionsBySubject);
-        setRecentSessions(data.recentSessions);
-        setRecentUsers(data.recentUsers);
-      })
-      .finally(() => setLoading(false));
-  }, [token]);
-
-  const getSubjectName = (s: string) => {
-    const key = `subject.${s}` as keyof typeof import("@/lib/i18n").translations;
-    return t(key, lang);
-  };
+  const {
+    stats,
+    questionsBySubject,
+    recentSessions,
+    recentUsers,
+    loading,
+    getSubjectName,
+  } = useAdminStats();
 
   if (loading) {
     return (

@@ -1,10 +1,10 @@
 import { AdminDashboardDTO } from "@/domain/analytics/types";
-import { analyticsRepository } from "@/repositories/analytics.repository";
+import { AnalyticsRepository } from "@/repositories/analytics.repository";
 
 export class AnalyticsService {
+  constructor(private readonly analyticsRepository: AnalyticsRepository) {}
   async getAdminDashboard(): Promise<AdminDashboardDTO> {
-    return analyticsRepository.getAdminDashboard();
+    return this.analyticsRepository.getAdminDashboard();
   }
 }
 
-export const analyticsService = new AnalyticsService();

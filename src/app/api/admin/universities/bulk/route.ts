@@ -1,3 +1,4 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { universities, universityPrograms, users } from "@/db/schema";
@@ -59,9 +60,16 @@ export async function POST(request: NextRequest) {
         }
 
         importedCount++;
-      } catch (err: any) {
-        errors.push(`Error at index ${i} (${item.nameRu || "Unknown"}): ${err.message}`);
-      }
+      } catch (err: unknown) {
+    if (err instanceof AppError) {
+      return NextResponse.json(
+        { error: err.message, details: err.details },
+        { status: err.statusCode }
+      );
+    }
+    console.error("API Error:", err);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
     }
 
     if (errors.length > 0) {

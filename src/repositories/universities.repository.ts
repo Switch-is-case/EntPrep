@@ -30,7 +30,7 @@ export class UniversitiesRepository {
       })
     );
 
-    return allUniversities as unknown as University[];
+    return allUniversities as University[];
   }
 
   async findById(id: number): Promise<University | null> {
@@ -42,7 +42,7 @@ export class UniversitiesRepository {
       .from(universityPrograms)
       .where(eq(universityPrograms.universityId, uni.id));
 
-    return { ...uni, programs } as unknown as University;
+    return { ...uni, programs } as University;
   }
 
   async create(data: CreateUniversityDTO): Promise<University> {
@@ -63,7 +63,7 @@ export class UniversitiesRepository {
         })
         .returning();
 
-      let insertedPrograms = [];
+      let insertedPrograms: typeof universityPrograms.$inferSelect[] = [];
       if (data.programs && data.programs.length > 0) {
         const programsToInsert = data.programs.map((p) => ({
           universityId: newUni.id,
@@ -78,7 +78,7 @@ export class UniversitiesRepository {
         insertedPrograms = await tx.insert(universityPrograms).values(programsToInsert).returning();
       }
 
-      return { ...newUni, programs: insertedPrograms } as unknown as University;
+      return { ...newUni, programs: insertedPrograms } as University;
     });
   }
 
@@ -103,7 +103,7 @@ export class UniversitiesRepository {
       if (!updatedUni) return null;
 
       // 2. Update programs (For simplicity, we delete all existing and re-insert if programs array is provided)
-      let currentPrograms = [];
+      let currentPrograms: typeof universityPrograms.$inferSelect[] = [];
       if (programs) {
         await tx.delete(universityPrograms).where(eq(universityPrograms.universityId, id));
 
@@ -124,7 +124,7 @@ export class UniversitiesRepository {
         currentPrograms = await tx.select().from(universityPrograms).where(eq(universityPrograms.universityId, id));
       }
 
-      return { ...updatedUni, programs: currentPrograms } as unknown as University;
+      return { ...updatedUni, programs: currentPrograms } as University;
     });
   }
 
@@ -138,4 +138,3 @@ export class UniversitiesRepository {
   }
 }
 
-export const universitiesRepository = new UniversitiesRepository();

@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { CreateQuestionDTO } from "@/domain/questions/types";
+import { AppError } from "@/lib/errors";
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
@@ -11,7 +12,7 @@ export class AiGeneratorService {
     count: number
   ): Promise<CreateQuestionDTO[]> {
     if (!process.env.GEMINI_API_KEY) {
-      throw new Error("GEMINI_API_KEY is missing in environment variables.");
+      throw new AppError("GEMINI_API_KEY is missing in environment variables.");
     }
 
     const prompt = `
@@ -75,7 +76,7 @@ export class AiGeneratorService {
     });
 
     if (!response.text) {
-      throw new Error("Failed to generate content from AI");
+      throw new AppError("Failed to generate content from AI");
     }
 
     try {
@@ -89,9 +90,8 @@ export class AiGeneratorService {
       })) as CreateQuestionDTO[];
     } catch (e) {
       console.error("JSON parsing error from AI response:", e);
-      throw new Error("AI returned invalid JSON format");
+      throw new AppError("AI returned invalid JSON format");
     }
   }
 }
 
-export const aiGeneratorService = new AiGeneratorService();

@@ -1,12 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
 export default function RegisterPage() {
   const { lang, login, user } = useApp();
+  const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -14,10 +16,13 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   // Already logged in
-  if (user) {
-    window.location.href = "/profile";
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      router.push("/profile");
+    }
+  }, [user, router]);
+
+  if (user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,7 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { testService } from "@/services/test.service";
+import { testService } from "@/lib/container";
 import { AnswerInput } from "@/domain/tests/types";
 
 export async function POST(request: NextRequest) {
@@ -18,11 +19,14 @@ export async function POST(request: NextRequest) {
     const result = await testService.submitTest(userId, sessionId, answers);
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Test submit error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to submit test" },
-      { status: error.message === "Session not found" ? 404 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

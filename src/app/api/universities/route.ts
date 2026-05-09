@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { universitiesService } from "@/services/universities.service";
+import { universitiesService } from "@/lib/container";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);

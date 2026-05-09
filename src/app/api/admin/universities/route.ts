@@ -1,9 +1,10 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { eq } from "drizzle-orm";
-import { universitiesService } from "@/services/universities.service";
+import { universitiesService } from "@/lib/container";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -38,11 +39,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const newUni = await universitiesService.createUniversity(body);
     return NextResponse.json({ success: true, university: newUni });
-  } catch (error: any) {
-    console.error("Admin universities POST error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create university" }, 
-      { status: error.message.includes("required") ? 400 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

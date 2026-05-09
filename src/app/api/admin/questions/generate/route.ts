@@ -1,9 +1,10 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { aiGeneratorService } from "@/services/ai-generator.service";
+import { aiGeneratorService } from "@/lib/container";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -50,11 +51,14 @@ export async function POST(request: NextRequest) {
     );
 
     return NextResponse.json({ questions: generatedQuestions });
-  } catch (error: any) {
-    console.error("AI Generation error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to generate questions" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

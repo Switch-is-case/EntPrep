@@ -1,22 +1,24 @@
 import { hashPassword, verifyPassword, createToken } from "@/lib/auth";
 import { AuthResponseDTO, LoginDTO, RegisterDTO } from "@/domain/users/types";
-import { usersRepository } from "@/repositories/users.repository";
+import { ValidationError, UnauthorizedError, ConflictError } from "@/lib/errors";
+import { UsersRepository } from "@/repositories/users.repository";
 
 export class AuthService {
+  constructor(private readonly usersRepository: UsersRepository) {}
   async login(data: LoginDTO): Promise<AuthResponseDTO> {
     if (!data.email || !data.passwordRaw) {
-      throw new Error("Email and password are required");
+      throw new ValidationError("Email and password are required");
     }
 
-    const user = await usersRepository.findByEmail(data.email);
+    const user = await this.usersRepository.findByEmail(data.email);
 
     if (!user) {
-      throw new Error("Invalid credentials");
+      throw new UnauthorizedError("Invalid credentials");
     }
 
     const isPasswordValid = await verifyPassword(data.passwordRaw, user.passwordHash);
     if (!isPasswordValid) {
-      throw new Error("Invalid credentials");
+      throw new UnauthorizedError("Invalid credentials");
     }
 
     const token = createToken(user.id);
@@ -36,17 +38,17 @@ export class AuthService {
 
   async register(data: RegisterDTO): Promise<AuthResponseDTO> {
     if (!data.email || !data.passwordRaw || !data.name) {
-      throw new Error("Email, password, and name are required");
+      throw new ValidationError("Email, password, and name are required");
     }
 
-    const existingUser = await usersRepository.findByEmail(data.email);
+    const existingUser = await this.usersRepository.findByEmail(data.email);
     if (existingUser) {
-      throw new Error("Email already registered");
+      throw new ConflictError("Email already registered");
     }
 
     const passwordHash = await hashPassword(data.passwordRaw);
 
-    const user = await usersRepository.create({
+    const user = await this.usersRepository.create({
       email: data.email,
       passwordHash,
       name: data.name,
@@ -69,4 +71,3 @@ export class AuthService {
   }
 }
 
-export const authService = new AuthService();

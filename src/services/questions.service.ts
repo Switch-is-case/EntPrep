@@ -5,43 +5,47 @@ import {
   QuestionQueryParams,
   PaginatedQuestions,
 } from "@/domain/questions/types";
-import { questionsRepository } from "@/repositories/questions.repository";
+import { QuestionsRepository } from "@/repositories/questions.repository";
+import { ValidationError } from "@/lib/errors";
+
+export const MAX_BULK_IMPORT_LIMIT = 500;
 
 export class QuestionsService {
+  constructor(private readonly questionsRepository: QuestionsRepository) {}
   async getQuestions(params: QuestionQueryParams): Promise<PaginatedQuestions> {
-    return questionsRepository.findAll(params);
+    return this.questionsRepository.findAll(params);
   }
 
   async getQuestionById(id: number): Promise<Question | null> {
-    return questionsRepository.findById(id);
+    return this.questionsRepository.findById(id);
   }
 
   async createQuestion(data: CreateQuestionDTO): Promise<Question> {
     this.validateQuestionData(data);
-    return questionsRepository.create(data);
+    return this.questionsRepository.create(data);
   }
 
   async updateQuestion(id: number, data: UpdateQuestionDTO): Promise<Question | null> {
     if (Object.keys(data).length > 0) {
       // Basic validation if keys are present
       if (data.optionsRu && data.optionsRu.length < 2) {
-        throw new Error("optionsRu must have at least 2 items");
+        throw new ValidationError("optionsRu must have at least 2 items");
       }
     }
-    return questionsRepository.update(id, data);
+    return this.questionsRepository.update(id, data);
   }
 
   async deleteQuestion(id: number): Promise<boolean> {
-    return questionsRepository.delete(id);
+    return this.questionsRepository.delete(id);
   }
 
   async bulkImport(dataArray: any[]): Promise<{ imported: number; message: string }> {
     if (!Array.isArray(dataArray) || dataArray.length === 0) {
-      throw new Error("Expected a non-empty array of questions");
+      throw new ValidationError("Expected a non-empty array of questions");
     }
 
-    if (dataArray.length > 500) {
-      throw new Error("Maximum 500 questions per import");
+    if (dataArray.length > MAX_BULK_IMPORT_LIMIT) {
+      throw new ValidationError(`Maximum ${MAX_BULK_IMPORT_LIMIT} questions per import`);
     }
 
     const errors: string[] = [];
@@ -59,12 +63,10 @@ export class QuestionsService {
     }
 
     if (errors.length > 0) {
-      const error: any = new Error("Validation errors");
-      error.details = errors;
-      throw error;
+      throw new ValidationError("Validation errors", errors);
     }
 
-    const importedCount = await questionsRepository.bulkCreate(validRows);
+    const importedCount = await this.questionsRepository.bulkCreate(validRows);
     
     return {
       imported: importedCount,
@@ -74,12 +76,11 @@ export class QuestionsService {
 
   private validateQuestionData(data: CreateQuestionDTO) {
     if (!data.subject || !data.questionTextRu || !data.optionsRu || data.correctAnswer === undefined) {
-      throw new Error("Missing required fields");
+      throw new ValidationError("Missing required fields");
     }
     if (data.optionsRu.length < 2) {
-      throw new Error("optionsRu must have at least 2 items");
+      throw new ValidationError("optionsRu must have at least 2 items");
     }
   }
 }
 
-export const questionsService = new QuestionsService();

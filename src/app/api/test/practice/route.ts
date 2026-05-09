@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { testService } from "@/services/test.service";
+import { testService } from "@/lib/container";
 
 export async function POST(request: NextRequest) {
   const userId = getUserIdFromRequest(request);

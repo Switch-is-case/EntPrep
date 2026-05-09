@@ -1,6 +1,7 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { usersService } from "@/services/users.service";
+import { usersService } from "@/lib/container";
 
 export async function GET(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -34,11 +35,14 @@ export async function PUT(request: NextRequest) {
     });
 
     return NextResponse.json(updated);
-  } catch (error: any) {
-    console.error("Profile update error:", error);
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

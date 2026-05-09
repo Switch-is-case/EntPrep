@@ -1,9 +1,10 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { questionsService } from "@/services/questions.service";
+import { questionsService } from "@/lib/container";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -29,14 +30,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const result = await questionsService.bulkImport(body);
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Bulk import error:", error);
-    if (error.message === "Validation errors") {
-      return NextResponse.json({ error: "Validation errors", details: error.details }, { status: 400 });
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
     }
-    return NextResponse.json(
-      { error: error.message || "Import failed" },
-      { status: error.message.includes("Maximum") || error.message.includes("Expected") ? 400 : 500 }
-    );
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

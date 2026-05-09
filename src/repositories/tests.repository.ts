@@ -21,7 +21,7 @@ export class TestsRepository {
       })
       .returning();
 
-    return session as unknown as TestSession;
+    return session as TestSession;
   }
 
   async getSessionById(sessionId: string, userId: string): Promise<TestSession | null> {
@@ -31,7 +31,7 @@ export class TestsRepository {
       .where(and(eq(testSessions.id, sessionId), eq(testSessions.userId, userId)))
       .limit(1);
 
-    return (session as unknown as TestSession) || null;
+    return (session as TestSession) || null;
   }
 
   async getQuestionsBySubject(subject: string, count: number): Promise<Question[]> {
@@ -42,7 +42,7 @@ export class TestsRepository {
       .orderBy(sql`RANDOM()`)
       .limit(count);
 
-    return subjectQuestions as unknown as Question[];
+    return subjectQuestions as Question[];
   }
 
   async getQuestionById(questionId: number): Promise<Question | null> {
@@ -51,7 +51,7 @@ export class TestsRepository {
       .from(questions)
       .where(eq(questions.id, questionId))
       .limit(1);
-    return (q as unknown as Question) || null;
+    return (q as Question) || null;
   }
 
   async saveTestResults(
@@ -162,4 +162,3 @@ export class TestsRepository {
   }
 }
 
-export const testsRepository = new TestsRepository();

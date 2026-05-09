@@ -1,36 +1,38 @@
 import { University, CreateUniversityDTO, UpdateUniversityDTO } from "@/domain/universities/types";
-import { universitiesRepository } from "@/repositories/universities.repository";
+import { UniversitiesRepository } from "@/repositories/universities.repository";
+import { ValidationError } from "@/lib/errors";
 
 export class UniversitiesService {
+  constructor(private readonly universitiesRepository: UniversitiesRepository) {}
+
   async getAllUniversities(search?: string): Promise<University[]> {
-    return universitiesRepository.findAll(search);
+    return this.universitiesRepository.findAll(search);
   }
 
   async getUniversityById(id: number): Promise<University | null> {
-    return universitiesRepository.findById(id);
+    return this.universitiesRepository.findById(id);
   }
 
   async createUniversity(data: CreateUniversityDTO): Promise<University> {
     this.validateUniversityData(data);
-    return universitiesRepository.create(data);
+    return this.universitiesRepository.create(data);
   }
 
   async updateUniversity(id: number, data: UpdateUniversityDTO): Promise<University | null> {
     if (data.nameRu === "" || data.cityRu === "") {
-      throw new Error("Names and cities cannot be empty strings");
+      throw new ValidationError("Names and cities cannot be empty strings");
     }
-    return universitiesRepository.update(id, data);
+    return this.universitiesRepository.update(id, data);
   }
 
   async deleteUniversity(id: number): Promise<boolean> {
-    return universitiesRepository.delete(id);
+    return this.universitiesRepository.delete(id);
   }
 
   private validateUniversityData(data: CreateUniversityDTO) {
     if (!data.nameRu || !data.nameKz || !data.nameEn || !data.cityRu || !data.cityKz || !data.cityEn) {
-      throw new Error("Names and cities in all languages are required");
+      throw new ValidationError("Names and cities in all languages are required");
     }
   }
 }
 
-export const universitiesService = new UniversitiesService();

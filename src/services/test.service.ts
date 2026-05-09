@@ -1,13 +1,18 @@
 import { AnswerInput, StartTestResponse, SubmitTestResponse, SessionHistoryDTO } from "@/domain/tests/types";
-import { testsRepository } from "@/repositories/tests.repository";
-import { usersRepository } from "@/repositories/users.repository";
+import { TestsRepository } from "@/repositories/tests.repository";
+import { UsersRepository } from "@/repositories/users.repository";
 import { ENT_QUESTION_COUNTS } from "@/lib/i18n";
 import { Question } from "@/domain/questions/types";
+import { NotFoundError } from "@/lib/errors";
 
 export class TestService {
+  constructor(
+    private readonly testsRepository: TestsRepository,
+    private readonly usersRepository: UsersRepository
+  ) {}
   async startTest(userId: string, testType: string): Promise<StartTestResponse> {
-    const user = await usersRepository.findById(userId);
-    if (!user) throw new Error("User not found");
+    const user = await this.usersRepository.findById(userId);
+    if (!user) throw new NotFoundError("User not found");
 
     const subjectsList: string[] = [];
     const questionsPerSubject: Record<string, number> = {};
@@ -31,13 +36,13 @@ export class TestService {
     const allQuestions: Question[] = [];
     for (const subject of subjectsList) {
       const count = questionsPerSubject[subject] || 5;
-      const subjectQuestions = await testsRepository.getQuestionsBySubject(subject, count);
+      const subjectQuestions = await this.testsRepository.getQuestionsBySubject(subject, count);
       allQuestions.push(...subjectQuestions);
     }
 
     const totalQuestions = allQuestions.length;
 
-    const session = await testsRepository.createSession(userId, testType, subjectsList, totalQuestions);
+    const session = await this.testsRepository.createSession(userId, testType, subjectsList, totalQuestions);
 
     return {
       sessionId: session.id,
@@ -57,8 +62,8 @@ export class TestService {
   }
 
   async submitTest(userId: string, sessionId: string, answers: AnswerInput[]): Promise<SubmitTestResponse> {
-    const session = await testsRepository.getSessionById(sessionId, userId);
-    if (!session) throw new Error("Session not found");
+    const session = await this.testsRepository.getSessionById(sessionId, userId);
+    if (!session) throw new NotFoundError("Session not found");
 
     let totalCorrect = 0;
     let totalSkipped = 0;
@@ -67,7 +72,7 @@ export class TestService {
     const answersToInsert = [];
 
     for (const answer of answers) {
-      const question = await testsRepository.getQuestionById(answer.questionId);
+      const question = await this.testsRepository.getQuestionById(answer.questionId);
       if (!question) continue;
 
       const isSkipped = answer.selectedAnswer === null;
@@ -114,7 +119,7 @@ export class TestService {
       completedAt: new Date(),
     };
 
-    await testsRepository.saveTestResults(userId, sessionId, answersToInsert, sessionUpdates, subjectResults);
+    await this.testsRepository.saveTestResults(userId, sessionId, answersToInsert, sessionUpdates, subjectResults);
 
     return {
       score,
@@ -128,7 +133,7 @@ export class TestService {
   }
 
   async startPractice(subject: string, count: number) {
-    const questions = await testsRepository.getQuestionsBySubject(subject, count);
+    const questions = await this.testsRepository.getQuestionsBySubject(subject, count);
     return {
       questions: questions.map((q) => ({
         id: q.id,
@@ -147,11 +152,11 @@ export class TestService {
   }
 
   async getUserHistory(userId: string): Promise<SessionHistoryDTO[]> {
-    return testsRepository.findHistoryByUserId(userId);
+    return this.testsRepository.findHistoryByUserId(userId);
   }
 
   async getSessionDetails(userId: string, sessionId: string) {
-    return testsRepository.getSessionWithDetails(sessionId, userId);
+    return this.testsRepository.getSessionWithDetails(sessionId, userId);
   }
 
   private generateRecommendations(
@@ -188,4 +193,3 @@ export class TestService {
   }
 }
 
-export const testService = new TestService();

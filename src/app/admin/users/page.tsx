@@ -1,91 +1,29 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  language: string;
-  profileSubject1: string | null;
-  profileSubject2: string | null;
-  isAdmin: boolean;
-  createdAt: string;
-}
+import { useAdminUsers } from "@/hooks/useAdminUsers";
 
 export default function AdminUsers() {
-  const { token, user: currentUser, lang, authHeaders } = useApp();
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [search, setSearch] = useState("");
-
-  const fetchUsers = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: "15",
-    });
-    if (search) params.set("search", search);
-
-    const res = await fetch(`/api/admin/users?${params}`, { headers: authHeaders() });
-
-    if (res.ok) {
-      const data = await res.json();
-      setUsers(data.users);
-      setTotalPages(data.totalPages);
-    }
-
-    setLoading(false);
-  }, [token, page, search]);
-
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const { lang } = useApp();
+  const {
+    users,
+    loading,
+    page,
+    totalPages,
+    search,
+    setPage,
+    setSearch,
+    toggleAdmin,
+    deleteUser,
+    currentUser,
+  } = useAdminUsers();
 
   const getSubjectName = (s: string | null) => {
     if (!s) return "—";
     const key = `subject.${s}` as keyof typeof import("@/lib/i18n").translations;
     return t(key, lang);
-  };
-
-  const toggleAdmin = async (user: User) => {
-    if (user.id === currentUser?.id) {
-      alert("Нельзя изменить свой статус администратора");
-      return;
-    }
-
-    const res = await fetch(`/api/admin/users/${user.id}`, {
-      headers: authHeaders(),
-      method: "PUT",
-      body: JSON.stringify({ isAdmin: !user.isAdmin }),
-    });
-
-    if (res.ok) {
-      fetchUsers();
-    }
-  };
-
-  const deleteUser = async (user: User) => {
-    if (user.id === currentUser?.id) {
-      alert("Нельзя удалить себя");
-      return;
-    }
-    if (!confirm(`Удалить пользователя ${user.name}?`)) return;
-
-    const res = await fetch(`/api/admin/users/${user.id}`, {
-      headers: authHeaders(),
-      method: "DELETE",
-    });
-
-    if (res.ok) {
-      fetchUsers();
-    }
   };
 
   return (

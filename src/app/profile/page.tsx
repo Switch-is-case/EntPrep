@@ -23,6 +23,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     if (user) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSubject1(user.profileSubject1 || "");
       setSubject2(user.profileSubject2 || "");
       setSelectedLang((user.language as Lang) || lang);

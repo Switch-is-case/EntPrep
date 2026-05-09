@@ -1,9 +1,10 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { questionsService } from "@/services/questions.service";
+import { questionsService } from "@/lib/container";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -50,11 +51,14 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const newQuestion = await questionsService.createQuestion(body);
     return NextResponse.json({ question: newQuestion });
-  } catch (error: any) {
-    console.error("Create question error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to create question" },
-      { status: error.message === "Missing required fields" ? 400 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

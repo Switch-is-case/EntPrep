@@ -3,75 +3,20 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { useApp } from "@/components/Providers";
 
-interface Session {
-  id: string;
-  userId: string;
-  testType: string;
-  subjects: string[];
-  totalQuestions: number;
-  correctAnswers: number;
-  skippedAnswers: number;
-  wrongAnswers: number;
-  score: number;
-  completed: boolean;
-  startedAt: string;
-  completedAt: string | null;
-  user: { id: string; name: string; email: string } | null;
-}
+import { useAdminSessions } from "@/hooks/useAdminSessions";
 
 export default function AdminSessions() {
-  const { token, authHeaders } = useApp();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filterType, setFilterType] = useState("");
-
-  const fetchSessions = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-
-    const params = new URLSearchParams({
-      page: page.toString(),
-      limit: "20",
-    });
-    if (filterType) params.set("testType", filterType);
-
-    const res = await fetch(`/api/admin/sessions?${params}`, { headers: authHeaders() });
-
-    if (res.ok) {
-      const data = await res.json();
-      setSessions(data.sessions);
-      setTotalPages(data.totalPages);
-    }
-
-    setLoading(false);
-  }, [token, page, filterType]);
-
-  useEffect(() => {
-    fetchSessions();
-  }, [fetchSessions]);
-
-  const getTestTypeName = (type: string) => {
-    switch (type) {
-      case "diagnostic":
-        return "Диагностический";
-      case "full":
-        return "Полный ЕНТ";
-      case "practice":
-        return "Практика";
-      default:
-        return type;
-    }
-  };
-
-  const formatDuration = (start: string, end: string | null) => {
-    if (!end) return "—";
-    const ms = new Date(end).getTime() - new Date(start).getTime();
-    const minutes = Math.floor(ms / 60000);
-    const seconds = Math.floor((ms % 60000) / 1000);
-    return `${minutes}м ${seconds}с`;
-  };
+  const {
+    sessions,
+    loading,
+    page,
+    totalPages,
+    filterType,
+    setPage,
+    setFilterType,
+    getTestTypeName,
+    formatDuration,
+  } = useAdminSessions();
 
   return (
     <div>

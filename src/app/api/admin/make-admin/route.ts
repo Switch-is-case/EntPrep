@@ -1,6 +1,7 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { usersService } from "@/services/users.service";
+import { usersService } from "@/lib/container";
 
 // This endpoint allows the first user to become admin, or requires admin secret
 export async function POST(request: NextRequest) {
@@ -28,12 +29,14 @@ export async function POST(request: NextRequest) {
         email: updatedUser.email,
       },
     });
-  } catch (error: any) {
-    console.error("Make admin error:", error);
-    const isForbidden = error.message?.includes("Admin already exists");
-    return NextResponse.json(
-      { error: error.message || "Failed to make admin" },
-      { status: isForbidden ? 403 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

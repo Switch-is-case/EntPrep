@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { users } from "@/db/schema";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { eq } from "drizzle-orm";
-import { analyticsService } from "@/services/analytics.service";
+import { analyticsService } from "@/lib/container";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);

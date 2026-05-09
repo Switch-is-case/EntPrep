@@ -49,7 +49,7 @@ export default function AdminLayout({
         }
       })
       .catch(() => setIsAdmin(false));
-  }, [user, token, router]);
+  }, [user, token, router, authHeaders]);
 
   if (isAdmin === null) {
     return (

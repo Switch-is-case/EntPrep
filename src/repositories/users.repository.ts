@@ -23,7 +23,7 @@ export class UsersRepository {
       .from(users);
 
     return {
-      users: allUsers as unknown as User[],
+      users: allUsers as User[],
       total: Number(totalCount.count)
     };
   }
@@ -35,7 +35,7 @@ export class UsersRepository {
       .where(eq(users.id, id))
       .limit(1);
     
-    return (user as unknown as User) || null;
+    return (user as User) || null;
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -45,7 +45,7 @@ export class UsersRepository {
       .where(eq(users.email, email))
       .limit(1);
     
-    return (user as unknown as User) || null;
+    return (user as User) || null;
   }
 
   async create(data: CreateUserDTO): Promise<User> {
@@ -59,7 +59,7 @@ export class UsersRepository {
       })
       .returning();
 
-    return user as unknown as User;
+    return user as User;
   }
 
   async update(id: string, data: UpdateUserDTO): Promise<User | null> {
@@ -71,7 +71,7 @@ export class UsersRepository {
       .where(eq(users.id, id))
       .returning();
 
-    return (updated as unknown as User) || null;
+    return (updated as User) || null;
   }
 
   async makeAdmin(id: string): Promise<User | null> {
@@ -81,7 +81,7 @@ export class UsersRepository {
       .where(eq(users.id, id))
       .returning();
 
-    return (updated as unknown as User) || null;
+    return (updated as User) || null;
   }
 
   async countAdmins(): Promise<number> {
@@ -94,4 +94,3 @@ export class UsersRepository {
   }
 }
 
-export const usersRepository = new UsersRepository();

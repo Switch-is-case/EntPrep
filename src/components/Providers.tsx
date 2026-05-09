@@ -55,6 +55,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   // Simple: load from localStorage, no async validation
   useEffect(() => {
     const savedLang = localStorage.getItem("ent-lang") as Lang;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (savedLang) setLangState(savedLang);
 
     const savedToken = localStorage.getItem("ent-token");

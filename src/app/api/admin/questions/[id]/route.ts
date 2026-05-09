@@ -1,9 +1,10 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import { questionsService } from "@/services/questions.service";
+import { questionsService } from "@/lib/container";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -57,12 +58,15 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     }
 
     return NextResponse.json({ question: updated });
-  } catch (error: any) {
-    console.error("Update question error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to update question" },
-      { status: 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
 

@@ -1,6 +1,7 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { testService } from "@/services/test.service";
+import { testService } from "@/lib/container";
 
 export async function POST(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -14,11 +15,14 @@ export async function POST(request: NextRequest) {
     const result = await testService.startTest(userId, testType);
 
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Test start error:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to start test" },
-      { status: error.message === "User not found" ? 404 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

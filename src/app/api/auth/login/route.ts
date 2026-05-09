@@ -1,5 +1,6 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
-import { authService } from "@/services/auth.service";
+import { authService } from "@/lib/container";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,13 +8,14 @@ export async function POST(request: NextRequest) {
 
     const result = await authService.login({ email, passwordRaw: password });
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Login error:", error);
-    const isClientError = error.message === "Invalid credentials" ||
-      error.message === "Email and password are required";
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status: isClientError ? 401 : 500 }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

@@ -58,7 +58,7 @@ export default function ProgressPage() {
     };
 
     fetchProgress();
-  }, [ready, user, token, router]);
+  }, [ready, user, token, router, authHeaders]);
 
   if (!user) return null;
 

@@ -50,7 +50,7 @@ export class QuestionsRepository {
       .from(questions);
 
     return {
-      questions: items as unknown as Question[],
+      questions: items as Question[],
       total: Number(totalCount.count),
       page,
       limit,
@@ -60,7 +60,7 @@ export class QuestionsRepository {
 
   async findById(id: number): Promise<Question | null> {
     const [q] = await db.select().from(questions).where(eq(questions.id, id));
-    return (q as unknown as Question) || null;
+    return (q as Question) || null;
   }
 
   async create(data: CreateQuestionDTO): Promise<Question> {
@@ -82,7 +82,7 @@ export class QuestionsRepository {
       })
       .returning();
     
-    return newQuestion as unknown as Question;
+    return newQuestion as Question;
   }
 
   async update(id: number, data: UpdateQuestionDTO): Promise<Question | null> {
@@ -94,7 +94,7 @@ export class QuestionsRepository {
       .where(eq(questions.id, id))
       .returning();
 
-    return (updated as unknown as Question) || null;
+    return (updated as Question) || null;
   }
 
   async delete(id: number): Promise<boolean> {
@@ -131,4 +131,3 @@ export class QuestionsRepository {
   }
 }
 
-export const questionsRepository = new QuestionsRepository();

@@ -1,5 +1,6 @@
+import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
-import { authService } from "@/services/auth.service";
+import { authService } from "@/lib/container";
 
 export async function POST(request: NextRequest) {
   try {
@@ -7,14 +8,14 @@ export async function POST(request: NextRequest) {
 
     const result = await authService.register({ email, passwordRaw: password, name, language });
     return NextResponse.json(result);
-  } catch (error: any) {
-    console.error("Register error:", error);
-    const status = error.message === "Email already registered" ? 409
-      : error.message?.includes("required") ? 400
-      : 500;
-    return NextResponse.json(
-      { error: error.message || "Internal server error" },
-      { status }
-    );
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
+    }
+    console.error("API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

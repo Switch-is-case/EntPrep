@@ -10,7 +10,7 @@ export class ProgressRepository {
       .from(progress)
       .where(eq(progress.userId, userId));
 
-    return results as unknown as SubjectProgress[];
+    return results as SubjectProgress[];
   }
 
   async findRecentSessionsByUserId(userId: string, limit = 10): Promise<RecentSession[]> {
@@ -37,4 +37,3 @@ export class ProgressRepository {
   }
 }
 
-export const progressRepository = new ProgressRepository();
