@@ -43,6 +43,17 @@ export default function AdminQuestions() {
   const [bulkResult, setBulkResult] = useState<{ imported: number; message: string } | null>(null);
   const [bulkErrors, setBulkErrors] = useState<string[]>([]);
 
+  // AI Generator state
+  const [showAiModal, setShowAiModal] = useState(false);
+  const [aiForm, setAiForm] = useState({
+    subject: "math_literacy",
+    topic: "",
+    difficulty: "medium",
+    count: 3,
+  });
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState("");
+
   // Form state
   const [form, setForm] = useState({
     subject: "math_literacy",
@@ -301,11 +312,53 @@ export default function AdminQuestions() {
     setBulkImporting(false);
   };
 
+  const handleAiGenerate = async () => {
+    if (!token) return;
+    if (!aiForm.topic.trim()) {
+      setAiError("Введите тему (например, 'Логарифмы' или 'Оптика')");
+      return;
+    }
+    setAiGenerating(true);
+    setAiError("");
+
+    try {
+      const res = await fetch("/api/admin/questions/generate", {
+        method: "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify(aiForm),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Ошибка генерации");
+
+      setShowAiModal(false);
+      
+      const jsonString = JSON.stringify(data.questions, null, 2);
+      setBulkJson(jsonString);
+      setBulkParseError("");
+      setBulkParsed(data.questions);
+      setBulkResult(null);
+      setBulkErrors([]);
+      setShowBulkModal(true);
+      
+    } catch (e: any) {
+      setAiError(e.message);
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">Вопросы</h1>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowAiModal(true)}
+            className="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-4 py-2 rounded-lg font-medium hover:bg-purple-600/30 transition-colors flex items-center gap-2 text-sm"
+          >
+            ✨ Сгенерировать ИИ
+          </button>
           <button
             onClick={() => {
               setShowBulkModal(true);
@@ -825,6 +878,121 @@ export default function AdminQuestions() {
                 className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
               >
                 {bulkImporting ? "Импорт..." : "Импортировать"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* AI Generator Modal */}
+      {showAiModal && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-auto">
+          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-xl my-8">
+            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+                <span className="text-purple-400">✨</span> Генератор ИИ
+              </h2>
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="text-slate-400 hover:text-white text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-purple-500/10 text-purple-300 text-sm rounded-lg p-3 border border-purple-500/20 leading-relaxed">
+                Сгенерированные вопросы будут загружены в окно Массового импорта, где вы сможете их проверить и отредактировать перед сохранением.
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Предмет *
+                </label>
+                <select
+                  value={aiForm.subject}
+                  onChange={(e) => setAiForm({ ...aiForm, subject: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                >
+                  {allSubjects.map((s) => (
+                    <option key={s} value={s}>
+                      {getSubjectName(s)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-300 mb-1">
+                  Тема (описание для ИИ) *
+                </label>
+                <input
+                  type="text"
+                  value={aiForm.topic}
+                  onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
+                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-400"
+                  placeholder="Например: Квадратные уравнения, Производные..."
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Сложность
+                  </label>
+                  <select
+                    value={aiForm.difficulty}
+                    onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                  >
+                    <option value="easy">Легкий</option>
+                    <option value="medium">Средний</option>
+                    <option value="hard">Сложный</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                    Количество (макс. 20)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="20"
+                    value={aiForm.count}
+                    onChange={(e) => setAiForm({ ...aiForm, count: Number(e.target.value) })}
+                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                  />
+                </div>
+              </div>
+
+              {aiError && (
+                <div className="bg-danger/10 text-danger text-sm rounded-lg p-3 border border-danger/20">
+                  {aiError}
+                </div>
+              )}
+            </div>
+
+            <div className="p-4 border-t border-slate-700 flex justify-end gap-3">
+              <button
+                onClick={() => setShowAiModal(false)}
+                className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+                disabled={aiGenerating}
+              >
+                Отмена
+              </button>
+              <button
+                onClick={handleAiGenerate}
+                disabled={aiGenerating || !aiForm.topic}
+                className="px-6 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {aiGenerating ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    Генерация...
+                  </>
+                ) : (
+                  "Сгенерировать"
+                )}
               </button>
             </div>
           </div>
