@@ -1,4 +1,5 @@
 import { University, CreateUniversityDTO, UpdateUniversityDTO } from "@/domain/universities/types";
+import { createUniversitySchema } from "@/domain/validation";
 import { UniversitiesRepository } from "@/repositories/universities.repository";
 import { ValidationError } from "@/lib/errors";
 
@@ -14,25 +15,17 @@ export class UniversitiesService {
   }
 
   async createUniversity(data: CreateUniversityDTO): Promise<University> {
-    this.validateUniversityData(data);
-    return this.universitiesRepository.create(data);
+    const validatedData = createUniversitySchema.parse(data);
+    return this.universitiesRepository.create(validatedData as CreateUniversityDTO);
   }
 
   async updateUniversity(id: number, data: UpdateUniversityDTO): Promise<University | null> {
-    if (data.nameRu === "" || data.cityRu === "") {
-      throw new ValidationError("Names and cities cannot be empty strings");
-    }
-    return this.universitiesRepository.update(id, data);
+    const validatedData = createUniversitySchema.partial().parse(data);
+    return this.universitiesRepository.update(id, validatedData as UpdateUniversityDTO);
   }
 
   async deleteUniversity(id: number): Promise<boolean> {
     return this.universitiesRepository.delete(id);
-  }
-
-  private validateUniversityData(data: CreateUniversityDTO) {
-    if (!data.nameRu || !data.nameKz || !data.nameEn || !data.cityRu || !data.cityKz || !data.cityEn) {
-      throw new ValidationError("Names and cities in all languages are required");
-    }
   }
 }
 

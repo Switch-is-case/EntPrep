@@ -1,7 +1,7 @@
 import { AnswerInput, StartTestResponse, SubmitTestResponse, SessionHistoryDTO } from "@/domain/tests/types";
 import { TestsRepository } from "@/repositories/tests.repository";
 import { UsersRepository } from "@/repositories/users.repository";
-import { ENT_QUESTION_COUNTS } from "@/lib/i18n";
+import { generateTestConfiguration } from "@/domain/tests/rules";
 import { Question } from "@/domain/questions/types";
 import { NotFoundError } from "@/lib/errors";
 
@@ -14,24 +14,7 @@ export class TestService {
     const user = await this.usersRepository.findById(userId);
     if (!user) throw new NotFoundError("User not found");
 
-    const subjectsList: string[] = [];
-    const questionsPerSubject: Record<string, number> = {};
-
-    if (testType === "full" || testType === "diagnostic") {
-      subjectsList.push("math_literacy", "reading_literacy", "history_kz");
-      questionsPerSubject["math_literacy"] = testType === "diagnostic" ? 5 : ENT_QUESTION_COUNTS.math_literacy;
-      questionsPerSubject["reading_literacy"] = testType === "diagnostic" ? 5 : ENT_QUESTION_COUNTS.reading_literacy;
-      questionsPerSubject["history_kz"] = testType === "diagnostic" ? 5 : ENT_QUESTION_COUNTS.history_kz;
-
-      if (user.profileSubject1) {
-        subjectsList.push(user.profileSubject1);
-        questionsPerSubject[user.profileSubject1] = testType === "diagnostic" ? 5 : ENT_QUESTION_COUNTS.profile;
-      }
-      if (user.profileSubject2) {
-        subjectsList.push(user.profileSubject2);
-        questionsPerSubject[user.profileSubject2] = testType === "diagnostic" ? 5 : ENT_QUESTION_COUNTS.profile;
-      }
-    }
+    const { subjectsList, questionsPerSubject } = generateTestConfiguration(testType, user);
 
     const allQuestions: Question[] = [];
     for (const subject of subjectsList) {

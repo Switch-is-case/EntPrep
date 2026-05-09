@@ -283,33 +283,6 @@ export function t(key: TranslationKey, lang: Lang): string {
   return entry[lang] || entry["en"] || key;
 }
 
-export const MANDATORY_SUBJECTS = [
-  "math_literacy",
-  "reading_literacy",
-  "history_kz",
-] as const;
-
-export const PROFILE_SUBJECTS = [
-  "math",
-  "physics",
-  "chemistry",
-  "biology",
-  "geography",
-  "world_history",
-  "english",
-  "informatics",
-  "literature",
-] as const;
-
-// ENT format: 3 mandatory (10 each = 30) + 2 profile (45 each = 90) + bonus 20 = 140 total
-// Simplified: 3 mandatory × 10 + 2 profile × 45 = 120. But real ENT is 140 total.
-// Real ENT: math_literacy=15, reading_literacy=15, history_kz=20, profile1=45, profile2=45 = 140
-export const ENT_QUESTION_COUNTS: Record<string, number> = {
-  math_literacy: 15,
-  reading_literacy: 15,
-  history_kz: 20,
-  profile: 45, // each profile subject
-};
 
 export const SUBJECT_COLORS: Record<string, string> = {
   math_literacy: "#2563eb",

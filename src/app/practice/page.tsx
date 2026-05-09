@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
-import { t, MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/lib/i18n";
+import { t } from "@/lib/i18n";
+import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 
 interface PracticeQuestion {
   id: number;

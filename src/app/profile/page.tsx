@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useApp } from "@/components/Providers";
-import { t, PROFILE_SUBJECTS, type Lang } from "@/lib/i18n";
+import { t, type Lang } from "@/lib/i18n";
+import { PROFILE_SUBJECTS } from "@/domain/tests/rules";
 
 export default function ProfilePage() {
   const { lang, setLang, user, updateUser, authHeaders, ready, logout } = useApp();

@@ -1,16 +1,15 @@
 import { hashPassword, verifyPassword, createToken } from "@/lib/auth";
 import { AuthResponseDTO, LoginDTO, RegisterDTO } from "@/domain/users/types";
+import { loginSchema, registerSchema } from "@/domain/validation";
 import { ValidationError, UnauthorizedError, ConflictError } from "@/lib/errors";
 import { UsersRepository } from "@/repositories/users.repository";
 
 export class AuthService {
   constructor(private readonly usersRepository: UsersRepository) {}
   async login(data: LoginDTO): Promise<AuthResponseDTO> {
-    if (!data.email || !data.passwordRaw) {
-      throw new ValidationError("Email and password are required");
-    }
+    const validatedData = loginSchema.parse(data);
 
-    const user = await this.usersRepository.findByEmail(data.email);
+    const user = await this.usersRepository.findByEmail(validatedData.email);
 
     if (!user) {
       throw new UnauthorizedError("Invalid credentials");
@@ -37,11 +36,9 @@ export class AuthService {
   }
 
   async register(data: RegisterDTO): Promise<AuthResponseDTO> {
-    if (!data.email || !data.passwordRaw || !data.name) {
-      throw new ValidationError("Email, password, and name are required");
-    }
+    const validatedData = registerSchema.parse(data);
 
-    const existingUser = await this.usersRepository.findByEmail(data.email);
+    const existingUser = await this.usersRepository.findByEmail(validatedData.email);
     if (existingUser) {
       throw new ConflictError("Email already registered");
     }

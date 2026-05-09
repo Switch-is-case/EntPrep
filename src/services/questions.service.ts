@@ -5,6 +5,7 @@ import {
   QuestionQueryParams,
   PaginatedQuestions,
 } from "@/domain/questions/types";
+import { createQuestionSchema } from "@/domain/validation";
 import { QuestionsRepository } from "@/repositories/questions.repository";
 import { ValidationError } from "@/lib/errors";
 
@@ -21,16 +22,14 @@ export class QuestionsService {
   }
 
   async createQuestion(data: CreateQuestionDTO): Promise<Question> {
-    this.validateQuestionData(data);
-    return this.questionsRepository.create(data);
+    const validatedData = createQuestionSchema.parse(data);
+    return this.questionsRepository.create(validatedData as CreateQuestionDTO);
   }
 
   async updateQuestion(id: number, data: UpdateQuestionDTO): Promise<Question | null> {
     if (Object.keys(data).length > 0) {
-      // Basic validation if keys are present
-      if (data.optionsRu && data.optionsRu.length < 2) {
-        throw new ValidationError("optionsRu must have at least 2 items");
-      }
+      const validatedData = createQuestionSchema.partial().parse(data);
+      return this.questionsRepository.update(id, validatedData as UpdateQuestionDTO);
     }
     return this.questionsRepository.update(id, data);
   }
@@ -73,14 +72,4 @@ export class QuestionsService {
       message: `Successfully imported ${importedCount} questions`,
     };
   }
-
-  private validateQuestionData(data: CreateQuestionDTO) {
-    if (!data.subject || !data.questionTextRu || !data.optionsRu || data.correctAnswer === undefined) {
-      throw new ValidationError("Missing required fields");
-    }
-    if (data.optionsRu.length < 2) {
-      throw new ValidationError("optionsRu must have at least 2 items");
-    }
-  }
 }
-

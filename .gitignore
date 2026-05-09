@@ -4,3 +4,4 @@ node_modules
 .env.*
 .DS_Store
 clean-code-report.md
+architecture-report.md

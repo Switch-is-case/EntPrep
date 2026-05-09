@@ -4,9 +4,9 @@ export interface Question {
   questionTextRu: string;
   questionTextKz: string;
   questionTextEn: string;
-  optionsRu: string[] | any;
-  optionsKz: string[] | any;
-  optionsEn: string[] | any;
+  optionsRu: string[];
+  optionsKz: string[];
+  optionsEn: string[];
   correctAnswer: number;
   difficulty: string;
   topic: string | null;
