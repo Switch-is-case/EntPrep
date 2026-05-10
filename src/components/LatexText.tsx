@@ -1,7 +1,9 @@
 "use client";
 
 import React from "react";
-import Latex from "react-latex-next";
+import ReactMarkdown from "react-markdown";
+import remarkMath from "remark-math";
+import rehypeKatex from "rehype-katex";
 
 // We import the CSS in globals.css to avoid duplicating it or causing SSR issues
 
@@ -13,7 +15,15 @@ interface LatexTextProps {
 export function LatexText({ text, className = "" }: LatexTextProps) {
   return (
     <span className={className}>
-      <Latex>{text}</Latex>
+      <ReactMarkdown
+        remarkPlugins={[remarkMath]}
+        rehypePlugins={[rehypeKatex]}
+        components={{
+          p: ({ children }) => <span>{children}</span>,
+        }}
+      >
+        {text}
+      </ReactMarkdown>
     </span>
   );
 }
