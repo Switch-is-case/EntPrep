@@ -6,6 +6,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 import { Spinner } from "@/components/Spinner";
+import { LatexText } from "@/components/LatexText";
 
 interface PracticeQuestion {
   id: number;
@@ -374,7 +375,7 @@ export default function PracticePage() {
                 <div className="text-xs text-text-secondary mb-2">{q.topic}</div>
               )}
               <h2 className="text-xl md:text-2xl font-bold text-text mb-5">
-                {getQuestionText(q)}
+                <LatexText text={getQuestionText(q)} />
               </h2>
               <div className="space-y-2.5">
                 {options.map((option, idx) => (
@@ -392,7 +393,7 @@ export default function PracticePage() {
                     }`}>
                       {String.fromCharCode(65 + idx)}
                     </div>
-                    <span className="text-sm text-text">{option}</span>
+                    <span className="text-sm text-text"><LatexText text={option} /></span>
                   </button>
                 ))}
               </div>

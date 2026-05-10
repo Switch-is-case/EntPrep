@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
+import { LatexText } from "@/components/LatexText";
 
 interface Question {
   id: number;
@@ -361,7 +362,7 @@ export default function TestsPage() {
                 <div className="text-xs text-text-secondary mb-2">{currentQuestion.topic}</div>
               )}
               <h2 className="text-xl md:text-2xl font-bold text-text mb-5">
-                {getQuestionText(currentQuestion)}
+                <LatexText text={getQuestionText(currentQuestion)} />
               </h2>
               <div className="space-y-2.5">
                 {getOptions(currentQuestion).map((option, idx) => (
@@ -379,7 +380,7 @@ export default function TestsPage() {
                     }`}>
                       {String.fromCharCode(65 + idx)}
                     </div>
-                    <span className="text-sm text-text">{option}</span>
+                    <span className="text-sm text-text"><LatexText text={option} /></span>
                   </button>
                 ))}
               </div>
@@ -574,12 +575,12 @@ export default function TestsPage() {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-text mb-2">
-                        <span className="text-text-secondary mr-1">#{idx + 1}</span>{qText}
+                        <span className="text-text-secondary mr-1">#{idx + 1}</span><LatexText text={qText} />
                       </p>
                       <div className="flex flex-wrap gap-2 text-xs">
                         {!isSkipped && !isCorrect && (
                           <span className="px-2 py-1 rounded bg-danger/10 text-danger">
-                            {lang === "ru" ? "Ваш ответ" : lang === "kz" ? "Сіздің жауабыңыз" : "Your answer"}: {String.fromCharCode(65 + (userAnswer as number))} — {opts[userAnswer as number]}
+                            {lang === "ru" ? "Ваш ответ" : lang === "kz" ? "Сіздің жауабыңыз" : "Your answer"}: {String.fromCharCode(65 + (userAnswer as number))} — <LatexText text={opts[userAnswer as number]} />
                           </span>
                         )}
                         {isSkipped && (
@@ -588,7 +589,7 @@ export default function TestsPage() {
                           </span>
                         )}
                         <span className="px-2 py-1 rounded bg-success/10 text-success">
-                          {lang === "ru" ? "Правильно" : lang === "kz" ? "Дұрыс" : "Correct"}: {String.fromCharCode(65 + q.correctAnswer)} — {opts[q.correctAnswer]}
+                          {lang === "ru" ? "Правильно" : lang === "kz" ? "Дұрыс" : "Correct"}: {String.fromCharCode(65 + q.correctAnswer)} — <LatexText text={opts[q.correctAnswer]} />
                         </span>
                       </div>
                     </div>

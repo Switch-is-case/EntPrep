@@ -1,8 +1,5 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { CreateQuestionDTO } from "@/domain/questions/types";
 import { AppError } from "@/lib/errors";
-
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export class AiGeneratorService {
   async generateQuestions(
@@ -11,8 +8,11 @@ export class AiGeneratorService {
     difficulty: string,
     count: number
   ): Promise<CreateQuestionDTO[]> {
-    if (!process.env.GEMINI_API_KEY) {
-      throw new AppError("GEMINI_API_KEY is missing in environment variables.");
+    const difyKey = process.env.DIFY_API_KEY;
+    const difyUrl = process.env.DIFY_API_URL || "https://api.dify.ai/v1";
+
+    if (!difyKey) {
+      throw new AppError("DIFY_API_KEY is missing in environment variables.");
     }
 
     const prompt = `
@@ -26,71 +26,61 @@ export class AiGeneratorService {
       - Options must also be translated into all 3 languages (optionsRu, optionsKz, optionsEn).
       - 'correctAnswer' must be the index (0, 1, 2, or 3) of the correct option.
       - The generated questions should be highly relevant, accurate, and structured perfectly.
+      
+      CRITICAL: You MUST return ONLY a valid JSON array of objects. Do not include any markdown formatting, no \`\`\`json wrappers, no intro text, and no outro text. Just the raw JSON array.
+      
+      Example Object structure:
+      {
+        "questionTextRu": "...",
+        "questionTextKz": "...",
+        "questionTextEn": "...",
+        "optionsRu": ["...", "...", "...", "..."],
+        "optionsKz": ["...", "...", "...", "..."],
+        "optionsEn": ["...", "...", "...", "..."],
+        "correctAnswer": 0
+      }
     `;
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash-lite",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              subject: { type: Type.STRING },
-              questionTextRu: { type: Type.STRING },
-              questionTextKz: { type: Type.STRING },
-              questionTextEn: { type: Type.STRING },
-              optionsRu: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              optionsKz: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              optionsEn: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING },
-              },
-              correctAnswer: { type: Type.INTEGER },
-              difficulty: { type: Type.STRING },
-              topic: { type: Type.STRING },
-            },
-            required: [
-              "subject",
-              "questionTextRu",
-              "questionTextKz",
-              "questionTextEn",
-              "optionsRu",
-              "optionsKz",
-              "optionsEn",
-              "correctAnswer",
-              "difficulty",
-              "topic",
-            ],
-          },
-        },
-      },
-    });
-
-    if (!response.text) {
-      throw new AppError("Failed to generate content from AI");
-    }
-
     try {
-      const parsed = JSON.parse(response.text);
-      // Ensure 'subject', 'difficulty', and 'topic' are mapped explicitly just in case AI messes up the constants
+      const response = await fetch(`${difyUrl}/chat-messages`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${difyKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inputs: {},
+          query: prompt,
+          response_mode: "blocking",
+          user: "admin-generator",
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Dify API error:", response.status, errorText);
+        throw new AppError(`Dify API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      let responseText = data.answer ?? "";
+
+      // Очистка от маркдауна, если ИИ все-таки его добавил
+      responseText = responseText.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
+
+      const parsed = JSON.parse(responseText);
+      
+      // Ensure constants are mapped
       return parsed.map((q: any) => ({
         ...q,
         subject,
         difficulty,
         topic,
       })) as CreateQuestionDTO[];
-    } catch (e) {
-      console.error("JSON parsing error from AI response:", e);
-      throw new AppError("AI returned invalid JSON format");
+    } catch (e: any) {
+      console.error("AI generation or JSON parsing error:", e);
+      if (e instanceof AppError) throw e;
+      throw new AppError("Failed to generate or parse valid JSON from AI");
     }
   }
 }

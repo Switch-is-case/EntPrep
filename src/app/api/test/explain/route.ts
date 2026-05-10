@@ -1,26 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 import { verifyToken } from "@/lib/auth";
 import { db } from "@/db";
 import { explanations } from "@/db/schema";
 import { and, eq, isNull } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
-  if (!process.env.GEMINI_API_KEY) {
-    console.error("Missing GEMINI_API_KEY environment variable");
+  const difyKey = process.env.DIFY_API_KEY;
+  const difyUrl = process.env.DIFY_API_URL || "https://api.dify.ai/v1";
+
+  if (!difyKey) {
+    console.error("Missing DIFY_API_KEY environment variable");
     return NextResponse.json(
       { error: "Server configuration error" },
       { status: 500 }
     );
   }
 
-  const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
   const authHeader = req.headers.get("authorization");
   const token = authHeader?.replace("Bearer ", "");
-  if (!token || !verifyToken(token)) {
+  const decodedToken = token ? verifyToken(token) : null;
+
+  if (!token || !decodedToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  
+  const difyUser = decodedToken.userId || "ent-prep-student";
 
   const { questionId, questionText, options, correctAnswer, userAnswer, subject, lang } =
     await req.json();
@@ -82,12 +86,28 @@ Write a concise explanation (3-5 sentences) in ${langLabel}:
 Keep it friendly, encouraging, and educational. Do NOT use markdown headers.`;
 
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.0-flash",
-      contents: prompt,
+    const response = await fetch(`${difyUrl}/chat-messages`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${difyKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        inputs: {},
+        query: prompt,
+        response_mode: "blocking",
+        user: difyUser,
+      }),
     });
 
-    const explanation = response.text ?? "";
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Dify API error:", response.status, errorText);
+      throw new Error(`Dify API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    const explanation = data.answer ?? "";
 
     // 2. Сохраняем в кэш
     if (questionId && explanation) {

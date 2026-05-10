@@ -5,6 +5,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { useHistoryReview } from "@/hooks/useHistoryReview";
 import { Spinner } from "@/components/Spinner";
+import { LatexText } from "@/components/LatexText";
 
 /* ────────── AI Explanation Panel ────────── */
 function AiExplanation({
@@ -130,7 +131,9 @@ function AiExplanation({
         </button>
       </div>
       <div className="px-4 py-3">
-        <p className="text-sm text-text leading-relaxed whitespace-pre-wrap">{explanation}</p>
+        <p className="text-sm text-text leading-relaxed">
+          <LatexText text={explanation} />
+        </p>
         <p className="mt-3 text-[10px] text-text-secondary flex items-center gap-1">
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -259,10 +262,9 @@ export default function HistoryReviewPage() {
 
           {/* Question Body */}
           <div className="p-4 md:p-8 flex-1">
-            <div
-              className="prose prose-sm md:prose-base max-w-none text-text mb-6"
-              dangerouslySetInnerHTML={{ __html: questionText }}
-            />
+            <div className="text-xl md:text-2xl font-bold text-text mb-6">
+              <LatexText text={questionText} />
+            </div>
 
             {currentQ.imageUrl && (
               <img
@@ -297,7 +299,7 @@ export default function HistoryReviewPage() {
                       {String.fromCharCode(65 + optIdx)}
                     </span>
                     <div className="flex-1">
-                      <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: opt }} />
+                      <span className="text-sm"><LatexText text={opt} /></span>
                       {currentQ.optionImages?.[optIdx] && (
                         <img
                           src={currentQ.optionImages[optIdx]}
