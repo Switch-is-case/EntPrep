@@ -4,6 +4,7 @@ import React from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { useAdminUsers } from "@/hooks/useAdminUsers";
+import { Spinner } from "@/components/Spinner";
 
 export default function AdminUsers() {
   const { lang } = useApp();
@@ -48,7 +49,7 @@ export default function AdminUsers() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <Spinner size="md" />
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -124,9 +125,9 @@ export default function AdminUsers() {
                       {user.id !== currentUser?.id && (
                         <button
                           onClick={() => deleteUser(user)}
-                          className="text-danger hover:text-red-400"
+                          className="text-xs font-medium text-danger hover:text-red-400 transition-colors"
                         >
-                          🗑️
+                          Удалить
                         </button>
                       )}
                     </td>

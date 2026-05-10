@@ -3,6 +3,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useApp } from "@/components/Providers";
+import { Spinner } from "@/components/Spinner";
 
 interface Program {
   id: number;
@@ -92,7 +93,7 @@ export default function UniversitiesPage() {
 
         {loading ? (
           <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary" />
+            <Spinner size="lg" />
           </div>
         ) : universities.length === 0 ? (
           <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">

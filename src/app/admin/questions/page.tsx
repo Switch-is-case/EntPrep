@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n";
 import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 
 import { useAdminQuestions } from "@/hooks/useAdminQuestions";
+import { Spinner } from "@/components/Spinner";
 
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
 
@@ -73,7 +74,7 @@ export default function AdminQuestions() {
             onClick={() => setShowAiModal(true)}
             className="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-4 py-2 rounded-lg font-medium hover:bg-purple-600/30 transition-colors flex items-center gap-2 text-sm"
           >
-            ✨ Сгенерировать ИИ
+            Сгенерировать ИИ
           </button>
           <button
             onClick={() => {
@@ -130,7 +131,7 @@ export default function AdminQuestions() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <Spinner size="md" />
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -232,7 +233,7 @@ export default function AdminQuestions() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-auto">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white">
@@ -490,7 +491,7 @@ export default function AdminQuestions() {
 
       {/* Bulk Import Modal */}
       {showBulkModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-auto">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white">Массовый импорт вопросов</h2>
@@ -602,11 +603,11 @@ export default function AdminQuestions() {
 
       {/* AI Generator Modal */}
       {showAiModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center p-4 overflow-auto">
+        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                <span className="text-purple-400">✨</span> Генератор ИИ
+                Генератор ИИ
               </h2>
               <button
                 onClick={() => setShowAiModal(false)}
@@ -703,7 +704,7 @@ export default function AdminQuestions() {
               >
                 {aiGenerating ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white" />
+                    <Spinner size="sm" color="white" />
                     Генерация...
                   </>
                 ) : (

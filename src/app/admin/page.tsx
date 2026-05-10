@@ -5,6 +5,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
 import { useAdminStats } from "@/hooks/useAdminStats";
+import { Spinner } from "@/components/Spinner";
 
 export default function AdminDashboard() {
   const {
@@ -19,7 +20,7 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner size="md" />
       </div>
     );
   }

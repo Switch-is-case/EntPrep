@@ -8,6 +8,7 @@ import React, {
   useCallback,
 } from "react";
 import type { Lang } from "@/lib/i18n";
+import { Spinner } from "@/components/Spinner";
 
 interface User {
   id: string;
@@ -110,7 +111,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   if (!ready) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner size="md" />
       </div>
     );
   }

@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
+import { Spinner } from "@/components/Spinner";
 import { t, type Lang } from "@/lib/i18n";
 
 const langLabels: Record<Lang, string> = {
@@ -54,7 +55,7 @@ export default function AdminLayout({
   if (isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white" />
+        <Spinner size="md" color="white" />
       </div>
     );
   }
@@ -185,7 +186,7 @@ export default function AdminLayout({
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}

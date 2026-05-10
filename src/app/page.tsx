@@ -24,7 +24,7 @@ export default function HomePage() {
       icon: "2",
       title: t("home.features.ai", lang),
       desc: t("home.features.ai.desc", lang),
-      color: "from-violet-500 to-violet-600",
+      color: "from-teal-500 to-teal-600",
     },
     {
       icon: "3",
@@ -79,7 +79,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/tests"
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-md shadow-primary/20 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/25 transition-all hover:-translate-y-0.5"
                   >
                     {t("test.startDiagnostic", lang)}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,7 +97,7 @@ export default function HomePage() {
                 <>
                   <Link
                     href="/register"
-                    className="inline-flex items-center gap-2 bg-gradient-to-r from-primary to-accent text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all hover:-translate-y-0.5"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-semibold text-lg shadow-md shadow-primary/20 hover:bg-primary-dark hover:shadow-lg hover:shadow-primary/25 transition-all hover:-translate-y-0.5"
                   >
                     {t("home.hero.cta", lang)}
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -123,7 +123,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {stats.map((stat, i) => (
               <div key={i} className="text-center">
-                <div className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                <div className="text-3xl md:text-4xl font-extrabold text-primary">
                   {stat.value}
                 </div>
                 <div className="text-sm text-text-secondary mt-1">

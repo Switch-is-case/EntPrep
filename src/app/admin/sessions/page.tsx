@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useApp } from "@/components/Providers";
 
 import { useAdminSessions } from "@/hooks/useAdminSessions";
+import { Spinner } from "@/components/Spinner";
 
 export default function AdminSessions() {
   const {
@@ -43,7 +44,7 @@ export default function AdminSessions() {
       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+            <Spinner size="md" />
           </div>
         ) : (
           <div className="overflow-x-auto">

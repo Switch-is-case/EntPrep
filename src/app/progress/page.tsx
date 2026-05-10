@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import ProgressCharts from "@/components/ProgressCharts";
+import { Spinner } from "@/components/Spinner";
+import { ScoreBadges } from "@/components/ScoreBadges";
 
 interface SubjectProgress {
   id: number;
@@ -70,7 +72,7 @@ export default function ProgressPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner size="md" />
       </div>
     );
   }
@@ -119,26 +121,27 @@ export default function ProgressPage() {
                   ? Math.round((sp.totalCorrect / sp.totalAttempted) * 100)
                   : 0;
                 return (
-                  <div key={sp.id} className="flex items-center gap-4">
-                    <div className="w-36 text-sm font-medium truncate">{getSubjectName(sp.subject)}</div>
-                    <div className="flex-1">
-                      <div className="w-full bg-gray-100 rounded-full h-4">
-                        <div
-                          className={`h-4 rounded-full transition-all ${
-                            accuracy >= 80 ? "bg-success" : accuracy >= 60 ? "bg-primary" : accuracy >= 40 ? "bg-warning" : "bg-danger"
-                          }`}
-                          style={{ width: `${accuracy}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="w-12 text-right text-sm font-semibold">{accuracy}%</div>
-                    <div className="w-24 text-right text-xs text-text-secondary">
-                      {sp.totalCorrect}/{sp.totalAttempted}
-                    </div>
-                    <div className="w-20 text-right">
-                      <span className="text-xs bg-accent/10 text-accent px-2 py-1 rounded-full">
+                  <div key={sp.id} className="space-y-1.5">
+                    {/* Subject name + best score on one line */}
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-medium text-text">{getSubjectName(sp.subject)}</span>
+                      <span className="text-xs bg-accent/10 text-accent px-2 py-0.5 rounded-full whitespace-nowrap shrink-0">
                         Best: {sp.bestScore}%
                       </span>
+                    </div>
+                    {/* Progress bar */}
+                    <div className="w-full bg-gray-100 rounded-full h-3">
+                      <div
+                        className={`h-3 rounded-full transition-all ${
+                          accuracy >= 80 ? "bg-success" : accuracy >= 60 ? "bg-primary" : accuracy >= 40 ? "bg-warning" : "bg-danger"
+                        }`}
+                        style={{ width: `${accuracy}%` }}
+                      />
+                    </div>
+                    {/* Stats row */}
+                    <div className="flex items-center justify-between text-xs text-text-secondary">
+                      <span>{sp.totalCorrect}/{sp.totalAttempted} {lang === "ru" ? "правильно" : lang === "kz" ? "дұрыс" : "correct"}</span>
+                      <span className="font-semibold text-text">{accuracy}%</span>
                     </div>
                   </div>
                 );
@@ -172,9 +175,11 @@ export default function ProgressPage() {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right text-xs text-text-secondary">
-                      ✓{s.correctAnswers} ✗{s.wrongAnswers} ?{s.skippedAnswers}
-                    </div>
+                    <ScoreBadges
+                      correct={s.correctAnswers}
+                      wrong={s.wrongAnswers}
+                      skipped={s.skippedAnswers}
+                    />
                   </div>
                 ))}
               </div>

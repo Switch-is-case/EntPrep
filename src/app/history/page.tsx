@@ -6,6 +6,8 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
 import { useHistory } from "@/hooks/useHistory";
+import { Spinner } from "@/components/Spinner";
+import { ScoreBadges } from "@/components/ScoreBadges";
 
 export default function HistoryPage() {
   const { lang } = useApp();
@@ -17,7 +19,7 @@ export default function HistoryPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[50vh]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <Spinner size="md" />
       </div>
     );
   }
@@ -42,54 +44,39 @@ export default function HistoryPage() {
               <div 
                 key={s.id} 
                 onClick={() => router.push(`/history/${s.id}`)}
-                className="flex items-center justify-between p-5 hover:bg-gray-50 cursor-pointer transition-colors group"
+                className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group"
               >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm ${
-                    s.score >= 80 ? "bg-success" : s.score >= 60 ? "bg-primary" : s.score >= 40 ? "bg-warning" : "bg-danger"
-                  }`}>
-                    {s.score}%
+                {/* Score badge */}
+                <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm ${
+                  s.score >= 80 ? "bg-success" : s.score >= 60 ? "bg-primary" : s.score >= 40 ? "bg-warning" : "bg-danger"
+                }`}>
+                  {s.score}%
+                </div>
+
+                {/* Info — takes remaining space, truncates if needed */}
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold text-text group-hover:text-primary transition-colors truncate">
+                    {s.testType === "diagnostic"
+                      ? lang === "ru" ? "Диагностический" : lang === "kz" ? "Диагностикалық" : "Diagnostic"
+                      : s.testType === "full"
+                      ? lang === "ru" ? "Полный ЕНТ" : lang === "kz" ? "Толық ЕНТ" : "Full ENT"
+                      : lang === "ru" ? "Практика" : lang === "kz" ? "Жаттығу" : "Practice"}
                   </div>
-                  <div>
-                    <div className="text-base font-bold text-text group-hover:text-primary transition-colors">
-                      {s.testType === "diagnostic"
-                        ? lang === "ru" ? "Диагностический тест" : lang === "kz" ? "Диагностикалық тест" : "Diagnostic Test"
-                        : s.testType === "full"
-                        ? lang === "ru" ? "Полный ЕНТ" : lang === "kz" ? "Толық ЕНТ" : "Full ENT"
-                        : lang === "ru" ? "Практика" : lang === "kz" ? "Жаттығу" : "Practice"}
-                    </div>
-                    <div className="text-sm text-text-secondary flex items-center gap-4 mt-1">
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                        {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
-                      </span>
-                      <span className="flex items-center gap-1.5">
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        {new Date(s.startedAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
-                      </span>
-                    </div>
+                  <div className="text-xs text-text-secondary mt-0.5">
+                    {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
+                    {" · "}
+                    {new Date(s.startedAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-6">
-                  <div className="hidden sm:flex items-center gap-3 text-sm font-medium">
-                    <span className="text-success bg-success/10 px-2 py-0.5 rounded flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-success inline-block"></span>
-                      {s.correctAnswers}
-                    </span>
-                    <span className="text-danger bg-danger/10 px-2 py-0.5 rounded flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-danger inline-block"></span>
-                      {s.wrongAnswers}
-                    </span>
-                    <span className="text-gray-500 bg-gray-100 border border-gray-200 px-2 py-0.5 rounded flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-gray-400 inline-block"></span>
-                      {s.skippedAnswers}
-                    </span>
-                  </div>
-                  
-                  <div className="text-gray-400 group-hover:text-primary transition-colors">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                  </div>
+
+                {/* Badges + arrow — always visible, never shrinks */}
+                <div className="flex items-center gap-2 shrink-0">
+                  <ScoreBadges
+                    correct={s.correctAnswers}
+                    wrong={s.wrongAnswers}
+                    skipped={s.skippedAnswers}
+                  />
+                  <svg className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
             ))}

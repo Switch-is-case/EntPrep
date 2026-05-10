@@ -108,9 +108,9 @@ export default function AdminUniversitiesPage() {
                     <p className="text-sm text-slate-400">{lang === "kz" ? uni.cityKz : lang === "en" ? uni.cityEn : uni.cityRu}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button onClick={() => openModal(uni)} className="text-slate-400 hover:text-white">✏️</button>
-                  <button onClick={() => deleteUniversity(uni.id)} className="text-slate-400 hover:text-danger">🗑️</button>
+                <div className="flex items-center gap-3 text-xs font-medium">
+                  <button onClick={() => openModal(uni)} className="text-slate-400 hover:text-white transition-colors">Редактировать</button>
+                  <button onClick={() => deleteUniversity(uni.id)} className="text-danger hover:text-red-400 transition-colors">Удалить</button>
                 </div>
               </div>
               
@@ -133,7 +133,7 @@ export default function AdminUniversitiesPage() {
       )}
 
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
           <div className="bg-slate-800 rounded-2xl w-full max-w-4xl border border-slate-700 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-700 flex justify-between items-center shrink-0">
               <h2 className="text-xl font-bold text-white">
@@ -223,7 +223,7 @@ export default function AdminUniversitiesPage() {
       )}
       
       {showBulkModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
           <div className="bg-slate-800 rounded-2xl w-full max-w-3xl border border-slate-700 p-6">
             <h2 className="text-xl font-bold text-white mb-6">Массовый импорт университетов</h2>
             {/* Modal Body for bulk is kept similar to before, omitting details for brevity since it handles raw JSON which user constructs */}
