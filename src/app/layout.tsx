@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import { BottomNav } from "@/components/BottomNav";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export const metadata: Metadata = {
   title: "ENT Prep AI — Подготовка к ЕНТ с помощью AI",
@@ -20,6 +21,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <main className="pb-20 md:pb-0">{children}</main>
           <BottomNav />
         </Providers>
+        <SpeedInsights />
       </body>
     </html>
   );
