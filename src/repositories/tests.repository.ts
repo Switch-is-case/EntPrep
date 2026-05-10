@@ -54,6 +54,16 @@ export class TestsRepository {
     return (q as Question) || null;
   }
 
+  /** Загружает все вопросы одним запросом (замена N+1 в submitTest) */
+  async getQuestionsByIds(questionIds: number[]): Promise<Question[]> {
+    if (questionIds.length === 0) return [];
+    const qs = await db
+      .select()
+      .from(questions)
+      .where(inArray(questions.id, questionIds));
+    return qs as Question[];
+  }
+
   async saveTestResults(
     userId: string,
     sessionId: string,

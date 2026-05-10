@@ -48,6 +48,11 @@ export class TestService {
     const session = await this.testsRepository.getSessionById(sessionId, userId);
     if (!session) throw new NotFoundError("Session not found");
 
+    // ✅ Один запрос вместо N запросов (N+1 fix)
+    const questionIds = answers.map((a) => a.questionId);
+    const questionsList = await this.testsRepository.getQuestionsByIds(questionIds);
+    const questionsMap = new Map<number, Question>(questionsList.map((q) => [q.id, q]));
+
     let totalCorrect = 0;
     let totalSkipped = 0;
     let totalWrong = 0;
@@ -55,7 +60,7 @@ export class TestService {
     const answersToInsert = [];
 
     for (const answer of answers) {
-      const question = await this.testsRepository.getQuestionById(answer.questionId);
+      const question = questionsMap.get(answer.questionId);
       if (!question) continue;
 
       const isSkipped = answer.selectedAnswer === null;

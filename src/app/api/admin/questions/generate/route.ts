@@ -1,10 +1,11 @@
-import { AppError } from "@/lib/errors";
 import { NextRequest, NextResponse } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import { aiGeneratorService } from "@/lib/container";
+import { withApiHandler } from "@/lib/api-handler";
+import { AppError } from "@/lib/errors";
 
 async function checkAdmin(request: NextRequest) {
   const userId = getUserIdFromRequest(request);
@@ -20,45 +21,26 @@ async function checkAdmin(request: NextRequest) {
   return user;
 }
 
-export async function POST(request: NextRequest) {
+export const POST = withApiHandler(async (request: NextRequest) => {
   const adminUser = await checkAdmin(request);
-  if (!adminUser) {
-    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
+  if (!adminUser) throw new AppError("Unauthorized or Forbidden", 403);
+
+  const { subject, topic, difficulty, count } = await request.json();
+
+  if (!subject || !topic || !count) {
+    throw new AppError("Missing required fields: subject, topic, or count", 400);
   }
 
-  try {
-    const { subject, topic, difficulty, count } = await request.json();
-
-    if (!subject || !topic || !count) {
-      return NextResponse.json(
-        { error: "Missing required fields: subject, topic, or count" },
-        { status: 400 }
-      );
-    }
-
-    if (count > 20) {
-      return NextResponse.json(
-        { error: "Cannot generate more than 20 questions at once" },
-        { status: 400 }
-      );
-    }
-
-    const generatedQuestions = await aiGeneratorService.generateQuestions(
-      subject,
-      topic,
-      difficulty || "medium",
-      count
-    );
-
-    return NextResponse.json({ questions: generatedQuestions });
-  } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
-    console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  if (count > 20) {
+    throw new AppError("Cannot generate more than 20 questions at once", 400);
   }
-}
+
+  const generatedQuestions = await aiGeneratorService.generateQuestions(
+    subject,
+    topic,
+    difficulty || "medium",
+    count
+  );
+
+  return NextResponse.json({ questions: generatedQuestions });
+});

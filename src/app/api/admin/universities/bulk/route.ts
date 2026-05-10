@@ -15,83 +15,74 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    if (!Array.isArray(body)) {
+    if (!Array.isArray(body) || body.length === 0) {
       return NextResponse.json(
-        { error: "Invalid format. Expected an array of universities." },
+        { error: "Invalid format. Expected a non-empty array of universities." },
         { status: 400 }
       );
     }
 
-    let importedCount = 0;
-    const errors: string[] = [];
-
+    // 1. Валидация всех элементов перед вставкой
+    const validationErrors: string[] = [];
     for (let i = 0; i < body.length; i++) {
       const item = body[i];
-      try {
-        if (!item.nameRu || !item.nameKz || !item.nameEn || !item.cityRu || !item.cityKz || !item.cityEn) {
-          throw new Error(`University names and cities in all languages are required.`);
-        }
-
-        const [newUni] = await db.insert(universities).values({
-          nameRu: item.nameRu,
-          nameKz: item.nameKz,
-          nameEn: item.nameEn,
-          cityRu: item.cityRu,
-          cityKz: item.cityKz,
-          cityEn: item.cityEn,
-          descriptionRu: item.descriptionRu || null,
-          descriptionKz: item.descriptionKz || null,
-          descriptionEn: item.descriptionEn || null,
-          logoUrl: item.logoUrl || null,
-        }).returning();
-
-        if (item.programs && Array.isArray(item.programs) && item.programs.length > 0) {
-          const programsToInsert = item.programs.map((p: any) => ({
-            universityId: newUni.id,
-            nameRu: p.nameRu || "",
-            nameKz: p.nameKz || "",
-            nameEn: p.nameEn || "",
-            passingScore: parseInt(p.passingScore) || 0,
-            descriptionRu: p.descriptionRu || "",
-            descriptionKz: p.descriptionKz || "",
-            descriptionEn: p.descriptionEn || "",
-          }));
-          await db.insert(universityPrograms).values(programsToInsert);
-        }
-
-        importedCount++;
-      } catch (err: unknown) {
-    if (err instanceof AppError) {
-      return NextResponse.json(
-        { error: err.message, details: err.details },
-        { status: err.statusCode }
-      );
-    }
-    console.error("API Error:", err);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
+      if (!item.nameRu || !item.nameKz || !item.nameEn || !item.cityRu || !item.cityKz || !item.cityEn) {
+        validationErrors.push(`Item #${i + 1}: University names and cities in all languages are required.`);
+      }
     }
 
-    if (errors.length > 0) {
+    if (validationErrors.length > 0) {
       return NextResponse.json(
-        {
-          success: false,
-          message: `Imported ${importedCount} universities with ${errors.length} errors.`,
-          details: errors,
-        },
-        { status: 207 } // Multi-Status
+        { error: "Validation failed", details: validationErrors },
+        { status: 400 }
       );
+    }
+
+    // 2. ✅ Один INSERT для всех университетов вместо N INSERT-ов
+    const uniRows = body.map((item: any) => ({
+      nameRu: item.nameRu,
+      nameKz: item.nameKz,
+      nameEn: item.nameEn,
+      cityRu: item.cityRu,
+      cityKz: item.cityKz,
+      cityEn: item.cityEn,
+      descriptionRu: item.descriptionRu || null,
+      descriptionKz: item.descriptionKz || null,
+      descriptionEn: item.descriptionEn || null,
+      logoUrl: item.logoUrl || null,
+    }));
+
+    const insertedUnis = await db.insert(universities).values(uniRows).returning();
+
+    // 3. ✅ Один INSERT для всех программ вместо N INSERT-ов
+    const allProgramRows = insertedUnis.flatMap((uni, idx) => {
+      const item = body[idx];
+      if (!item.programs || !Array.isArray(item.programs) || item.programs.length === 0) return [];
+      return item.programs.map((p: any) => ({
+        universityId: uni.id,
+        nameRu: p.nameRu || "",
+        nameKz: p.nameKz || "",
+        nameEn: p.nameEn || "",
+        passingScore: parseInt(p.passingScore) || 0,
+        descriptionRu: p.descriptionRu || "",
+        descriptionKz: p.descriptionKz || "",
+        descriptionEn: p.descriptionEn || "",
+      }));
+    });
+
+    if (allProgramRows.length > 0) {
+      await db.insert(universityPrograms).values(allProgramRows);
     }
 
     return NextResponse.json({
       success: true,
-      message: `Successfully imported ${importedCount} universities.`,
+      message: `Successfully imported ${insertedUnis.length} universities with ${allProgramRows.length} programs.`,
     });
   } catch (error) {
+    if (error instanceof AppError) {
+      return NextResponse.json({ error: error.message }, { status: error.statusCode });
+    }
     console.error("Admin universities bulk import error:", error);
-    return NextResponse.json(
-      { error: "Failed to process bulk import." },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to process bulk import." }, { status: 500 });
   }
 }
