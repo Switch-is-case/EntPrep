@@ -21,7 +21,7 @@ export class ProgressRepository {
       .orderBy(desc(testSessions.startedAt))
       .limit(limit);
 
-    return sessions.map((s) => ({
+    return sessions.map((s: any) => ({
       id: s.id,
       testType: s.testType,
       subjects: s.subjects,

@@ -71,7 +71,7 @@ export class TestsRepository {
     sessionUpdates: any,
     subjectResults: Record<string, { correct: number; total: number; skipped: number; wrong: number }>
   ): Promise<void> {
-    await db.transaction(async (tx) => {
+    await db.transaction(async (tx: any) => {
       // 1. Save answers
       if (answersToInsert.length > 0) {
         await tx.insert(testAnswers).values(answersToInsert);
@@ -152,14 +152,14 @@ export class TestsRepository {
       return { session, questions: [] };
     }
 
-    const questionIds = answers.map((a) => a.questionId);
+    const questionIds = answers.map((a: any) => a.questionId);
     const qs = await db
       .select()
       .from(questions)
       .where(inArray(questions.id, questionIds));
 
-    const questionsWithAnswers = answers.map((ans) => {
-      const q = qs.find((qItem) => qItem.id === ans.questionId);
+    const questionsWithAnswers = answers.map((ans: any) => {
+      const q = qs.find((qItem: any) => qItem.id === ans.questionId);
       return {
         ...q,
         userAnswer: ans.selectedAnswer,

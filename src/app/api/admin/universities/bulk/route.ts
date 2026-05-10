@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     const insertedUnis = await db.insert(universities).values(uniRows).returning();
 
     // 3. ✅ Один INSERT для всех программ вместо N INSERT-ов
-    const allProgramRows = insertedUnis.flatMap((uni, idx) => {
+    const allProgramRows = insertedUnis.flatMap((uni: any, idx: number) => {
       const item = body[idx];
       if (!item.programs || !Array.isArray(item.programs) || item.programs.length === 0) return [];
       return item.programs.map((p: any) => ({

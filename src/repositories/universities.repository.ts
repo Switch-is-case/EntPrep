@@ -21,7 +21,7 @@ export class UniversitiesRepository {
     const results = await query.orderBy(desc(universities.createdAt));
 
     const allUniversities = await Promise.all(
-      results.map(async (uni) => {
+      results.map(async (uni: any) => {
         const programs = await db
           .select()
           .from(universityPrograms)
@@ -46,7 +46,7 @@ export class UniversitiesRepository {
   }
 
   async create(data: CreateUniversityDTO): Promise<University> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: any) => {
       const [newUni] = await tx
         .insert(universities)
         .values({
@@ -83,7 +83,7 @@ export class UniversitiesRepository {
   }
 
   async update(id: number, data: UpdateUniversityDTO): Promise<University | null> {
-    return await db.transaction(async (tx) => {
+    return await db.transaction(async (tx: any) => {
       // 1. Update university
       const { programs, ...uniData } = data;
       

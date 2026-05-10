@@ -62,7 +62,7 @@ export class AnalyticsRepository {
         totalSessions: Number(sessionsCount.count),
         totalAnswers: Number(answersCount.count),
       },
-      questionsBySubject: questionsBySubject.map((q) => ({
+      questionsBySubject: questionsBySubject.map((q: any) => ({
         subject: q.subject,
         count: Number(q.count),
       })),

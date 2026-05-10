@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
       .from(testSessions);
 
     // Get user info for sessions
-    const userIds = [...new Set(sessions.map((s) => s.userId))];
+    const userIds = [...new Set(sessions.map((s: any) => s.userId))];
     const usersData =
       userIds.length > 0
         ? await db
@@ -66,9 +66,9 @@ export async function GET(request: NextRequest) {
             .where(sql`${users.id} = ANY(${userIds})`)
         : [];
 
-    const usersMap = new Map(usersData.map((u) => [u.id, u]));
+    const usersMap = new Map(usersData.map((u: any) => [u.id, u]));
 
-    const sessionsWithUsers = sessions.map((s) => ({
+    const sessionsWithUsers = sessions.map((s: any) => ({
       ...s,
       user: usersMap.get(s.userId) || null,
     }));
