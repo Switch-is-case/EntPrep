@@ -8,12 +8,14 @@ import { Spinner } from "@/components/Spinner";
 
 /* ────────── AI Explanation Panel ────────── */
 function AiExplanation({
+  questionId,
   questionText,
   options,
   correctAnswer,
   userAnswer,
   subject,
 }: {
+  questionId: number;
   questionText: string;
   options: string[];
   correctAnswer: number;
@@ -21,7 +23,7 @@ function AiExplanation({
   subject: string;
 }) {
   const { lang, authHeaders } = useApp();
-  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "done" | "error" | "overloaded">("idle");
   const [explanation, setExplanation] = useState("");
 
   const fetchExplanation = useCallback(async () => {
@@ -32,6 +34,7 @@ function AiExplanation({
         method: "POST",
         headers: authHeaders(),
         body: JSON.stringify({
+          questionId,
           questionText,
           options,
           correctAnswer,
@@ -44,13 +47,15 @@ function AiExplanation({
       if (res.ok) {
         setExplanation(data.explanation);
         setStatus("done");
+      } else if (res.status === 503) {
+        setStatus("overloaded");
       } else {
         setStatus("error");
       }
     } catch {
       setStatus("error");
     }
-  }, [status, questionText, options, correctAnswer, userAnswer, subject, lang, authHeaders]);
+  }, [status, questionId, questionText, options, correctAnswer, userAnswer, subject, lang, authHeaders]);
 
   // Reset when question changes
   useEffect(() => {
@@ -58,40 +63,48 @@ function AiExplanation({
     setExplanation("");
   }, [questionText]);
 
-  if (status === "idle") {
+  if (status === "idle" || status === "loading") {
     return (
       <button
         onClick={fetchExplanation}
-        className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-accent/30 text-accent bg-accent/5 hover:bg-accent/10 hover:border-accent/50 transition-all text-sm font-semibold"
+        disabled={status === "loading"}
+        className="mt-5 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-accent/30 text-accent bg-accent/5 hover:bg-accent/10 hover:border-accent/50 transition-all text-sm font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-        </svg>
-        {lang === "ru" ? "Объяснение ИИ" : lang === "kz" ? "ЖИ түсіндірмесі" : "AI Explanation"}
+        {status === "loading" ? (
+          <>
+            <Spinner size="sm" />
+            {lang === "ru" ? "ИИ анализирует вопрос..." : lang === "kz" ? "ЖИ сұрақты талдауда..." : "AI is analyzing the question..."}
+          </>
+        ) : (
+          <>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+            {lang === "ru" ? "Объяснение ИИ" : lang === "kz" ? "ЖИ түсіндірмесі" : "AI Explanation"}
+          </>
+        )}
       </button>
     );
   }
 
-  if (status === "loading") {
+  if (status === "error" || status === "overloaded") {
     return (
-      <div className="mt-5 p-4 rounded-xl bg-accent/5 border border-accent/20 flex items-center gap-3">
-        <Spinner size="sm" />
-        <span className="text-sm text-accent">
-          {lang === "ru" ? "ИИ анализирует вопрос..." : lang === "kz" ? "ЖИ сұрақты талдауда..." : "AI is analyzing the question..."}
-        </span>
-      </div>
-    );
-  }
-
-  if (status === "error") {
-    return (
-      <div className="mt-5 p-4 rounded-xl bg-danger/5 border border-danger/20 flex items-center justify-between gap-3">
-        <span className="text-sm text-danger">
-          {lang === "ru" ? "Ошибка генерации" : "Generation error"}
-        </span>
-        <button onClick={() => setStatus("idle")} className="text-xs text-danger underline">
-          {lang === "ru" ? "Повторить" : "Retry"}
-        </button>
+      <div className={`mt-5 p-4 rounded-xl border flex flex-col gap-3 ${status === "overloaded" ? "bg-warning/5 border-warning/20" : "bg-danger/5 border-danger/20"}`}>
+        <div className="flex items-center justify-between gap-3">
+          <span className={`text-sm font-medium ${status === "overloaded" ? "text-warning-dark" : "text-danger"}`}>
+            {status === "overloaded" 
+              ? (lang === "ru" ? "ИИ-учитель сейчас отвечает другим ученикам." : lang === "kz" ? "ЖИ-мұғалім қазір басқа оқушыларға жауап беруде." : "AI teacher is currently answering other students.") 
+              : (lang === "ru" ? "Ошибка генерации" : "Generation error")}
+          </span>
+          <button onClick={() => setStatus("idle")} className={`text-xs underline ${status === "overloaded" ? "text-warning-dark" : "text-danger"}`}>
+            {lang === "ru" ? "Повторить" : "Retry"}
+          </button>
+        </div>
+        {status === "overloaded" && (
+          <p className="text-xs text-warning-dark/80">
+            {lang === "ru" ? "Пожалуйста, подождите минутку и попробуйте снова." : lang === "kz" ? "Бір минут күтіп, қайталап көріңіз." : "Please wait a minute and try again."}
+          </p>
+        )}
       </div>
     );
   }
@@ -313,6 +326,7 @@ export default function HistoryReviewPage() {
             {/* ── AI Explanation ── */}
             <AiExplanation
               key={currentIndex}
+              questionId={currentQ.id}
               questionText={questionText}
               options={options}
               correctAnswer={correctAnswer}

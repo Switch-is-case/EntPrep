@@ -104,3 +104,12 @@ export const universityPrograms = pgTable("university_programs", {
   descriptionEn: text("description_en"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const explanations = pgTable("explanations", {
+  id: serial("id").primaryKey(),
+  questionId: integer("question_id").notNull().references(() => questions.id, { onDelete: "cascade" }),
+  userAnswer: integer("user_answer"), // null = skipped
+  lang: varchar("lang", { length: 5 }).notNull(),
+  explanationText: text("explanation_text").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
