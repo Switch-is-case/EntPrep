@@ -1,14 +1,33 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
 import Providers from "@/components/Providers";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import { BottomNav } from "@/components/BottomNav";
 
+export const viewport: Viewport = {
+  themeColor: "#2563eb",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "ENT Prep AI — Подготовка к ЕНТ с помощью AI",
   description:
     "Платформа подготовки к Единому Национальному Тестированию с использованием искусственного интеллекта. Диагностика, практика, прогресс.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "ENT Prep AI",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    apple: "/icons/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
