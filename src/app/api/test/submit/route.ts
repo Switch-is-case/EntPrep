@@ -1,32 +1,72 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { testService } from "@/lib/container";
-import { AnswerInput } from "@/domain/tests/types";
+import { NextResponse } from "next/server";
+import { db } from "@/db";
+import { testSessions, testAnswers, questions, users, subjects } from "@/db/schema";
+import { eq, and, sql } from "drizzle-orm";
 
-export async function POST(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+export async function POST(req: Request) {
   try {
-    const { sessionId, answers } = (await request.json()) as {
-      sessionId: string;
-      answers: AnswerInput[];
-    };
+    const { sessionId } = await req.json();
 
-    const result = await testService.submitTest(userId, sessionId, answers);
+    const session = await db.query.testSessions.findFirst({
+      where: eq(testSessions.id, sessionId),
+    });
 
-    return NextResponse.json(result);
-  } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
+    if (!session || session.completed) {
+      return NextResponse.json({ error: "Invalid or completed session" }, { status: 400 });
     }
-    console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+
+    const answers = await db.query.testAnswers.findMany({
+      where: eq(testAnswers.sessionId, sessionId),
+      with: {
+        question: true,
+      }
+    });
+
+    // 1. Calculate scores
+    let totalScore = 0;
+    let correctCount = 0;
+    const subjectBreakdown: Record<string, { score: number, total: number, name: string }> = {};
+
+    const subjectsData = JSON.parse(session.subjects as string);
+    subjectsData.forEach((s: any) => {
+      subjectBreakdown[s.id] = { score: 0, total: 0, name: s.nameRu };
+    });
+
+    for (const ans of answers) {
+      const sId = ans.question.subjectId!;
+      if (subjectBreakdown[sId]) {
+        subjectBreakdown[sId].total++;
+        if (ans.isCorrect) {
+          subjectBreakdown[sId].score++;
+          correctCount++;
+          totalScore++; // Simplified: 1 point per question
+        }
+      }
+    }
+
+    // 2. Update Session
+    await db.update(testSessions)
+      .set({
+        completed: true,
+        completedAt: new Date(),
+        score: totalScore,
+        correctAnswers: correctCount,
+        results: JSON.stringify({ subjectBreakdown }),
+      })
+      .where(eq(testSessions.id, sessionId));
+
+    // 3. Update User's Predicted Score
+    await db.update(users)
+      .set({
+        currentPredictedScore: totalScore, // Mock exam is a strong predictor
+        lastPredictionAt: new Date(),
+      })
+      .where(eq(users.id, session.userId));
+
+    return NextResponse.json({ success: true, score: totalScore, breakdown: subjectBreakdown });
+
+  } catch (error) {
+    console.error("Submit Error:", error);
+    return NextResponse.json({ error: "Failed to submit" }, { status: 500 });
   }
 }
