@@ -40,6 +40,8 @@ interface RoadmapResponse {
   expiresAt: string;
 }
 
+import { Target, Calendar, TrendingUp, Clock, Trophy } from "lucide-react";
+
 export default function RoadmapPage() {
   const { lang, authHeaders } = useApp();
   const [response, setResponse] = useState<RoadmapResponse | null>(null);
@@ -69,7 +71,9 @@ export default function RoadmapPage() {
     return (
       <div className="max-w-3xl mx-auto p-8 text-center mt-10">
         <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100">
-          <div className="text-6xl mb-6">🎯</div>
+          <div className="flex justify-center mb-6">
+            <Target className="w-20 h-20 text-slate-300" aria-hidden="true" />
+          </div>
           <h1 className="text-3xl font-bold mb-4 text-gray-900">
             {lang === "ru" 
               ? "У вас ещё нет плана обучения" 
@@ -116,12 +120,12 @@ export default function RoadmapPage() {
     <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-20 animate-in fade-in duration-500">
       
       {/* HERO - Summary */}
-      <div className={`bg-gradient-to-br ${feasibilityColors[data.summary.feasibility]} rounded-[2rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden`}>
+      <div className="bg-gradient-to-br from-primary via-indigo-600 to-indigo-700 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
         <div className="relative z-10">
-          <h1 className="text-3xl md:text-5xl font-black mb-3">
+          <h1 className="text-3xl md:text-5xl font-black mb-4 tracking-tight">
             {lang === "ru" ? "Твой AI-Навигатор" : lang === "kz" ? "Сіздің AI-Навигаторыңыз" : "Your AI Navigator"}
           </h1>
-          <p className="text-lg opacity-90 mb-8 font-medium">
+          <p className="text-lg md:text-xl text-white/80 mb-10 font-medium max-w-2xl leading-relaxed">
             {lang === "ru" 
               ? `Путь от ${currentScore} до ${targetScore} баллов за ${daysUntilExam} дней` 
               : lang === "kz" 
@@ -130,35 +134,35 @@ export default function RoadmapPage() {
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
-              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="text-[10px] uppercase tracking-widest text-white/60 mb-2 font-black">
                 {lang === "ru" ? "Сложность" : "Difficulty"}
               </div>
-              <div className="text-xl font-black">
+              <div className="text-xl font-bold">
                 {feasibilityLabels[data.summary.feasibility][lang as "ru" | "kz" | "en"]}
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
-              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="text-[10px] uppercase tracking-widest text-white/60 mb-2 font-black">
                 {lang === "ru" ? "Прогноз прироста" : "Score Gain"}
               </div>
-              <div className="text-xl font-black">
+              <div className="text-xl font-bold">
                 +{data.summary.estimatedScoreGain} баллов
               </div>
             </div>
-            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
-              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+              <div className="text-[10px] uppercase tracking-widest text-white/60 mb-2 font-black">
                 {lang === "ru" ? "Нагрузка" : "Load"}
               </div>
-              <div className="text-xl font-black">
+              <div className="text-xl font-bold">
                 {data.summary.recommendedHoursPerDay}ч / день
               </div>
             </div>
           </div>
         </div>
         {/* Decorative elements */}
-        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -167,7 +171,9 @@ export default function RoadmapPage() {
         <div className="lg:col-span-7 space-y-8">
           <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100">
             <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-gray-900">
-              <span className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">📅</span>
+              <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                <Calendar className="w-6 h-6" aria-hidden="true" />
+              </div>
               {lang === "ru" ? "Пошаговый план" : "Step-by-Step Plan"}
             </h2>
             <div className="space-y-10">
@@ -203,7 +209,9 @@ export default function RoadmapPage() {
           {/* PRIORITY TOPICS */}
           <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100">
             <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-gray-900">
-              <span className="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">🔥</span>
+              <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6" aria-hidden="true" />
+              </div>
               {lang === "ru" ? "Точки роста" : "Growth Areas"}
             </h2>
             <div className="space-y-4">
@@ -216,8 +224,8 @@ export default function RoadmapPage() {
                     <div>
                       <p className="text-sm font-bold text-gray-800 mb-3 leading-snug">{topic.reason}</p>
                       <div className="flex flex-wrap gap-2">
-                        <span className="px-3 py-1 bg-white rounded-full text-[10px] font-bold text-gray-500 border border-gray-200">
-                          ⏱ {topic.estimatedHours}ч
+                        <span className="px-3 py-1 bg-white rounded-full text-[10px] font-bold text-gray-500 border border-gray-200 flex items-center gap-1">
+                          <Clock className="w-3 h-3" aria-hidden="true" /> {topic.estimatedHours}ч
                         </span>
                         <span className="px-3 py-1 bg-green-100 rounded-full text-[10px] font-bold text-green-700">
                           +{topic.impactOnScore} БАЛЛОВ
@@ -234,7 +242,9 @@ export default function RoadmapPage() {
           {data.motivationalMessage && (
             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group">
               <div className="relative z-10">
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">💪</div>
+                <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
+                  <Trophy className="w-12 h-12 text-white/90" aria-hidden="true" />
+                </div>
                 <p className="text-lg leading-relaxed font-bold italic opacity-95">
                   &quot;{data.motivationalMessage}&quot;
                 </p>
@@ -263,7 +273,7 @@ export default function RoadmapPage() {
 
           <div className="text-center">
              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                📅 {lang === "ru" ? "Обновлено" : "Updated"}: {new Date(response.generatedAt).toLocaleDateString()}
+                <Calendar className="w-3 h-3" aria-hidden="true" /> {lang === "ru" ? "Обновлено" : "Updated"}: {new Date(response.generatedAt).toLocaleDateString()}
              </div>
           </div>
         </div>

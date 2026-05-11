@@ -4,22 +4,50 @@ import React, { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "./Providers";
 import { Spinner } from "./Spinner";
+import { LatexText } from "./LatexText";
 
 interface MockExamInterfaceProps {
   sessionId: string;
 }
 
+import { QuestionNavigator } from "./exam/QuestionNavigator";
+import { QuestionCard } from "./exam/QuestionCard";
+import { AiExplanationBlock } from "./exam/AiExplanationBlock";
+
+interface MockExamInterfaceProps {
+  sessionId: string;
+}
+
+import { type Question, type TestSession } from "@/types/exam";
+
+interface ExamData {
+  session: TestSession;
+  subjects: {
+    id: number;
+    nameRu: string;
+    nameKz: string;
+    questions: Question[];
+  }[];
+  remainingMs: number;
+}
+
 export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
   const { lang, authHeaders } = useApp();
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<ExamData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentSubjectIdx, setCurrentSubjectIdx] = useState(0);
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [remainingMs, setRemainingMs] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [explanations, setExplanations] = useState<Record<number, string>>({});
+  const [loadingExplanations, setLoadingExplanations] = useState<Record<number, boolean>>({});
+
+  const isDiagnostic = data?.session?.testType === "diagnostic";
+  const isPractice = data?.session?.testType === "practice";
+  const showFeedback = isDiagnostic || isPractice;
 
   const handleFinish = useCallback(async () => {
-    if (!confirm(lang === "ru" ? "Вы уверены, что хотите завершить экзамен?" : "Емтиханды аяқтағыңыз келе ме?")) return;
+    if (!confirm(lang === "ru" ? "Вы уверены, что хотите завершить?" : "Аяқтағыңыз келе ме?")) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/test/submit`, {
@@ -55,19 +83,19 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
 
   // Timer logic
   useEffect(() => {
-    if (remainingMs <= 0) return;
+    if (remainingMs <= 0 || isPractice) return;
     const interval = setInterval(() => {
       setRemainingMs(prev => {
         if (prev <= 1000) {
           clearInterval(interval);
-          handleFinish(); // Auto-finish
+          handleFinish();
           return 0;
         }
         return prev - 1000;
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [remainingMs, handleFinish]);
+  }, [remainingMs, handleFinish, isPractice]);
 
   const formatTime = (ms: number) => {
     const totalSecs = Math.floor(ms / 1000);
@@ -77,16 +105,47 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
+  const fetchExplanation = async (question: any) => {
+    if (explanations[question.id] || loadingExplanations[question.id]) return;
+    
+    setLoadingExplanations(prev => ({ ...prev, [question.id]: true }));
+    try {
+      const res = await fetch("/api/test/explain", {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({
+          questionId: question.id,
+          questionText: lang === "ru" ? question.questionTextRu : question.questionTextKz,
+          options: lang === "ru" ? question.optionsRu : question.optionsKz,
+          correctAnswer: question.correctAnswer,
+          userAnswer: question.selectedAnswer,
+          subject: question.subject,
+          lang
+        }),
+      });
+      if (res.ok) {
+        const result = await res.json();
+        setExplanations(prev => ({ ...prev, [question.id]: result.explanation }));
+      }
+    } catch (err) {
+      console.error("Failed to fetch explanation:", err);
+    } finally {
+      setLoadingExplanations(prev => ({ ...prev, [question.id]: false }));
+    }
+  };
+
   const handleSelectAnswer = async (answerId: number, optionIdx: number) => {
-    // Update local state first
-    const newData = { ...data };
-    const currentSubject = newData.subjects[currentSubjectIdx];
+    if (!data) return;
+    const currentSubject = data.subjects[currentSubjectIdx];
     const question = currentSubject.questions[currentQuestionIdx];
-    question.selectedAnswer = optionIdx;
-    question.isSkipped = false;
+    
+    if (showFeedback && question.selectedAnswer !== null) return;
+
+    const newData = { ...data };
+    newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].selectedAnswer = optionIdx;
+    newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].isSkipped = false;
     setData(newData);
 
-    // Save to DB
     setSaving(true);
     try {
       await fetch(`/api/test/answer`, {
@@ -94,13 +153,16 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
         headers: authHeaders(),
         body: JSON.stringify({ answerId, selectedAnswer: optionIdx }),
       });
+      
+      if (showFeedback) {
+        fetchExplanation(newData.subjects[currentSubjectIdx].questions[currentQuestionIdx]);
+      }
     } catch (err) {
       console.error("Save error:", err);
     } finally {
       setSaving(false);
     }
   };
-
 
   if (loading || !data) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
@@ -109,14 +171,9 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       <div className="max-w-xl mx-auto p-12 text-center">
         <div className="text-5xl mb-6">⚠️</div>
         <h2 className="text-2xl font-bold text-text mb-4">
-          {lang === "ru" ? "Ошибка загрузки экзамена" : "Емтиханды жүктеу қатесі"}
+          {lang === "ru" ? "Ошибка загрузки" : "Жүктеу қатесі"}
         </h2>
-        <p className="text-text-secondary mb-8">
-          {lang === "ru" 
-            ? "Данные экзамена не найдены. Пожалуйста, попробуйте начать новый экзамен."
-            : "Емтихан деректері табылмады. Жаңа емтиханды бастап көріңіз."}
-        </p>
-        <button onClick={() => window.location.href = "/mock-exam"} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
+        <button onClick={() => window.location.href = "/tests"} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
           {lang === "ru" ? "Вернуться назад" : "Артқа қайту"}
         </button>
       </div>
@@ -124,64 +181,20 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
   }
 
   const currentSubject = data.subjects[currentSubjectIdx];
-  if (!currentSubject?.questions || currentSubject.questions.length === 0) {
-    return (
-      <div className="max-w-xl mx-auto p-12 text-center">
-        <div className="text-5xl mb-6">📝</div>
-        <h2 className="text-2xl font-bold text-text mb-4">
-          {lang === "ru" ? "В этом предмете нет вопросов" : "Бұл пәнде сұрақтар жоқ"}
-        </h2>
-        <p className="text-text-secondary mb-8">
-          {lang === "ru" 
-            ? `Для предмета "${currentSubject.nameRu}" вопросы еще не добавлены.`
-            : `"${currentSubject.nameKz}" пәні үшін сұрақтар әлі қосылмаған.`}
-        </p>
-        <div className="flex flex-col gap-2">
-            {data.subjects.map((s: any, idx: number) => (
-                <button key={s.id} onClick={() => setCurrentSubjectIdx(idx)} className="text-primary font-bold">
-                    {lang === "ru" ? `Перейти к ${s.nameRu}` : `${s.nameKz} пәніне өту`}
-                </button>
-            ))}
-        </div>
-      </div>
-    );
-  }
+  const currentQuestion = currentSubject?.questions?.[currentQuestionIdx];
 
-  const currentQuestion = currentSubject.questions[currentQuestionIdx];
-  if (!currentQuestion) {
-    return (
-      <div className="max-w-xl mx-auto p-12 text-center">
-        <h2 className="text-xl font-bold text-text mb-4">{lang === "ru" ? "Вопрос не найден" : "Сұрақ табылмады"}</h2>
-        <button onClick={() => setCurrentQuestionIdx(0)} className="bg-primary text-white px-6 py-2 rounded-xl">
-           {lang === "ru" ? "Начать с начала" : "Басынан бастау"}
-        </button>
-      </div>
-    );
-  }
+  if (!currentQuestion) return null;
 
-  const isDiagnostic = data.session?.testType === "diagnostic";
-  const accentColor = isDiagnostic ? "blue-600" : "primary";
-  const accentBg = isDiagnostic ? "bg-blue-600" : "bg-primary";
-  const accentText = isDiagnostic ? "text-blue-600" : "text-primary";
-  const accentShadow = isDiagnostic ? "shadow-blue-600/20" : "shadow-primary/20";
+  const accentBg = isDiagnostic ? "bg-blue-600" : isPractice ? "bg-emerald-600" : "bg-primary";
+  const accentText = isDiagnostic ? "text-blue-600" : isPractice ? "text-emerald-600" : "text-primary";
+  const accentShadow = isDiagnostic ? "shadow-blue-600/20" : isPractice ? "shadow-emerald-600/20" : "shadow-primary/20";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header */}
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4">
           <div className={`font-black text-xl ${accentText} flex items-center gap-2 uppercase`}>
-            {isDiagnostic ? (
-              <>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                <span>Diagnostic</span>
-              </>
-            ) : (
-              <>
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                <span>Mock Exam</span>
-              </>
-            )}
+            {isDiagnostic ? "Diagnostic" : isPractice ? "Practice" : "Mock Exam"}
           </div>
           <div className="h-6 w-px bg-border hidden md:block" />
           <div className="text-sm font-bold text-text-secondary hidden md:block uppercase tracking-widest">
@@ -189,9 +202,11 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           </div>
         </div>
 
-        <div className={`px-6 py-2 rounded-2xl font-mono text-xl font-black ${remainingMs < 300000 ? "bg-rose-50 text-rose-600 animate-pulse" : "bg-slate-100 text-text"}`}>
-          {formatTime(remainingMs)}
-        </div>
+        {!isPractice && (
+          <div className={`px-6 py-2 rounded-2xl font-mono text-xl font-black ${remainingMs < 300000 ? "bg-rose-50 text-rose-600 animate-pulse" : "bg-slate-100 text-text"}`}>
+            {formatTime(remainingMs)}
+          </div>
+        )}
 
         <button 
           onClick={handleFinish}
@@ -202,7 +217,6 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Navigation Sidebar */}
         <aside className="w-80 bg-white border-r border-border hidden lg:flex flex-col">
           <div className="p-4 border-b border-border space-y-2">
             {data.subjects.map((sub: any, idx: number) => (
@@ -219,29 +233,17 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-5 gap-2">
-              {currentSubject.questions.map((q: any, idx: number) => (
-                <button
-                  key={q.id}
-                  onClick={() => setCurrentQuestionIdx(idx)}
-                  className={`h-11 rounded-lg text-xs font-bold transition-all border ${
-                    currentQuestionIdx === idx 
-                      ? `${accentBg} text-white border-transparent` 
-                      : q.selectedAnswer !== null 
-                        ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
-                        : "bg-white text-text-secondary border-border"
-                  }`}
-                  aria-label={`${lang === "ru" ? "Вопрос" : "Сұрақ"} ${idx + 1}`}
-                >
-                  {idx + 1}
-                </button>
-              ))}
-            </div>
+            <QuestionNavigator
+              questions={currentSubject.questions}
+              currentIndex={currentQuestionIdx}
+              onSelectIndex={setCurrentQuestionIdx}
+              accentBg={accentBg}
+              showFeedback={showFeedback}
+            />
           </div>
         </aside>
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto p-6 md:p-12">
+        <main className="flex-1 overflow-y-auto p-6 md:p-12 pb-32">
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 flex items-center justify-between">
               <div className="text-sm font-bold text-text-secondary uppercase tracking-widest">
@@ -250,34 +252,20 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
               {saving && <div className="text-[10px] font-bold text-primary animate-pulse uppercase">Сохранение...</div>}
             </div>
 
-            <h2 className="text-2xl font-bold text-text mb-10 leading-tight">
-              {lang === "ru" ? currentQuestion.questionTextRu : lang === "kz" ? currentQuestion.questionTextKz : currentQuestion.questionTextEn}
-            </h2>
+            <QuestionCard
+              question={currentQuestion}
+              lang={lang}
+              onSelectAnswer={(oIdx) => handleSelectAnswer(currentQuestion.answerId!, oIdx)}
+              showFeedback={showFeedback}
+              isReadOnly={showFeedback && currentQuestion.selectedAnswer !== null}
+            />
 
-            <div className="space-y-4">
-              {["optionsRu", "optionsKz", "optionsEn"].filter(k => k.endsWith(lang === "ru" ? "Ru" : "Kz")).map(key => (
-                (currentQuestion[key] as any[]).map((option, oIdx) => (
-                  <button
-                    key={oIdx}
-                    onClick={() => handleSelectAnswer(currentQuestion.answerId, oIdx)}
-                    className={`w-full p-5 rounded-2xl border-2 text-left transition-all flex items-center gap-4 ${
-                      currentQuestion.selectedAnswer === oIdx
-                        ? "border-primary bg-primary/5 ring-4 ring-primary/5"
-                        : "border-border hover:border-primary/30"
-                    }`}
-                  >
-                    <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm ${
-                      currentQuestion.selectedAnswer === oIdx ? `${accentBg} text-white border-transparent` : "border-border text-text-secondary"
-                    }`}>
-                      {String.fromCharCode(65 + oIdx)}
-                    </div>
-                    <span className="font-medium text-text">{option}</span>
-                  </button>
-                ))
-              ))}
-            </div>
+            <AiExplanationBlock
+              lang={lang}
+              explanation={explanations[currentQuestion.id]}
+              loading={loadingExplanations[currentQuestion.id] || false}
+            />
 
-            {/* Navigation Buttons */}
             <div className="flex justify-between mt-12 pt-8 border-t border-border">
               <button
                 disabled={currentQuestionIdx === 0}
@@ -286,13 +274,20 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
               >
                 ← {lang === "ru" ? "Назад" : "Артқа"}
               </button>
-              <button
-                disabled={currentQuestionIdx === currentSubject.questions.length - 1}
-                onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all disabled:opacity-30 shadow-lg ${accentShadow}`}
-              >
-                {lang === "ru" ? "Далее" : "Келесі"} →
-              </button>
+              
+              {showFeedback && currentQuestion.selectedAnswer === null ? (
+                 <div className="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center">
+                    {lang === "ru" ? "Выберите ответ" : "Жауапты таңдаңыз"}
+                 </div>
+              ) : (
+                <button
+                  disabled={currentQuestionIdx === currentSubject.questions.length - 1}
+                  onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
+                  className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all disabled:opacity-30 shadow-lg ${accentShadow}`}
+                >
+                  {lang === "ru" ? "Далее" : "Келесі"} →
+                </button>
+              )}
             </div>
           </div>
         </main>

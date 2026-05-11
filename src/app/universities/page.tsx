@@ -7,6 +7,8 @@ import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 import Image from "next/image";
 
+import { Search, Building } from "lucide-react";
+
 interface University {
   id: number;
   nameRu: string;
@@ -83,7 +85,9 @@ export default function UniversitiesPage() {
         <div className="flex justify-center py-20"><Spinner size="lg" /></div>
       ) : unis.length === 0 ? (
         <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-          <div className="text-4xl mb-4">🔍</div>
+          <div className="flex justify-center mb-4">
+            <Search className="w-16 h-16 text-slate-300" aria-hidden="true" />
+          </div>
           <div className="text-lg font-bold text-text">{lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады"}</div>
           <div className="text-sm text-text-secondary mt-1">{lang === "ru" ? "Попробуйте изменить параметры поиска" : "Іздеу параметрлерін өзгертіп көріңіз"}</div>
         </div>
@@ -93,7 +97,7 @@ export default function UniversitiesPage() {
             <div key={uni.id} className="group bg-white rounded-[2rem] border border-border p-1 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-2xl overflow-hidden shrink-0">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
                     {uni.logoUrl ? (
                       <Image 
                         src={uni.logoUrl} 
@@ -102,7 +106,9 @@ export default function UniversitiesPage() {
                         height={64} 
                         className="w-full h-full object-cover"
                       />
-                    ) : "🏛️"}
+                    ) : (
+                      <Building className="w-8 h-8 text-slate-300" aria-hidden="true" />
+                    )}
                   </div>
                   <div className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider">
                     {lang === "ru" ? uni.cityRu : uni.cityKz}

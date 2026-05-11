@@ -8,16 +8,10 @@ type Question = InferSelectModel<typeof questions>;
 type Subject = InferSelectModel<typeof subjects>;
 
 interface MockStartRequest {
-  mode?: "diagnostic" | "mock";
-}
-
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
+  mode: "diagnostic" | "mock" | "practice";
+  combinationId?: number;
+  subjectSlug?: string;
+  count?: number;
 }
 
 export async function POST(req: Request) {
@@ -37,9 +31,7 @@ export async function POST(req: Request) {
       }
     });
 
-    if (!user || !user.targetCombinationId || !user.targetCombination) {
-      return NextResponse.json({ error: "Please complete Career Wizard first" }, { status: 400 });
-    }
+    if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
     let body: MockStartRequest;
     try {
@@ -47,106 +39,99 @@ export async function POST(req: Request) {
     } catch (e) {
       return NextResponse.json({ error: "Invalid request body. Expected valid JSON." }, { status: 400 });
     }
-    const mode = body.mode === "diagnostic" ? "diagnostic" : "mock";
-
-    // 1. Define required subject slugs
-    const mandatorySlugs = ["history_kz", "math_literacy", "reading_literacy"];
-    const profileSlugs = [
-      user.targetCombination.subject1.slug,
-      user.targetCombination.subject2.slug
-    ];
-
-    // 2. Fetch all relevant subjects
-    const allRelevantSubjects = await db.query.subjects.findMany({
-      where: inArray(subjects.slug, [...mandatorySlugs, ...profileSlugs])
-    });
-
-    // 3. Select questions for each subject (Randomized)
-    const mockQuestions: Question[] = [];
     
-    // Distribution based on mode
-    const counts: Record<string, number> = mode === "diagnostic" 
-      ? {
-          "history_kz": 5,
-          "math_literacy": 5,
-          "reading_literacy": 5,
-          [profileSlugs[0]]: 5,
-          [profileSlugs[1]]: 5
-        }
-      : {
-          "history_kz": 20,
-          "math_literacy": 15,
-          "reading_literacy": 15,
-          [profileSlugs[0]]: 45,
-          [profileSlugs[1]]: 45
-        };
+    const mode = body.mode;
 
-    const targetTotal = mode === "diagnostic" ? 25 : 140;
+    // 1. Determine subjects to fetch
+    let targetSubjects: { id: number; slug: string; nameRu: string; nameKz: string }[] = [];
+    let questionCounts: Record<string, number> = {};
 
-    console.log(`=== MOCK START DEBUG (${mode.toUpperCase()}) ===`);
-    console.log("Required subjects:", Object.keys(counts));
-    console.time("MockStart");
-
-    const questionsPromises = allRelevantSubjects.map(async (subject: Subject) => {
-      const limit = counts[subject.slug] || 0;
-      // Fetch 2x the required count to avoid performance issues with ORDER BY RANDOM()
-      const subQuestions = await db.query.questions.findMany({
-        where: eq(questions.subjectId, subject.id),
-        limit: limit * 2,
+    if (mode === "practice") {
+      if (!body.subjectSlug) return NextResponse.json({ error: "Subject slug is required for practice" }, { status: 400 });
+      const sub = await db.query.subjects.findFirst({
+        where: eq(subjects.slug, body.subjectSlug),
       });
-      
-      const shuffled = shuffleArray(subQuestions);
-      const selected = shuffled.slice(0, limit);
-      
-      console.log(`- Subject: ${subject.slug}, Pool: ${subQuestions.length}, Selected: ${selected.length}, Needed: ${limit}`);
-      return selected;
-    });
+      if (!sub) return NextResponse.json({ error: "Subject not found" }, { status: 404 });
+      targetSubjects = [sub];
+      questionCounts[sub.slug] = body.count || 20;
+    } else {
+      // Diagnostic or Mock
+      let combination = user.targetCombination;
+      if (body.combinationId) {
+        const overrideCombo = await db.query.subjectCombinations.findFirst({
+          where: eq(subjectCombinations.id, body.combinationId),
+          with: {
+            subject1: true,
+            subject2: true,
+          }
+        });
+        if (overrideCombo) combination = overrideCombo as any;
+      }
 
-    const results = await Promise.all(questionsPromises);
-    results.forEach(subQs => mockQuestions.push(...subQs));
+      if (!combination) return NextResponse.json({ error: "Please complete Career Wizard first" }, { status: 400 });
 
-    console.log("Total questions collected:", mockQuestions.length);
-    console.timeEnd("MockStart");
+      const mandatorySlugs = ["history_kz", "math_literacy", "reading_literacy"];
+      const profileSlugs = [combination.subject1.slug, combination.subject2.slug];
+      const allSlugs = [...mandatorySlugs, ...profileSlugs];
+
+      targetSubjects = await db.query.subjects.findMany({
+        where: inArray(subjects.slug, allSlugs),
+      });
+
+      const isDiagnostic = mode === "diagnostic";
+      mandatorySlugs.forEach(slug => questionCounts[slug] = isDiagnostic ? 5 : (slug === "history_kz" ? 20 : 15));
+      profileSlugs.forEach(slug => questionCounts[slug] = isDiagnostic ? 5 : 45);
+    }
+
+    const targetTotal = Object.values(questionCounts).reduce((a, b) => a + b, 0);
+
+    // 2. Fetch and shuffle questions
+    const mockQuestions: Question[] = [];
+    for (const sub of targetSubjects) {
+      const requiredCount = questionCounts[sub.slug] || 0;
+      const pool = await db.query.questions.findMany({
+        where: eq(questions.subjectId, sub.id),
+        limit: requiredCount * 2,
+        orderBy: sql`RANDOM()`,
+      });
+
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      mockQuestions.push(...shuffled.slice(0, requiredCount));
+    }
 
     if (mockQuestions.length < targetTotal) {
-      console.error(`NOT ENOUGH QUESTIONS FOR ${mode.toUpperCase()}. Total:`, mockQuestions.length);
       return NextResponse.json({ 
         error: "Insufficient questions in database", 
-        details: `Found only ${mockQuestions.length} questions. Need ${targetTotal} for ${mode}. Please contact support or add more questions.`
+        details: `Found only ${mockQuestions.length} questions. Need ${targetTotal}.`
       }, { status: 400 });
     }
 
-    // 4. Create Session
-    const session = await db.insert(testSessions).values({
-      userId: user.id,
+    // 3. Create Session
+    const [session] = await db.insert(testSessions).values({
+      userId,
       testType: mode,
-      subjects: allRelevantSubjects,
+      subjects: targetSubjects,
       totalQuestions: mockQuestions.length,
       startedAt: new Date(),
       completed: false,
     }).returning();
 
-    const sessionId = session[0].id;
-
-    // 5. Create empty answers placeholders
+    // 4. Create Answers
     const answerEntries = mockQuestions.map(q => ({
-      sessionId: sessionId,
+      sessionId: session.id,
       questionId: q.id,
       isSkipped: true,
     }));
     
     await db.insert(testAnswers).values(answerEntries);
 
-    const durationMinutes = mode === "diagnostic" ? 45 : 240;
-
     return NextResponse.json({ 
-      sessionId, 
+      sessionId: session.id, 
       totalQuestions: mockQuestions.length,
-      endTime: new Date(Date.now() + durationMinutes * 60000).toISOString()
     });
 
   } catch (error) {
     console.error("Mock Start Error:", error);
-    return NextResponse.json({ error: "Failed to start mock exam" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to start test session" }, { status: 500 });
   }
 }

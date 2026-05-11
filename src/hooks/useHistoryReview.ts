@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useApp } from "@/components/Providers";
 
+import { type Question, type TestSession } from "@/types/exam";
+
 export function useHistoryReview() {
   const { lang, user, token, authHeaders, ready } = useApp();
   const router = useRouter();
   const params = useParams();
   
-  const [session, setSession] = useState<any>(null);
-  const [questions, setQuestions] = useState<any[]>([]);
+  const [session, setSession] = useState<TestSession | null>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
 

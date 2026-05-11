@@ -39,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         <Providers>
           <PWARegistration />
           <NavbarWrapper />
-          <main className="pb-[calc(5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
+          <main className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
           <BottomNav />
         </Providers>
       </body>

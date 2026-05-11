@@ -17,8 +17,10 @@ export function BottomNav() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  const isTestRoute = pathname?.startsWith("/mock-exam/") && !pathname.endsWith("/results");
+
   // Hide BottomNav during active testing/practice or in history review
-  if (!user || isFullPageMode || pathname.startsWith("/history/")) return null;
+  if (!user || isFullPageMode || pathname.startsWith("/history/") || isTestRoute) return null;
 
   const tabs = [
     {
@@ -79,7 +81,7 @@ export function BottomNav() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-border pb-[env(safe-area-inset-bottom)]">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 lg:hidden bg-white/95 backdrop-blur-sm border-t border-border pb-[env(safe-area-inset-bottom)]">
         <div className="flex items-stretch">
           {tabs.map((tab, idx) => {
             const active = tab.href ? (pathname === tab.href || pathname.startsWith(tab.href + "/")) : false;

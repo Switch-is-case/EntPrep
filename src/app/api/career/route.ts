@@ -1,38 +1,26 @@
-import { NextResponse } from "next/server";
-import { db } from "@/db";
-import { entDirections, specialties, subjectCombinations } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { AppError } from "@/lib/errors";
+import { NextRequest, NextResponse } from "next/server";
+import { getUserIdFromRequest } from "@/lib/auth";
+import { usersService } from "@/lib/container";
 
-export async function GET(req: Request) {
+export async function PUT(request: NextRequest) {
+  const userId = getUserIdFromRequest(request);
+  if (!userId) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    const { searchParams } = new URL(req.url);
-    const type = searchParams.get("type"); // directions | specialties | combinations
-
-    if (type === "directions") {
-      const data = await db.query.entDirections.findMany({
-        with: {
-          specialties: true,
-        },
-        orderBy: [asc(entDirections.nameRu)],
-      });
-      return NextResponse.json(data);
+    const body = await request.json();
+    const updated = await usersService.updateProfile(userId, body);
+    return NextResponse.json(updated);
+  } catch (error: unknown) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        { error: error.message, details: error.details },
+        { status: error.statusCode }
+      );
     }
-
-    if (type === "combinations") {
-      const data = await db.query.subjectCombinations.findMany({
-        where: eq(subjectCombinations.isActive, true),
-        with: {
-          subject1: true,
-          subject2: true,
-        },
-        orderBy: [asc(subjectCombinations.id)],
-      });
-      return NextResponse.json(data);
-    }
-
-    return NextResponse.json({ error: "Invalid type" }, { status: 400 });
-  } catch (error) {
-    console.error("Career API Error:", error);
+    console.error("API Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

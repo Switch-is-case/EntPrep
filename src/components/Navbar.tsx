@@ -53,6 +53,11 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   ),
+  Progress: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+    </svg>
+  ),
   Profile: () => (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
@@ -69,39 +74,18 @@ export default function Navbar() {
   const { lang, setLang, user, logout } = useApp();
   const isInstalled = useIsPWAInstalled();
   const pathname = usePathname();
-  const [moreOpen, setMoreOpen] = useState(false);
-  const moreRef = useRef<HTMLDivElement>(null);
-
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
-        setMoreOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const mainLinks = user
     ? [
         { href: "/tests", label: t("nav.tests", lang), icon: Icons.Tests },
         { href: "/practice", label: t("nav.practice", lang), icon: Icons.Practice },
-        { href: "/mock-exam", label: t("nav.mockExam", lang), icon: Icons.MockExam },
         { href: "/roadmap", label: t("nav.roadmap", lang), icon: Icons.Roadmap },
+        { href: "/progress", label: t("nav.progress", lang), icon: Icons.Progress },
+        { href: "/history", label: t("nav.history", lang), icon: Icons.History },
+        { href: "/universities", label: t("nav.universities", lang), icon: Icons.Universities },
         { href: "/profile", label: t("nav.profile", lang), icon: Icons.Profile },
       ]
     : [];
-
-  const moreLinks = user
-    ? [
-        { href: "/career", label: t("nav.career", lang), icon: Icons.Career },
-        { href: "/universities", label: t("nav.universities", lang), icon: Icons.Universities },
-        { href: "/history", label: t("nav.history", lang), icon: Icons.History },
-      ]
-    : [];
-
-  const isMoreActive = moreLinks.some(link => pathname === link.href);
 
   return (
     <nav className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
@@ -109,12 +93,12 @@ export default function Navbar() {
         <div className="flex items-center justify-between h-16">
           
           {/* Logo & Download */}
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-3 xl:gap-6">
             <Link href="/" className="flex items-center gap-2 shrink-0">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-sm">E</span>
               </div>
-              <span className="font-bold text-lg text-text hidden lg:inline-block">
+              <span className="font-bold text-lg text-text hidden xl:inline-block">
                 ENT<span className="text-primary">Prep</span>
                 <span className="text-accent ml-0.5 text-xs tracking-tighter">AI</span>
               </span>
@@ -123,86 +107,46 @@ export default function Navbar() {
             {!isInstalled && (
               <Link
                 href="/install"
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all text-xs font-bold border border-primary/10"
+                className="flex items-center gap-1 px-2 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all text-[10px] font-bold border border-primary/10 shrink-0"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span>{t("nav.download", lang)}</span>
+                <span className="hidden sm:inline">{t("nav.download", lang)}</span>
               </Link>
             )}
           </div>
 
-          {/* Center: Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1 flex-1 justify-center px-4">
+          {/* Center: Desktop Nav (Breakpoint moved to lg: 1024px) */}
+          <div className="hidden lg:flex items-center gap-0.5 xl:gap-1 flex-1 justify-center px-2 xl:px-4">
             {mainLinks.map((link) => {
-              const active = pathname === link.href;
+              const active = pathname === link.href || pathname.startsWith(link.href + "/");
               return (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2 xl:px-4 py-2 rounded-xl text-[11px] xl:text-sm font-bold transition-all ${
                     active
                       ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                       : "text-text-secondary hover:text-text hover:bg-gray-100"
                   }`}
                 >
                   <link.icon />
-                  <span className="hidden lg:inline">{link.label}</span>
+                  <span>{link.label}</span>
                 </Link>
               );
             })}
-
-            {/* Dropdown "More" */}
-            {user && (
-              <div className="relative ml-1" ref={moreRef}>
-                <button
-                  onClick={() => setMoreOpen(!moreOpen)}
-                  className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl text-sm font-bold transition-all ${
-                    isMoreActive || moreOpen
-                      ? "bg-gray-100 text-primary"
-                      : "text-text-secondary hover:text-text hover:bg-gray-100"
-                  }`}
-                >
-                  <Icons.ChevronDown />
-                  <span>{t("nav.more", lang)}</span>
-                </button>
-
-                {moreOpen && (
-                  <div className="absolute top-full mt-2 right-0 w-48 bg-white border border-border rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2">
-                    {moreLinks.map((link) => {
-                      const active = pathname === link.href;
-                      return (
-                        <Link
-                          key={link.href}
-                          href={link.href}
-                          onClick={() => setMoreOpen(false)}
-                          className={`flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-colors ${
-                            active
-                              ? "text-primary bg-primary/5"
-                              : "text-text-secondary hover:text-text hover:bg-gray-50"
-                          }`}
-                        >
-                          <link.icon />
-                          {link.label}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Right: Language & Auth */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 xl:gap-4">
             {/* Language switcher */}
             <div className="flex bg-gray-100 rounded-xl p-1">
               {(["kz", "ru", "en"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   onClick={() => setLang(l)}
-                  className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${
+                  className={`px-2 py-1 rounded-lg text-[9px] xl:text-[10px] font-black uppercase transition-all ${
                     lang === l
                       ? "bg-white text-primary shadow-sm"
                       : "text-text-secondary hover:text-text"
@@ -215,7 +159,7 @@ export default function Navbar() {
 
             {/* Auth */}
             {user ? (
-              <div className="hidden lg:flex items-center gap-4">
+              <div className="hidden xl:flex items-center gap-4">
                 <div className="flex flex-col items-end leading-tight">
                   <span className="text-xs font-black text-text truncate max-w-[100px]">{user.name}</span>
                   <button
@@ -227,16 +171,16 @@ export default function Navbar() {
                 </div>
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden lg:flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="text-xs font-bold text-text-secondary hover:text-text px-3 py-2"
+                  className="text-xs font-bold text-text-secondary hover:text-text px-2 xl:px-3 py-2"
                 >
                   {t("nav.login", lang)}
                 </Link>
                 <Link
                   href="/register"
-                  className="text-xs font-black bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/10"
+                  className="text-xs font-black bg-primary text-white px-3 xl:px-4 py-2 rounded-xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/10"
                 >
                   {t("nav.register", lang)}
                 </Link>

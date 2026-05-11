@@ -6,6 +6,8 @@ import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { useApp } from "./Providers";
 
+import { Building, Lightbulb, Settings } from "lucide-react";
+
 interface BottomSheetMenuProps {
   isOpen: boolean;
   onClose: () => void;
@@ -16,33 +18,21 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
 
   const menuItems = [
     {
-      href: "/career",
-      label: lang === "ru" ? "Выбор карьеры" : lang === "kz" ? "Мамандық таңдау" : "Career Wizard",
-      icon: "🎯",
-      color: "from-blue-500 to-indigo-600",
-    },
-    {
       href: "/universities",
       label: lang === "ru" ? "Университеты" : lang === "kz" ? "Университеттер" : "Universities",
-      icon: "🏛️",
+      icon: Building,
       color: "from-emerald-500 to-teal-600",
     },
     {
-      href: "/mock-exam",
-      label: lang === "ru" ? "Пробный ЕНТ" : lang === "kz" ? "Пробный ҰБТ" : "Mock Exam",
-      icon: "📝",
+      href: "/roadmap",
+      label: lang === "ru" ? "AI План" : lang === "kz" ? "AI Жоспар" : "AI Plan",
+      icon: Lightbulb,
       color: "from-amber-500 to-orange-600",
-    },
-    {
-      href: "/analytics",
-      label: lang === "ru" ? "Аналитика" : lang === "kz" ? "Аналитика" : "Analytics",
-      icon: "📊",
-      color: "from-purple-500 to-pink-600",
     },
     {
       href: "/profile",
       label: lang === "ru" ? "Настройки" : lang === "kz" ? "Баптаулар" : "Settings",
-      icon: "⚙️",
+      icon: Settings,
       color: "from-slate-500 to-slate-700",
     },
   ];
@@ -91,8 +81,8 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
                     whileTap={{ scale: 0.95 }}
                     className="h-full flex flex-col items-center justify-center p-5 rounded-3xl bg-gray-50 border border-gray-100 transition-all hover:bg-white hover:shadow-md"
                   >
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-2xl mb-3 shadow-lg shadow-indigo-500/10`}>
-                      {item.icon}
+                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/10`}>
+                      <item.icon className="w-8 h-8 text-white" aria-hidden="true" />
                     </div>
                     <span className="text-sm font-bold text-text text-center leading-tight">
                       {item.label}

@@ -10,7 +10,7 @@ import React, {
 import type { Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 
-interface User {
+export interface User {
   id: string;
   email: string;
   name: string;
@@ -60,8 +60,8 @@ function OnboardingCheck({ children }: { children: React.ReactNode }) {
   const { user, ready } = useApp();
 
   useEffect(() => {
-    if (ready && user?.needsReonboarding && window.location.pathname !== "/career") {
-      window.location.href = "/career";
+    if (ready && user?.needsReonboarding && window.location.pathname !== "/profile") {
+      window.location.href = "/profile";
     }
   }, [user, ready]);
 

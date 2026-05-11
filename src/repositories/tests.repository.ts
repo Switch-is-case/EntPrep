@@ -136,7 +136,12 @@ export class TestsRepository {
         startedAt: testSessions.startedAt,
       })
       .from(testSessions)
-      .where(eq(testSessions.userId, userId))
+      .where(
+        and(
+          eq(testSessions.userId, userId),
+          sql`${testSessions.testType} != 'practice'`
+        )
+      )
       .orderBy(desc(testSessions.startedAt));
 
     return sessions as SessionHistoryDTO[];
