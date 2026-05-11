@@ -35,3 +35,17 @@ h1, h2, h3 {
     display: none;
   }
 }
+
+@media (max-width: 1023px) {
+  html, body {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
