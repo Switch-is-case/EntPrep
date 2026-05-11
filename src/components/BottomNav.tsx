@@ -1,10 +1,11 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "./Providers";
 import { t } from "@/lib/i18n";
+import { BottomSheetMenu } from "./BottomSheetMenu";
 
 /**
  * Mobile-only bottom navigation bar (fixed, visible only on small screens).
@@ -14,6 +15,7 @@ import { t } from "@/lib/i18n";
 export function BottomNav() {
   const { lang, user, isFullPageMode } = useApp();
   const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Hide BottomNav during active testing/practice or in history review
   if (!user || isFullPageMode || pathname.startsWith("/history/")) return null;
@@ -64,32 +66,52 @@ export function BottomNav() {
         </svg>
       ),
     },
+    {
+      label: t("nav.more", lang),
+      onClick: () => setIsMenuOpen(true),
+      icon: (active: boolean) => (
+        <svg className={`w-6 h-6 ${active ? "text-primary" : "text-text-secondary"}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+        </svg>
+      ),
+    },
   ];
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-border pb-[env(safe-area-inset-bottom)]">
-      <div className="flex items-stretch">
-        {tabs.map((tab) => {
-          const active = pathname === tab.href || pathname.startsWith(tab.href + "/");
-          return (
-            <Link
-              key={tab.href}
-              href={tab.href}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors ${
-                active ? "text-primary" : "text-text-secondary"
-              }`}
-            >
-              {tab.icon(active)}
-              <span className={`text-[10px] font-medium leading-tight ${active ? "text-primary" : "text-text-secondary"}`}>
-                {tab.label}
-              </span>
-              {active && (
-                <span className="absolute bottom-0 w-8 h-0.5 bg-primary rounded-t-full" style={{ display: "none" }} />
-              )}
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/95 backdrop-blur-sm border-t border-border pb-[env(safe-area-inset-bottom)]">
+        <div className="flex items-stretch">
+          {tabs.map((tab, idx) => {
+            const active = tab.href ? (pathname === tab.href || pathname.startsWith(tab.href + "/")) : false;
+            const content = (
+              <>
+                {tab.icon(active)}
+                <span className={`text-[10px] font-bold leading-tight ${active ? "text-primary" : "text-text-secondary"}`}>
+                  {tab.label}
+                </span>
+              </>
+            );
+
+            const baseClass = `flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-all active:scale-90`;
+
+            if (tab.href) {
+              return (
+                <Link key={tab.href} href={tab.href} className={`${baseClass} ${active ? "text-primary" : "text-text-secondary"}`}>
+                  {content}
+                </Link>
+              );
+            }
+
+            return (
+              <button key={idx} onClick={tab.onClick} className={`${baseClass} text-text-secondary`}>
+                {content}
+              </button>
+            );
+          })}
+        </div>
+      </nav>
+
+      <BottomSheetMenu isOpen={isMenuOpen} onClose={() => setIsMenuOpen(false)} />
+    </>
   );
 }

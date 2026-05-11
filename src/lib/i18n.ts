@@ -273,6 +273,10 @@ export const translations = {
     ru: "Сначала выберите профильные предметы",
     en: "First select profile subjects",
   },
+  "nav.more": { kz: "Тағы", ru: "Ещё", en: "More" },
+  "nav.about": { kz: "Платформа туралы", ru: "О платформе", en: "About" },
+  "nav.help": { kz: "Көмек", ru: "Помощь", en: "Help" },
+  "nav.contact": { kz: "Контактілер", ru: "Контакты", en: "Contacts" },
 
   // PWA Install
   "nav.download": { kz: "Жүктеу", ru: "Скачать", en: "Download" },
