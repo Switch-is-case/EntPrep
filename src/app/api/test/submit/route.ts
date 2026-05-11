@@ -27,7 +27,7 @@ export async function POST(req: Request) {
     let correctCount = 0;
     const subjectBreakdown: Record<string, { score: number, total: number, name: string }> = {};
 
-    const subjectsData = JSON.parse(session.subjects as string);
+    const subjectsData = session.subjects as any[];
     subjectsData.forEach((s: any) => {
       subjectBreakdown[s.id] = { score: 0, total: 0, name: s.nameRu };
     });
@@ -51,7 +51,7 @@ export async function POST(req: Request) {
         completedAt: new Date(),
         score: totalScore,
         correctAnswers: correctCount,
-        results: JSON.stringify({ subjectBreakdown }),
+        results: { subjectBreakdown },
       })
       .where(eq(testSessions.id, sessionId));
 
