@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "./Providers";
 import { Spinner } from "./Spinner";
@@ -164,6 +164,33 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     }
   };
 
+  const stripRef = useRef<HTMLDivElement>(null);
+  const subjectStripRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!stripRef.current) return;
+    const activeButton = stripRef.current.children[currentQuestionIdx] as HTMLElement;
+    if (activeButton) {
+      activeButton.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center"
+      });
+    }
+  }, [currentQuestionIdx]);
+
+  useEffect(() => {
+    if (!subjectStripRef.current) return;
+    const activeSub = subjectStripRef.current.children[currentSubjectIdx] as HTMLElement;
+    if (activeSub) {
+      activeSub.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+        inline: "center"
+      });
+    }
+  }, [currentSubjectIdx]);
+
   if (loading || !data) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
   if (!data.subjects || !Array.isArray(data.subjects) || data.subjects.length === 0) {
@@ -222,6 +249,62 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           </button>
         </div>
       </header>
+      
+      {/* Mobile Navigation Strip */}
+      <div className="lg:hidden bg-white border-b border-slate-200 sticky top-[60px] md:top-[68px] z-40">
+        {data.subjects.length > 1 && (
+          <div 
+            ref={subjectStripRef}
+            className="flex gap-2 px-4 py-2 border-b border-slate-100 overflow-x-auto scrollbar-hide"
+          >
+            {data.subjects.map((sub, idx) => (
+              <button
+                key={sub.id}
+                onClick={() => { setCurrentSubjectIdx(idx); setCurrentQuestionIdx(0); }}
+                className={`flex-shrink-0 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-colors ${
+                  currentSubjectIdx === idx ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
+                }`}
+              >
+                {lang === "ru" ? sub.nameRu : sub.nameKz}
+              </button>
+            ))}
+          </div>
+        )}
+        
+        <div 
+          ref={stripRef}
+          className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-hide"
+        >
+          {currentSubject.questions.map((q, idx) => {
+            const isSelected = currentQuestionIdx === idx;
+            const userAnswer = q.selectedAnswer !== undefined ? q.selectedAnswer : q.userAnswer;
+            const hasAnswered = userAnswer !== null && userAnswer !== undefined;
+            
+            let btnClass = "";
+            if (showFeedback) {
+              if (q.isSkipped) btnClass = "bg-amber-400 text-white";
+              else {
+                const isCorrect = q.isCorrect !== undefined ? q.isCorrect : (userAnswer === q.correctAnswer);
+                btnClass = isCorrect ? "bg-emerald-500 text-white" : "bg-red-500 text-white";
+              }
+            } else {
+              btnClass = hasAnswered ? "bg-primary text-white" : "bg-slate-100 text-slate-500";
+            }
+
+            return (
+              <button
+                key={q.id ?? idx}
+                onClick={() => setCurrentQuestionIdx(idx)}
+                className={`flex-shrink-0 w-9 h-9 rounded-lg text-sm font-bold flex items-center justify-center transition-all ${btnClass} ${
+                  isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                }`}
+              >
+                {idx + 1}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <div className="flex-1 flex overflow-hidden">
         <aside className="w-80 bg-white border-r border-slate-200 hidden lg:flex flex-col">
