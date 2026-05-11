@@ -1,11 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useApp } from "./Providers";
 import { t, type Lang } from "@/lib/i18n";
-
 import { useIsPWAInstalled } from "@/hooks/useIsPWAInstalled";
 
 const langLabels: Record<Lang, string> = {
@@ -14,117 +13,235 @@ const langLabels: Record<Lang, string> = {
   en: "Eng",
 };
 
+// --- ICONS (Lucide style) ---
+const Icons = {
+  Tests: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+    </svg>
+  ),
+  Practice: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  ),
+  MockExam: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10" strokeWidth={2} />
+      <circle cx="12" cy="12" r="6" strokeWidth={2} />
+      <circle cx="12" cy="12" r="2" strokeWidth={2} />
+    </svg>
+  ),
+  Roadmap: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.674M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+    </svg>
+  ),
+  Career: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+    </svg>
+  ),
+  Universities: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+    </svg>
+  ),
+  History: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  ),
+  Profile: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+    </svg>
+  ),
+  ChevronDown: () => (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  ),
+};
+
 export default function Navbar() {
   const { lang, setLang, user, logout } = useApp();
   const isInstalled = useIsPWAInstalled();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
 
-  const navLinks = user
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(event.target as Node)) {
+        setMoreOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const mainLinks = user
     ? [
-        { href: "/tests", label: t("nav.tests", lang) },
-        { href: "/practice", label: t("nav.practice", lang) },
-        { href: "/universities", label: t("nav.universities", lang) },
-        { href: "/progress", label: t("nav.progress", lang) },
-        { href: "/history", label: t("nav.history", lang) },
-        { href: "/profile", label: t("nav.profile", lang) },
+        { href: "/tests", label: t("nav.tests", lang), icon: Icons.Tests },
+        { href: "/practice", label: t("nav.practice", lang), icon: Icons.Practice },
+        { href: "/mock-exam", label: t("nav.mockExam", lang), icon: Icons.MockExam },
+        { href: "/roadmap", label: t("nav.roadmap", lang), icon: Icons.Roadmap },
+        { href: "/profile", label: t("nav.profile", lang), icon: Icons.Profile },
       ]
     : [];
 
+  const moreLinks = user
+    ? [
+        { href: "/career", label: t("nav.career", lang), icon: Icons.Career },
+        { href: "/universities", label: t("nav.universities", lang), icon: Icons.Universities },
+        { href: "/history", label: t("nav.history", lang), icon: Icons.History },
+      ]
+    : [];
+
+  const isMoreActive = moreLinks.some(link => pathname === link.href);
+
   return (
-    <nav className="bg-white border-b border-border sticky top-0 z-50">
+    <nav className="bg-white border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-4">
-            {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+          
+          {/* Logo & Download */}
+          <div className="flex items-center gap-6">
+            <Link href="/" className="flex items-center gap-2 shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-md">
                 <span className="text-white font-bold text-sm">E</span>
               </div>
-              <span className="font-bold text-lg text-text">
+              <span className="font-bold text-lg text-text hidden lg:inline-block">
                 ENT<span className="text-primary">Prep</span>
-                <span className="text-accent ml-0.5 text-xs">AI</span>
+                <span className="text-accent ml-0.5 text-xs tracking-tighter">AI</span>
               </span>
             </Link>
 
-            {/* Download Button */}
             {!isInstalled && (
               <Link
                 href="/install"
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all text-xs sm:text-sm font-bold border border-primary/10"
+                className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 transition-all text-xs font-bold border border-primary/10"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                <span className="hidden xs:inline">{t("nav.download", lang)}</span>
+                <span>{t("nav.download", lang)}</span>
               </Link>
             )}
           </div>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-1">
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  pathname === link.href
-                    ? "bg-primary/10 text-primary"
-                    : "text-text-secondary hover:text-text hover:bg-gray-50"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
+          {/* Center: Desktop Nav */}
+          <div className="hidden md:flex items-center gap-1 flex-1 justify-center px-4">
+            {mainLinks.map((link) => {
+              const active = pathname === link.href;
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    active
+                      ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
+                      : "text-text-secondary hover:text-text hover:bg-gray-100"
+                  }`}
+                >
+                  <link.icon />
+                  <span className="hidden lg:inline">{link.label}</span>
+                </Link>
+              );
+            })}
+
+            {/* Dropdown "More" */}
+            {user && (
+              <div className="relative ml-1" ref={moreRef}>
+                <button
+                  onClick={() => setMoreOpen(!moreOpen)}
+                  className={`flex items-center gap-2 px-3 lg:px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    isMoreActive || moreOpen
+                      ? "bg-gray-100 text-primary"
+                      : "text-text-secondary hover:text-text hover:bg-gray-100"
+                  }`}
+                >
+                  <Icons.ChevronDown />
+                  <span>{t("nav.more", lang)}</span>
+                </button>
+
+                {moreOpen && (
+                  <div className="absolute top-full mt-2 right-0 w-48 bg-white border border-border rounded-2xl shadow-xl py-2 animate-in fade-in slide-in-from-top-2">
+                    {moreLinks.map((link) => {
+                      const active = pathname === link.href;
+                      return (
+                        <Link
+                          key={link.href}
+                          href={link.href}
+                          onClick={() => setMoreOpen(false)}
+                          className={`flex items-center gap-3 px-4 py-2.5 text-sm font-bold transition-colors ${
+                            active
+                              ? "text-primary bg-primary/5"
+                              : "text-text-secondary hover:text-text hover:bg-gray-50"
+                          }`}
+                        >
+                          <link.icon />
+                          {link.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
-          {/* Right side */}
-          <div className="flex items-center gap-2">
+          {/* Right: Language & Auth */}
+          <div className="flex items-center gap-4">
             {/* Language switcher */}
-            <div className="flex bg-gray-100 rounded-lg p-0.5">
+            <div className="flex bg-gray-100 rounded-xl p-1">
               {(["kz", "ru", "en"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   onClick={() => setLang(l)}
-                  className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${
                     lang === l
                       ? "bg-white text-primary shadow-sm"
                       : "text-text-secondary hover:text-text"
                   }`}
                 >
-                  {langLabels[l]}
+                  {l}
                 </button>
               ))}
             </div>
 
-            {/* Auth buttons */}
+            {/* Auth */}
             {user ? (
-              <div className="hidden md:flex items-center gap-2">
-                <span className="text-sm text-text-secondary">{user.name}</span>
-                <button
-                  onClick={logout}
-                  className="text-sm text-danger hover:text-red-700 font-medium"
-                >
-                  {t("nav.logout", lang)}
-                </button>
+              <div className="hidden lg:flex items-center gap-4">
+                <div className="flex flex-col items-end leading-tight">
+                  <span className="text-xs font-black text-text truncate max-w-[100px]">{user.name}</span>
+                  <button
+                    onClick={logout}
+                    className="text-[10px] font-bold text-danger hover:underline"
+                  >
+                    {t("nav.logout", lang)}
+                  </button>
+                </div>
               </div>
             ) : (
               <div className="hidden md:flex items-center gap-2">
                 <Link
                   href="/login"
-                  className="text-sm font-medium text-text-secondary hover:text-text px-3 py-2"
+                  className="text-xs font-bold text-text-secondary hover:text-text px-3 py-2"
                 >
                   {t("nav.login", lang)}
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm font-medium bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors"
+                  className="text-xs font-black bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/10"
                 >
                   {t("nav.register", lang)}
                 </Link>
               </div>
             )}
-
           </div>
         </div>
       </div>

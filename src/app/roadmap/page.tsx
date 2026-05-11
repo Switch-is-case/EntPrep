@@ -1,146 +1,273 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useApp } from "@/components/Providers";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
-import { motion } from "framer-motion";
+import { useApp } from "@/components/Providers";
+
+interface RoadmapData {
+  summary: {
+    feasibility: "easy" | "medium" | "hard" | "very_hard";
+    estimatedScoreGain: number;
+    recommendedHoursPerDay: number;
+  };
+  weeklyPlan: Array<{
+    weekIndex: number;
+    focus: string;
+    topics: Array<{
+      id: number;
+      title: string;
+      objective: string;
+    }>;
+  }>;
+  priorityTopics: Array<{
+    topicId: number;
+    reason: string;
+    estimatedHours: number;
+    impactOnScore: number;
+  }>;
+  motivationalMessage: string;
+}
+
+interface RoadmapResponse {
+  id: number;
+  userId: string;
+  currentScore: number;
+  targetScore: number;
+  daysUntilExam: number;
+  roadmapData: RoadmapData;
+  generatedAt: string;
+  expiresAt: string;
+}
 
 export default function RoadmapPage() {
-  const { lang, authHeaders, user } = useApp();
-  const [roadmap, setRoadmap] = useState<any>(null);
+  const { lang } = useApp();
+  const [response, setResponse] = useState<RoadmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    async function fetchRoadmap() {
-      try {
-        const res = await fetch("/api/roadmap/latest", { headers: authHeaders() });
-        const data = await res.json();
-        setRoadmap(data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchRoadmap();
+    fetch("/api/roadmap/latest")
+      .then(r => r.json())
+      .then(data => {
+        if (data && data.roadmapData) {
+          setResponse(data);
+        }
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
-
-  if (!roadmap) {
+  if (loading) {
     return (
-      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-[3rem] border border-border p-12 shadow-xl"
-        >
-          <div className="text-6xl mb-8">🗺️</div>
-          <h1 className="text-3xl font-black text-text mb-4">
-            {lang === "ru" ? "Дорожная карта не создана" : "Жол картасы жасалмаған"}
-          </h1>
-          <p className="text-text-secondary text-lg mb-10 leading-relaxed">
-            {lang === "ru" 
-              ? "Для создания персонального плана обучения ИИ нужно проанализировать твои знания. Пройди Mock-экзамен, и мы построим твою карту подготовки."
-              : "Жеке оқу жоспарын құру үшін ИИ сенің біліміңді талдауы керек. Mock-емтиханынан өт, біз сенің дайындық картаңды жасаймыз."}
-          </p>
-          <a href="/mock-exam" className="inline-block bg-primary text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 active:scale-95">
-            {lang === "ru" ? "К экзамену 🚀" : "Емтиханға 🚀"}
-          </a>
-        </motion.div>
+      <div className="flex justify-center py-20">
+        <Spinner size="lg" />
       </div>
     );
   }
 
-  const data = roadmap.roadmapData;
+  if (!response || !response.roadmapData) {
+    return (
+      <div className="max-w-3xl mx-auto p-8 text-center mt-10">
+        <div className="bg-white rounded-3xl p-12 shadow-xl border border-gray-100">
+          <div className="text-6xl mb-6">🎯</div>
+          <h1 className="text-3xl font-bold mb-4 text-gray-900">
+            {lang === "ru" 
+              ? "У вас ещё нет плана обучения" 
+              : lang === "kz" 
+              ? "Сізде әлі оқу жоспары жоқ"
+              : "You don't have a study plan yet"}
+          </h1>
+          <p className="text-gray-600 mb-10 text-lg">
+            {lang === "ru" 
+              ? "Пройдите Пробный ЕНТ, чтобы наш AI проанализировал ваши знания и создал персональный путь к успеху."
+              : lang === "kz" 
+              ? "Біздің AI сіздің біліміңізді талдап, жетістікке жетелейтін жеке жоспар құруы үшін Пробный ЕНТ-дан өтіңіз."
+              : "Take a Mock Exam so our AI can analyze your knowledge and create a personalized path to success."}
+          </p>
+          <Link 
+            href="/mock-exam" 
+            className="inline-block px-10 py-5 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold text-lg hover:shadow-lg transition-all active:scale-95"
+          >
+            {lang === "ru" ? "Начать Пробный ЕНТ" : lang === "kz" ? "Пробный ЕНТ бастау" : "Start Mock Exam"}
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const { roadmapData: data, currentScore, targetScore, daysUntilExam } = response;
+
+  // Цвета сложности
+  const feasibilityColors = {
+    easy: "from-emerald-500 to-teal-600",
+    medium: "from-blue-500 to-indigo-600", 
+    hard: "from-orange-500 to-red-600",
+    very_hard: "from-purple-600 to-rose-700"
+  };
+
+  const feasibilityLabels = {
+    easy: { ru: "Легко", kz: "Оңай", en: "Easy" },
+    medium: { ru: "Средне", kz: "Орташа", en: "Medium" },
+    hard: { ru: "Сложно", kz: "Қиын", en: "Hard" },
+    very_hard: { ru: "Очень сложно", kz: "Өте қиын", en: "Very Hard" }
+  };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <header className="mb-12 text-center">
-        <div className="inline-block px-4 py-1 rounded-full bg-primary/10 text-primary text-xs font-black uppercase tracking-widest mb-4">
-          Personal AI Roadmap
-        </div>
-        <h1 className="text-4xl font-black text-text mb-2">
-          {lang === "ru" ? "Твой план подготовки" : "Сенің дайындық жоспарың"}
-        </h1>
-        <p className="text-text-secondary">
-          {lang === "ru" ? "На основе твоего последнего Mock-экзамена" : "Соңғы Mock-емтиханың негізінде"}
-        </p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Sidebar: Stats & Focus */}
-        <div className="lg:col-span-1 space-y-8">
-          <div className="bg-white rounded-[2.5rem] border border-border p-8 shadow-sm">
-            <h3 className="font-bold text-text mb-6 flex items-center gap-2">
-              🎯 {lang === "ru" ? "Твои цели" : "Мақсаттарың"}
-            </h3>
-            <div className="space-y-4">
-              <div className="flex justify-between items-end">
-                <span className="text-sm text-text-secondary font-medium">{lang === "ru" ? "Текущий балл" : "Қазіргі балл"}</span>
-                <span className="text-2xl font-black text-text">{roadmap.currentScore}</span>
+    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-20 animate-in fade-in duration-500">
+      
+      {/* HERO - Summary */}
+      <div className={`bg-gradient-to-br ${feasibilityColors[data.summary.feasibility]} rounded-[2rem] p-8 md:p-10 text-white shadow-2xl relative overflow-hidden`}>
+        <div className="relative z-10">
+          <h1 className="text-3xl md:text-5xl font-black mb-3">
+            {lang === "ru" ? "Твой AI-Навигатор" : lang === "kz" ? "Сіздің AI-Навигаторыңыз" : "Your AI Navigator"}
+          </h1>
+          <p className="text-lg opacity-90 mb-8 font-medium">
+            {lang === "ru" 
+              ? `Путь от ${currentScore} до ${targetScore} баллов за ${daysUntilExam} дней` 
+              : lang === "kz" 
+              ? `${daysUntilExam} күнде ${currentScore}-ден ${targetScore} баллға дейінгі жол`
+              : `The path from ${currentScore} to ${targetScore} in ${daysUntilExam} days`}
+          </p>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+                {lang === "ru" ? "Сложность" : "Difficulty"}
               </div>
-              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all duration-1000" 
-                  style={{ width: `${(roadmap.currentScore / roadmap.targetScore) * 100}%` }}
-                />
+              <div className="text-xl font-black">
+                {feasibilityLabels[data.summary.feasibility][lang as "ru" | "kz" | "en"]}
               </div>
-              <div className="flex justify-between items-end">
-                <span className="text-sm text-text-secondary font-medium">{lang === "ru" ? "Целевой балл" : "Мақсатты балл"}</span>
-                <span className="text-2xl font-black text-primary">{roadmap.targetScore}</span>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+                {lang === "ru" ? "Прогноз прироста" : "Score Gain"}
+              </div>
+              <div className="text-xl font-black">
+                +{data.summary.estimatedScoreGain} баллов
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/20">
+              <div className="text-xs uppercase tracking-wider opacity-80 mb-1 font-bold">
+                {lang === "ru" ? "Нагрузка" : "Load"}
+              </div>
+              <div className="text-xl font-black">
+                {data.summary.recommendedHoursPerDay}ч / день
               </div>
             </div>
           </div>
+        </div>
+        {/* Decorative elements */}
+        <div className="absolute top-0 right-0 -mr-10 -mt-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 -ml-10 -mb-10 w-40 h-40 bg-black/10 rounded-full blur-3xl"></div>
+      </div>
 
-          <div className="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl">
-            <h3 className="font-bold mb-4 opacity-80">{lang === "ru" ? "Фокусные зоны" : "Назар аударатын аймақтар"}</h3>
-            <div className="flex flex-wrap gap-2">
-              {data.focusAreas.map((area: string, i: number) => (
-                <span key={i} className="px-3 py-1 bg-white/10 rounded-lg text-xs font-bold border border-white/10">
-                  {area}
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* LEFT COLUMN: WEEKLY PLAN */}
+        <div className="lg:col-span-7 space-y-8">
+          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100">
+            <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-gray-900">
+              <span className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">📅</span>
+              {lang === "ru" ? "Пошаговый план" : "Step-by-Step Plan"}
+            </h2>
+            <div className="space-y-10">
+              {data.weeklyPlan?.map((week) => (
+                <div key={week.weekIndex} className="relative pl-8 border-l-4 border-primary/20 hover:border-primary transition-colors">
+                  <div className="absolute -left-[14px] top-0 w-6 h-6 bg-white border-4 border-primary rounded-full z-10"></div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="px-4 py-1.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-tighter">
+                      {lang === "ru" ? "Неделя" : "Week"} {week.weekIndex}
+                    </span>
+                    <h3 className="text-xl font-bold text-gray-800">{week.focus}</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {week.topics?.map((topic) => (
+                      <div key={topic.id} className="bg-gray-50/50 rounded-2xl p-5 border border-gray-100 hover:bg-gray-50 transition-colors">
+                        <h4 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-accent rounded-full"></span>
+                          {topic.title}
+                        </h4>
+                        <p className="text-sm text-gray-600 leading-relaxed">{topic.objective}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           </div>
         </div>
 
-        {/* Main Content: Weekly Plan */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="bg-white rounded-[2.5rem] border border-border p-8 shadow-sm">
-            <h3 className="text-xl font-bold text-text mb-8">{lang === "ru" ? "Понедельный план" : "Апталық жоспар"}</h3>
-            <div className="space-y-12 relative before:absolute before:left-4 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-100">
-              {data.weeklyPlan.map((week: any, i: number) => (
-                <div key={i} className="relative pl-12">
-                  <div className="absolute left-0 top-0 w-8 h-8 rounded-full bg-white border-4 border-primary flex items-center justify-center font-bold text-sm text-primary">
-                    {week.week}
+        {/* RIGHT COLUMN: PRIORITY & MOTIVATION */}
+        <div className="lg:col-span-5 space-y-8">
+          
+          {/* PRIORITY TOPICS */}
+          <div className="bg-white rounded-[2rem] p-8 shadow-xl border border-gray-100">
+            <h2 className="text-2xl font-black mb-8 flex items-center gap-3 text-gray-900">
+              <span className="w-10 h-10 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center">🔥</span>
+              {lang === "ru" ? "Точки роста" : "Growth Areas"}
+            </h2>
+            <div className="space-y-4">
+              {data.priorityTopics?.map((topic, i) => (
+                <div key={i} className="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 transition-all">
+                  <div className="flex items-start gap-4">
+                    <div className="flex-shrink-0 w-8 h-8 bg-white border-2 border-orange-200 text-orange-600 rounded-lg flex items-center justify-center font-black text-sm">
+                      {i + 1}
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-gray-800 mb-3 leading-snug">{topic.reason}</p>
+                      <div className="flex flex-wrap gap-2">
+                        <span className="px-3 py-1 bg-white rounded-full text-[10px] font-bold text-gray-500 border border-gray-200">
+                          ⏱ {topic.estimatedHours}ч
+                        </span>
+                        <span className="px-3 py-1 bg-green-100 rounded-full text-[10px] font-bold text-green-700">
+                          +{topic.impactOnScore} БАЛЛОВ
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="font-bold text-text mb-2">{lang === "ru" ? `Неделя ${week.week}` : `${week.week}-апта`}</h4>
-                  <p className="text-sm text-text-secondary mb-4 italic">"{week.goals}"</p>
-                  <ul className="space-y-2">
-                    {week.tasks.map((task: string, j: number) => (
-                      <li key={j} className="flex items-start gap-3 text-sm text-text">
-                        <span className="text-emerald-500 mt-0.5">✓</span>
-                        {task}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="bg-amber-50 rounded-[2.5rem] border border-amber-100 p-8">
-            <h3 className="font-bold text-amber-900 mb-4 flex items-center gap-2">
-              💡 {lang === "ru" ? "Советы ментора" : "Ментор кеңестері"}
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {data.tips.map((tip: string, i: number) => (
-                <div key={i} className="text-sm text-amber-800 leading-relaxed">• {tip}</div>
-              ))}
+          {/* MOTIVATIONAL MESSAGE */}
+          {data.motivationalMessage && (
+            <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group">
+              <div className="relative z-10">
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">💪</div>
+                <p className="text-lg leading-relaxed font-bold italic opacity-95">
+                  "{data.motivationalMessage}"
+                </p>
+              </div>
+              <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">
+                <svg width="160" height="160" viewBox="0 0 24 24" fill="white"><path d="M13,14H11V10H13M13,18H11V16H13M1,21H23L12,2L1,21Z"/></svg>
+              </div>
             </div>
+          )}
+
+          {/* ACTIONS */}
+          <div className="grid grid-cols-1 gap-4">
+            <Link 
+              href="/practice" 
+              className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-center shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all active:translate-y-0"
+            >
+              {lang === "ru" ? "ПЕРЕЙТИ К ПРАКТИКЕ" : "GO TO PRACTICE"}
+            </Link>
+            <Link 
+              href="/mock-exam" 
+              className="px-8 py-5 bg-white border-2 border-primary/20 text-primary rounded-2xl font-black text-center hover:bg-gray-50 transition-all"
+            >
+              {lang === "ru" ? "НОВЫЙ ПРОБНЫЙ ЕНТ" : "NEW MOCK EXAM"}
+            </Link>
+          </div>
+
+          <div className="text-center">
+             <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 rounded-full text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                📅 {lang === "ru" ? "Обновлено" : "Updated"}: {new Date(response.generatedAt).toLocaleDateString()}
+             </div>
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -1,14 +1,21 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { testSessions, testAnswers, questions, subjects } from "@/db/schema";
-import { eq, asc } from "drizzle-orm";
+import { eq, asc, and } from "drizzle-orm";
+import { getUserIdFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
+    const userId = getUserIdFromRequest(req);
+    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
     const { id: sessionId } = await params;
 
     const session = await db.query.testSessions.findFirst({
-      where: eq(testSessions.id, sessionId),
+      where: and(
+        eq(testSessions.id, sessionId),
+        eq(testSessions.userId, userId)
+      ),
     });
 
     if (!session) return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -35,9 +42,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
         }))
     }));
 
-    // Calculate remaining time
+    // Calculate remaining time based on test type
     const startTime = new Date(session.startedAt).getTime();
-    const durationMs = 240 * 60 * 1000;
+    const isDiagnostic = session.testType === "diagnostic";
+    const durationMs = (isDiagnostic ? 45 : 240) * 60 * 1000;
     const remainingMs = Math.max(0, startTime + durationMs - Date.now());
 
     return NextResponse.json({

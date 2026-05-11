@@ -29,15 +29,6 @@ export default function PracticePage() {
 
   const [state, setState] = useState<PracticeState>("select");
 
-  // Toggle Full Page Mode (hides BottomNav) when practicing
-  useEffect(() => {
-    if (state === "practicing") {
-      setIsFullPageMode(true);
-    } else {
-      setIsFullPageMode(false);
-    }
-    return () => setIsFullPageMode(false);
-  }, [state, setIsFullPageMode]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questionCount, setQuestionCount] = useState(10);
   const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
@@ -64,10 +55,6 @@ export default function PracticePage() {
     // On mount: if there was an unfinished session flagged, reset
     if (sessionStorage.getItem("practice_abandoned") === "1") {
       sessionStorage.removeItem("practice_abandoned");
-      setState("select");
-      setQuestions([]);
-      setAnswers({});
-      setCurrentIndex(0);
     }
     return () => {
       // On unmount: flag if mid-session
@@ -96,6 +83,7 @@ export default function PracticePage() {
         setAnswers({});
         setScore({ correct: 0, wrong: 0, skipped: 0 });
         setState("practicing");
+        setIsFullPageMode(true);
       }
     } catch {
       // ignore
@@ -114,6 +102,7 @@ export default function PracticePage() {
     });
     setScore({ correct, wrong, skipped });
     setState("review");
+    setIsFullPageMode(false);
   };
 
   if (!user) return null;
@@ -529,6 +518,7 @@ export default function PracticePage() {
             onClick={() => {
               setState("select");
               setQuestions([]);
+              setIsFullPageMode(false);
             }}
             className="flex-1 px-6 py-3 rounded-xl border-2 border-border text-text font-semibold hover:border-primary transition-all"
           >

@@ -25,6 +25,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Please complete Career Wizard first" }, { status: 400 });
     }
 
+    const body = await req.json().catch(() => ({}));
+    const mode = body.mode === "diagnostic" ? "diagnostic" : "mock";
+
     // 1. Define required subject slugs
     const mandatorySlugs = ["history_kz", "math_literacy", "reading_literacy"];
     const profileSlugs = [
@@ -39,18 +42,31 @@ export async function POST(req: Request) {
 
     // 3. Select questions for each subject (Randomized)
     const mockQuestions: any[] = [];
-    const counts: Record<string, number> = {
-      "history_kz": 20,
-      "math_literacy": 15,
-      "reading_literacy": 15,
-      [profileSlugs[0]]: 45,
-      [profileSlugs[1]]: 45
-    };
+    
+    // Distribution based on mode
+    const counts: Record<string, number> = mode === "diagnostic" 
+      ? {
+          "history_kz": 5,
+          "math_literacy": 5,
+          "reading_literacy": 5,
+          [profileSlugs[0]]: 5,
+          [profileSlugs[1]]: 5
+        }
+      : {
+          "history_kz": 20,
+          "math_literacy": 15,
+          "reading_literacy": 15,
+          [profileSlugs[0]]: 45,
+          [profileSlugs[1]]: 45
+        };
 
-    console.log("=== MOCK START DEBUG ===");
+    const targetTotal = mode === "diagnostic" ? 25 : 140;
+
+    console.log(`=== MOCK START DEBUG (${mode.toUpperCase()}) ===`);
     console.log("Required subjects:", Object.keys(counts));
+    console.time("MockStart");
 
-    for (const subject of allRelevantSubjects) {
+    const questionsPromises = allRelevantSubjects.map(async (subject: any) => {
       const limit = counts[subject.slug] || 0;
       const subQuestions = await db.query.questions.findMany({
         where: eq(questions.subjectId, subject.id),
@@ -58,24 +74,28 @@ export async function POST(req: Request) {
         limit: limit,
       });
       console.log(`- Subject: ${subject.slug}, Found: ${subQuestions.length}, Needed: ${limit}`);
-      mockQuestions.push(...subQuestions);
-    }
+      return subQuestions;
+    });
+
+    const results = await Promise.all(questionsPromises);
+    results.forEach(subQs => mockQuestions.push(...subQs));
 
     console.log("Total questions collected:", mockQuestions.length);
+    console.timeEnd("MockStart");
 
-    if (mockQuestions.length < 140) {
-      console.error("NOT ENOUGH QUESTIONS. Total:", mockQuestions.length);
+    if (mockQuestions.length < targetTotal) {
+      console.error(`NOT ENOUGH QUESTIONS FOR ${mode.toUpperCase()}. Total:`, mockQuestions.length);
       return NextResponse.json({ 
         error: "Insufficient questions in database", 
-        details: `Found only ${mockQuestions.length} questions. Need 140 for a full mock exam. Please contact support or add more questions.`
+        details: `Found only ${mockQuestions.length} questions. Need ${targetTotal} for ${mode}. Please contact support or add more questions.`
       }, { status: 400 });
     }
 
     // 4. Create Session
     const session = await db.insert(testSessions).values({
       userId: user.id,
-      testType: "mock",
-      subjects: allRelevantSubjects, // Drizzle handles jsonb mapping
+      testType: mode,
+      subjects: allRelevantSubjects,
       totalQuestions: mockQuestions.length,
       startedAt: new Date(),
       completed: false,
@@ -92,10 +112,12 @@ export async function POST(req: Request) {
     
     await db.insert(testAnswers).values(answerEntries);
 
+    const durationMinutes = mode === "diagnostic" ? 45 : 240;
+
     return NextResponse.json({ 
       sessionId, 
       totalQuestions: mockQuestions.length,
-      endTime: new Date(Date.now() + 240 * 60000).toISOString()
+      endTime: new Date(Date.now() + durationMinutes * 60000).toISOString()
     });
 
   } catch (error) {

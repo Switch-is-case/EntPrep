@@ -1,5 +1,6 @@
 import { ExplanationRepository } from "@/repositories/explanation.repository";
 import { AppError } from "@/lib/errors";
+import { callDify } from "@/lib/dify";
 
 interface GenerateExplanationParams {
   questionId: number | null;
@@ -23,10 +24,7 @@ export class ExplanationService {
     const {
       questionId,
       questionText,
-      options,
-      correctAnswer,
       userAnswer,
-      subject,
       lang,
       difyUser,
     } = params;
@@ -70,13 +68,6 @@ export class ExplanationService {
     langCode: string,
     difyUser: string
   ): Promise<string> {
-    const difyKey = process.env.DIFY_API_KEY;
-    const difyUrl = process.env.DIFY_API_URL || "https://api.dify.ai/v1";
-
-    if (!difyKey) {
-      throw new AppError("DIFY_API_KEY is missing in environment variables.", 500);
-    }
-
     const { questionText, options, correctAnswer, userAnswer, subject } = params;
     const langLabel =
       langCode === "kz" ? "Kazakh" : langCode === "en" ? "English" : "Russian";
@@ -99,27 +90,12 @@ Write a concise explanation (3-5 sentences) in ${langLabel}:
 
 Keep it friendly, encouraging, and educational. Do NOT use markdown headers.`;
 
-    const response = await fetch(`${difyUrl}/chat-messages`, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${difyKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        inputs: {},
-        query: prompt,
-        response_mode: "blocking",
-        user: difyUser,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("[ExplanationService] Dify API error:", response.status, errorText);
-      throw new AppError("AI is overloaded. Please wait.", 503);
+    try {
+      const response = await callDify(prompt, {}, difyUser);
+      return response.answer || "";
+    } catch (error) {
+      console.error("[ExplanationService] Dify API Error:", error);
+      throw new AppError("AI teacher is resting. Please try again later.", 503);
     }
-
-    const data = await response.json();
-    return data.answer ?? "";
   }
 }

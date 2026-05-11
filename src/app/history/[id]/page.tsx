@@ -58,11 +58,6 @@ function AiExplanation({
     }
   }, [status, questionId, questionText, options, correctAnswer, userAnswer, subject, lang, authHeaders]);
 
-  // Reset when question changes
-  useEffect(() => {
-    setStatus("idle");
-    setExplanation("");
-  }, [questionText]);
 
   if (status === "idle" || status === "loading") {
     return (
@@ -327,7 +322,7 @@ export default function HistoryReviewPage() {
 
             {/* ── AI Explanation ── */}
             <AiExplanation
-              key={currentIndex}
+              key={`${currentIndex}-${lang}`}
               questionId={currentQ.id}
               questionText={questionText}
               options={options}

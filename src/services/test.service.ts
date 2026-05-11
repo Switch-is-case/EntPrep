@@ -10,39 +10,7 @@ export class TestService {
     private readonly testsRepository: TestsRepository,
     private readonly usersRepository: UsersRepository
   ) {}
-  async startTest(userId: string, testType: string): Promise<StartTestResponse> {
-    const user = await this.usersRepository.findById(userId);
-    if (!user) throw new NotFoundError("User not found");
-
-    const { subjectsList, questionsPerSubject } = generateTestConfiguration(testType, user);
-
-    const allQuestions: Question[] = [];
-    for (const subject of subjectsList) {
-      const count = questionsPerSubject[subject] || 5;
-      const subjectQuestions = await this.testsRepository.getQuestionsBySubject(subject, count);
-      allQuestions.push(...subjectQuestions);
-    }
-
-    const totalQuestions = allQuestions.length;
-
-    const session = await this.testsRepository.createSession(userId, testType, subjectsList, totalQuestions);
-
-    return {
-      sessionId: session.id,
-      questions: allQuestions.map((q) => ({
-        id: q.id,
-        subject: q.subject,
-        questionTextRu: q.questionTextRu,
-        questionTextKz: q.questionTextKz,
-        questionTextEn: q.questionTextEn,
-        optionsRu: q.optionsRu,
-        optionsKz: q.optionsKz,
-        optionsEn: q.optionsEn,
-        topic: q.topic,
-      })),
-      totalQuestions,
-    };
-  }
+  // startTest method removed as it was replaced by /api/mock/start unified engine
 
   async submitTest(userId: string, sessionId: string, answers: AnswerInput[]): Promise<SubmitTestResponse> {
     const session = await this.testsRepository.getSessionById(sessionId, userId);

@@ -52,25 +52,31 @@ export default function MockResultsPage() {
   const results = data.session.results || {};
   const breakdown = results.subjectBreakdown || {};
 
-  return (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-[3rem] border border-border p-8 md:p-12 shadow-2xl text-center"
-      >
-        <h1 className="text-3xl font-black text-text mb-8">
-          {lang === "ru" ? "Ваш результат" : "Сенің нәтижең"}
-        </h1>
+    const isDiagnostic = data.session?.testType === "diagnostic";
 
-        <div className="relative inline-flex items-center justify-center mb-10">
-          <div className="w-48 h-48 rounded-full border-[12px] border-slate-100 flex items-center justify-center">
-            <div className="text-6xl font-black text-primary">{data.session.score}</div>
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-12">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-[3rem] border border-border p-8 md:p-12 shadow-2xl text-center"
+        >
+          <div className={`inline-block px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 ${isDiagnostic ? "bg-blue-100 text-blue-600" : "bg-primary/10 text-primary"}`}>
+            {isDiagnostic ? (lang === "ru" ? "Диагностика" : "Диагностика") : (lang === "ru" ? "Пробный ЕНТ" : "Сынақ ҰБТ")}
           </div>
-          <div className="absolute -bottom-4 bg-primary text-white px-6 py-2 rounded-full font-bold text-sm shadow-xl">
-            {lang === "ru" ? "ИЗ 140" : "140-ТАН"}
+
+          <h1 className="text-3xl font-black text-text mb-8">
+            {lang === "ru" ? "Ваш результат" : "Сенің нәтижең"}
+          </h1>
+  
+          <div className="relative inline-flex items-center justify-center mb-10">
+            <div className={`w-48 h-48 rounded-full border-[12px] border-slate-100 flex items-center justify-center ${isDiagnostic ? "border-blue-50" : "border-slate-100"}`}>
+              <div className={`text-6xl font-black ${isDiagnostic ? "text-blue-600" : "text-primary"}`}>{data.session.score}</div>
+            </div>
+            <div className={`absolute -bottom-4 ${isDiagnostic ? "bg-blue-600" : "bg-primary"} text-white px-6 py-2 rounded-full font-bold text-sm shadow-xl`}>
+              {lang === "ru" ? `ИЗ ${isDiagnostic ? 25 : 140}` : `${isDiagnostic ? 25 : 140}-ТАН`}
+            </div>
           </div>
-        </div>
 
         <div className="grid grid-cols-1 gap-4 mb-12 text-left">
           {Object.values(breakdown).map((sub: any, idx) => (
@@ -81,7 +87,7 @@ export default function MockResultsPage() {
                   {Math.round((sub.score / sub.total) * 100)}% {lang === "ru" ? "правильно" : "дұрыс"}
                 </div>
               </div>
-              <div className="text-2xl font-black text-primary">{sub.score} <span className="text-text-secondary text-sm">/ {sub.total}</span></div>
+              <div className={`text-2xl font-black ${isDiagnostic ? "text-blue-600" : "text-primary"}`}>{sub.score} <span className="text-text-secondary text-sm">/ {sub.total}</span></div>
             </div>
           ))}
         </div>

@@ -1,17 +1,48 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { testSessions, studyRoadmaps, users, subjectCombinations, specialties } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { testSessions, studyRoadmaps, users } from "@/db/schema";
+import { eq, desc, and, gte } from "drizzle-orm";
+import { getUserIdFromRequest } from "@/lib/auth";
+import { checkRateLimit } from "@/lib/ratelimit";
+import { callDify, extractJSON } from "@/lib/dify";
+import { buildRoadmapPrompt } from "@/lib/prompts/roadmap";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(req: Request) {
   try {
-    const { sessionId, userId } = await req.json();
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
+    const { sessionId } = await req.json();
+
+    // 1. Validation
+    if (!sessionId || !UUID_REGEX.test(sessionId)) {
+      return NextResponse.json({ error: "Invalid session ID format" }, { status: 400 });
+    }
+
+    // 2. Rate Limiting
+    const rateLimit = checkRateLimit(userId, "ROADMAP_GENERATE");
+    if (!rateLimit.allowed) {
+      return NextResponse.json({
+        error: "Rate limit exceeded",
+        message: "You can generate maximum 3 roadmaps per day",
+        resetAt: rateLimit.resetAt,
+      }, { 
+        status: 429,
+        headers: {
+          'Retry-After': Math.ceil((rateLimit.resetAt!.getTime() - Date.now()) / 1000).toString()
+        }
+      });
+    }
+
+    // 3. Auth & Authorization check
     const [session, user] = await Promise.all([
-      db.query.testSessions.findFirst({ where: eq(testSessions.id, sessionId) }),
+      db.query.testSessions.findFirst({ 
+        where: and(eq(testSessions.id, sessionId), eq(testSessions.userId, userId)) 
+      }),
       db.query.users.findFirst({ 
         where: eq(users.id, userId),
         with: {
@@ -21,56 +52,90 @@ export async function POST(req: Request) {
       })
     ]);
 
-    if (!session || !user) return NextResponse.json({ error: "Data missing" }, { status: 404 });
+    if (!session) return NextResponse.json({ error: "Session not found or access denied" }, { status: 404 });
+    if (!user) return NextResponse.json({ error: "User profile not found" }, { status: 404 });
 
-    const results = JSON.parse(session.results as string);
-    const breakdown = results.subjectBreakdown;
+    // 4. Cache Check
+    const existingRoadmap = await db.query.studyRoadmaps.findFirst({
+      where: and(
+        eq(studyRoadmaps.userId, userId),
+        gte(studyRoadmaps.expiresAt, new Date())
+      ),
+      orderBy: desc(studyRoadmaps.generatedAt)
+    });
 
-    const prompt = `
-      You are an expert ENT (Unified National Testing in Kazakhstan) tutor. 
-      The student just finished a mock exam. 
-      Results: ${JSON.stringify(breakdown)}
-      Target Score: ${user.targetScore}
-      Target Specialty: ${user.targetSpecialty?.nameRu}
-      Subjects: ${user.targetCombination?.subject1.nameRu} and ${user.targetCombination?.subject2.nameRu}.
-      
-      Analyze their weaknesses and create a 30-day personal study roadmap.
-      Focus on subjects where score is low.
-      Return the response in strictly valid JSON format with this structure:
-      {
-        "analysis": "Summary of current state",
-        "focusAreas": ["Topic 1", "Topic 2"],
-        "weeklyPlan": [
-          { "week": 1, "goals": "...", "tasks": ["Task A", "Task B"] },
-          ...
-        ],
-        "tips": ["Tip 1", "Tip 2"]
-      }
-    `;
+    if (existingRoadmap) {
+      console.log("[AI Roadmap] Returning cached roadmap", {
+        userId: userId.substring(0, 8) + "...",
+        sessionId: sessionId.substring(0, 8) + "..."
+      });
+      return NextResponse.json({
+        ...existingRoadmap,
+        cached: true
+      });
+    }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    console.log("[AI Roadmap] Requesting Dify for new roadmap", {
+      userId: userId.substring(0, 8) + "...",
+      sessionId: sessionId.substring(0, 8) + "...",
+      remaining: rateLimit.remaining
+    });
+
+    // 5. AI Generation via Dify
+    const results = typeof session.results === 'string' ? JSON.parse(session.results) : (session.results || {});
+    const breakdown = results.subjectBreakdown || {};
     
-    // Clean JSON from markdown if needed
-    const jsonString = text.replace(/```json|```/g, "").trim();
-    const roadmapData = JSON.parse(jsonString);
+    // Extract weak topics (subjects where accuracy < 70%)
+    const weakTopics = Object.entries(breakdown).map(([id, data]: [string, any]) => {
+      const accuracy = Math.round((data.score / Math.max(data.total, 1)) * 100);
+      return {
+        subject: data.name || id,
+        topic: "General subject performance", // We use subjects as topics since we don't have per-topic breakdown yet
+        accuracy
+      };
+    }).filter(t => t.accuracy < 70);
 
-    const roadmap = await db.insert(studyRoadmaps).values({
-      userId: user.id,
-      currentScore: session.score,
-      targetScore: user.targetScore,
-      daysUntilExam: 30, // Default or calculate from user.examDate
-      roadmapData: roadmapData,
-      modelVersion: "gemini-1.5-flash",
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
-    }).returning();
+    try {
+      const promptParams = {
+        currentScore: session.score || 0,
+        targetScore: user.targetScore || 100,
+        weakTopics: weakTopics,
+        daysUntilExam: 30, // Default to 30 days
+        examLanguage: (user.examLanguage as "ru" | "kz" | "en") || "ru",
+      };
 
-    return NextResponse.json(roadmap[0]);
+      const prompt = buildRoadmapPrompt(promptParams);
+
+      const difyResponse = await callDify(
+        prompt,
+        {}, // Empty inputs as prompt is now in query
+        userId
+      );
+
+      const roadmapData = extractJSON(difyResponse.answer);
+
+      const roadmap = await db.insert(studyRoadmaps).values({
+        userId: user.id,
+        currentScore: session.score,
+        targetScore: user.targetScore,
+        daysUntilExam: 30,
+        roadmapData: roadmapData,
+        modelVersion: "dify-prompt-v1",
+        expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      }).returning();
+
+      return NextResponse.json(roadmap[0]);
+
+    } catch (difyError) {
+      console.error("Dify Generation Error:", difyError);
+      return NextResponse.json({ 
+        error: "AI service temporarily unavailable", 
+        message: "AI teacher is resting. Please try again in 5-10 minutes." 
+      }, { status: 503 });
+    }
 
   } catch (error) {
-    console.error("Roadmap Generation Error:", error);
-    return NextResponse.json({ error: "AI failed to generate roadmap" }, { status: 500 });
+    console.error("Roadmap API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

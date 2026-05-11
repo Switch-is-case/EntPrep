@@ -158,25 +158,43 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     );
   }
 
+  const isDiagnostic = data.session?.testType === "diagnostic";
+  const accentColor = isDiagnostic ? "blue-600" : "primary";
+  const accentBg = isDiagnostic ? "bg-blue-600" : "bg-primary";
+  const accentText = isDiagnostic ? "text-blue-600" : "text-primary";
+  const accentShadow = isDiagnostic ? "shadow-blue-600/20" : "shadow-primary/20";
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Header */}
       <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
         <div className="flex items-center gap-4">
-          <div className="font-black text-xl text-primary">ENT PREP <span className="text-text-secondary font-medium">MOCK</span></div>
+          <div className={`font-black text-xl ${accentText} flex items-center gap-2 uppercase`}>
+            {isDiagnostic ? (
+              <>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
+                <span>Diagnostic</span>
+              </>
+            ) : (
+              <>
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                <span>Mock Exam</span>
+              </>
+            )}
+          </div>
           <div className="h-6 w-px bg-border hidden md:block" />
           <div className="text-sm font-bold text-text-secondary hidden md:block uppercase tracking-widest">
             {lang === "ru" ? currentSubject.nameRu : currentSubject.nameKz}
           </div>
         </div>
 
-        <div className={`px-6 py-2 rounded-2xl font-mono text-xl font-black ${remainingMs < 600000 ? "bg-rose-50 text-rose-600 animate-pulse" : "bg-slate-100 text-text"}`}>
+        <div className={`px-6 py-2 rounded-2xl font-mono text-xl font-black ${remainingMs < 300000 ? "bg-rose-50 text-rose-600 animate-pulse" : "bg-slate-100 text-text"}`}>
           {formatTime(remainingMs)}
         </div>
 
         <button 
           onClick={handleFinish}
-          className="px-6 py-2 bg-text text-white rounded-xl font-bold text-sm hover:bg-black transition-all"
+          className={`px-6 py-2 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all shadow-lg ${accentShadow}`}
         >
           {lang === "ru" ? "Завершить" : "Аяқтау"}
         </button>
@@ -191,7 +209,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                 key={sub.id}
                 onClick={() => { setCurrentSubjectIdx(idx); setCurrentQuestionIdx(0); }}
                 className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${
-                  currentSubjectIdx === idx ? "bg-primary text-white shadow-lg shadow-primary/20" : "text-text-secondary hover:bg-slate-50"
+                  currentSubjectIdx === idx ? `${accentBg} text-white shadow-lg ${accentShadow}` : "text-text-secondary hover:bg-slate-50"
                 }`}
               >
                 {lang === "ru" ? sub.nameRu : sub.nameKz}
@@ -207,7 +225,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                   onClick={() => setCurrentQuestionIdx(idx)}
                   className={`h-10 rounded-lg text-xs font-bold transition-all border ${
                     currentQuestionIdx === idx 
-                      ? "bg-primary text-white border-primary" 
+                      ? `${accentBg} text-white border-transparent` 
                       : q.selectedAnswer !== null 
                         ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
                         : "bg-white text-text-secondary border-border"
@@ -247,7 +265,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                     }`}
                   >
                     <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm ${
-                      currentQuestion.selectedAnswer === oIdx ? "bg-primary text-white border-primary" : "border-border text-text-secondary"
+                      currentQuestion.selectedAnswer === oIdx ? `${accentBg} text-white border-transparent` : "border-border text-text-secondary"
                     }`}>
                       {String.fromCharCode(65 + oIdx)}
                     </div>
@@ -269,7 +287,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
               <button
                 disabled={currentQuestionIdx === currentSubject.questions.length - 1}
                 onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                className="px-8 py-3 bg-primary text-white rounded-xl font-bold text-sm hover:bg-primary-dark transition-all disabled:opacity-30 shadow-lg shadow-primary/20"
+                className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all disabled:opacity-30 shadow-lg ${accentShadow}`}
               >
                 {lang === "ru" ? "Далее" : "Келесі"} →
               </button>
