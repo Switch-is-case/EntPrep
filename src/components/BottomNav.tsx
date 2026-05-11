@@ -94,7 +94,7 @@ export function BottomNav() {
               </>
             );
 
-            const baseClass = `flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-all active:scale-90`;
+            const baseClass = `flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors`;
 
             if (tab.href) {
               return (

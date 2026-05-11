@@ -205,7 +205,7 @@ export default function ProgressPage() {
           </p>
           <button
             onClick={() => router.push("/tests")}
-            className="bg-gradient-to-r from-primary to-accent text-white px-6 py-3 rounded-xl font-semibold hover:shadow-lg transition-all"
+            className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark transition-colors"
           >
             {t("test.start", lang)}
           </button>

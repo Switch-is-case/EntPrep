@@ -185,46 +185,53 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
 
   if (!currentQuestion) return null;
 
-  const accentBg = isDiagnostic ? "bg-blue-600" : isPractice ? "bg-emerald-600" : "bg-primary";
-  const accentText = isDiagnostic ? "text-blue-600" : isPractice ? "text-emerald-600" : "text-primary";
-  const accentShadow = isDiagnostic ? "shadow-blue-600/20" : isPractice ? "shadow-emerald-600/20" : "shadow-primary/20";
+  const accentBg = isPractice ? "bg-emerald-600" : "bg-primary";
+  const accentText = isPractice ? "text-emerald-600" : "text-primary";
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      <header className="bg-white border-b border-border px-6 py-4 flex items-center justify-between sticky top-0 z-50">
-        <div className="flex items-center gap-4">
-          <div className={`font-black text-xl ${accentText} flex items-center gap-2 uppercase`}>
+      <header className="bg-white border-b border-slate-200 px-3 md:px-6 py-4 flex items-center justify-between sticky top-0 z-50">
+        <div className="flex items-center gap-2 md:gap-4 overflow-hidden">
+          <div className={`font-bold text-base md:text-xl ${accentText} flex items-center gap-2 uppercase tracking-tight shrink-0`}>
             {isDiagnostic ? "Diagnostic" : isPractice ? "Practice" : "Mock Exam"}
           </div>
-          <div className="h-6 w-px bg-border hidden md:block" />
-          <div className="text-sm font-bold text-text-secondary hidden md:block uppercase tracking-widest">
+          <div className="h-6 w-px bg-slate-200 hidden md:block" />
+          <div className="text-[10px] md:text-sm font-bold text-slate-500 hidden sm:block uppercase tracking-widest truncate">
             {lang === "ru" ? currentSubject.nameRu : currentSubject.nameKz}
           </div>
         </div>
 
-        {!isPractice && (
-          <div className={`px-6 py-2 rounded-2xl font-mono text-xl font-black ${remainingMs < 300000 ? "bg-rose-50 text-rose-600 animate-pulse" : "bg-slate-100 text-text"}`}>
-            {formatTime(remainingMs)}
-          </div>
-        )}
+        <div className="flex items-center gap-2 md:gap-4 shrink-0">
+          {!isPractice && (
+            <div className={`px-3 md:px-6 py-1.5 md:py-2 rounded-xl font-mono text-base md:text-xl font-bold ${
+              remainingMs < 60000 
+                ? "text-red-600 bg-red-50" 
+                : remainingMs < 300000 
+                ? "text-amber-600 bg-amber-50" 
+                : "text-slate-700 bg-slate-100"
+            }`}>
+              {formatTime(remainingMs)}
+            </div>
+          )}
 
-        <button 
-          onClick={handleFinish}
-          className={`px-6 py-2 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all shadow-lg ${accentShadow}`}
-        >
-          {lang === "ru" ? "Завершить" : "Аяқтау"}
-        </button>
+          <button 
+            onClick={handleFinish}
+            className={`px-4 md:px-6 py-1.5 md:py-2 ${accentBg} text-white rounded-xl font-bold text-xs md:text-sm transition-colors hover:bg-opacity-90`}
+          >
+            {lang === "ru" ? "Завершить" : "Аяқтау"}
+          </button>
+        </div>
       </header>
 
       <div className="flex-1 flex overflow-hidden">
-        <aside className="w-80 bg-white border-r border-border hidden lg:flex flex-col">
-          <div className="p-4 border-b border-border space-y-2">
+        <aside className="w-80 bg-white border-r border-slate-200 hidden lg:flex flex-col">
+          <div className="p-4 border-b border-slate-200 space-y-2">
             {data.subjects.map((sub: any, idx: number) => (
               <button
                 key={sub.id}
                 onClick={() => { setCurrentSubjectIdx(idx); setCurrentQuestionIdx(0); }}
-                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-all ${
-                  currentSubjectIdx === idx ? `${accentBg} text-white shadow-lg ${accentShadow}` : "text-text-secondary hover:bg-slate-50"
+                className={`w-full text-left px-4 py-3 rounded-xl text-xs font-bold transition-colors ${
+                  currentSubjectIdx === idx ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-50"
                 }`}
               >
                 {lang === "ru" ? sub.nameRu : sub.nameKz}
@@ -246,10 +253,10 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
         <main className="flex-1 overflow-y-auto p-6 md:p-12 pb-32">
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 flex items-center justify-between">
-              <div className="text-sm font-bold text-text-secondary uppercase tracking-widest">
+              <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">
                 {lang === "ru" ? "Вопрос" : "Сұрақ"} {currentQuestionIdx + 1} / {currentSubject.questions.length}
               </div>
-              {saving && <div className="text-[10px] font-bold text-primary animate-pulse uppercase">Сохранение...</div>}
+              {saving && <div className="text-[10px] font-bold text-primary uppercase tracking-wider">Сохранение...</div>}
             </div>
 
             <QuestionCard
@@ -266,24 +273,24 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
               loading={loadingExplanations[currentQuestion.id] || false}
             />
 
-            <div className="flex justify-between mt-12 pt-8 border-t border-border">
+            <div className="flex justify-between mt-12 pt-8 border-t border-slate-200">
               <button
                 disabled={currentQuestionIdx === 0}
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
-                className="px-8 py-3 rounded-xl font-bold text-sm border border-border hover:bg-white transition-all disabled:opacity-30"
+                className="px-8 py-3 rounded-xl font-bold text-sm border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-30"
               >
                 ← {lang === "ru" ? "Назад" : "Артқа"}
               </button>
               
               {showFeedback && currentQuestion.selectedAnswer === null ? (
-                 <div className="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center">
+                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
                     {lang === "ru" ? "Выберите ответ" : "Жауапты таңдаңыз"}
                  </div>
               ) : (
                 <button
                   disabled={currentQuestionIdx === currentSubject.questions.length - 1}
                   onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                  className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm hover:brightness-110 transition-all disabled:opacity-30 shadow-lg ${accentShadow}`}
+                  className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm transition-colors hover:bg-opacity-90 disabled:opacity-30`}
                 >
                   {lang === "ru" ? "Далее" : "Келесі"} →
                 </button>

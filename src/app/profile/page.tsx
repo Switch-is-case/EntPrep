@@ -133,12 +133,12 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-text">{t("profile.title", lang)}</h1>
-          <p className="text-text-secondary mt-1">{user.email}</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t("profile.title", lang)}</h1>
+          <p className="text-slate-500 mt-1">{user.email}</p>
         </div>
         <button 
           onClick={logout} 
-          className="px-4 py-2 rounded-xl border border-danger text-danger font-semibold hover:bg-danger/5 transition-all text-sm"
+          className="px-4 py-2 rounded-xl border border-red-200 text-red-600 font-bold hover:bg-red-50 transition-colors text-sm"
         >
           {t("nav.logout", lang)}
         </button>
@@ -147,20 +147,20 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
              <div className="flex flex-col items-center text-center">
                 <div className="w-20 h-20 rounded-full bg-primary flex items-center justify-center text-white text-2xl font-bold mb-4">
                    {user.name.charAt(0).toUpperCase()}
                 </div>
-                <h2 className="text-xl font-bold text-text">{user.name}</h2>
-                <div className="mt-2 text-sm text-text-secondary">
+                <h2 className="text-xl font-bold text-slate-900">{user.name}</h2>
+                <div className="mt-2 text-sm font-bold text-slate-400 uppercase tracking-widest">
                   {lang === "ru" ? "Абитуриент" : "Абитуриент"}
                 </div>
              </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-            <h3 className="font-bold text-text mb-4">{t("profile.language", lang)}</h3>
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+            <h3 className="font-bold text-slate-900 mb-4 uppercase tracking-wider text-xs">{t("profile.language", lang)}</h3>
             <div className="grid grid-cols-1 gap-2">
               {([
                 { code: "kz" as Lang, label: "Қазақша" },
@@ -170,10 +170,10 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                 <button
                   key={l.code}
                   onClick={() => setSelectedLang(l.code)}
-                  className={`p-3 rounded-xl border transition-all flex items-center gap-3 text-sm font-semibold ${
+                  className={`p-3 rounded-xl border transition-colors flex items-center gap-3 text-sm font-bold ${
                     selectedLang === l.code
                       ? "border-primary bg-primary/5 text-primary"
-                      : "border-border hover:border-primary/30"
+                      : "border-slate-200 text-slate-600 hover:border-primary/40"
                   }`}
                 >
                   {l.label}
@@ -186,15 +186,15 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
 
         {/* Right Column */}
         <div className="lg:col-span-2 space-y-6">
-          <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-             <h3 className="font-bold text-text mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" aria-hidden="true" />
                 {lang === "ru" ? "Ваша цель" : "Сенің мақсатың"}
              </h3>
              
              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-text-secondary">{lang === "ru" ? "Целевой балл" : "Мақсатты балл"}</span>
+                  <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{lang === "ru" ? "Целевой балл" : "Мақсатты балл"}</span>
                   <span className="text-3xl font-bold text-primary">{targetScore}</span>
                 </div>
                 <input
@@ -203,17 +203,17 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                   max="140"
                   value={targetScore}
                   onChange={(e) => setTargetScore(parseInt(e.target.value))}
-                  className="w-full h-2 bg-bg rounded-lg appearance-none cursor-pointer accent-primary"
+                  className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-primary"
                 />
-                <div className="flex justify-between text-[10px] font-bold text-text-secondary uppercase">
+                <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                   <span>min 50</span>
                   <span>max 140</span>
                 </div>
              </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-             <h3 className="font-bold text-text mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-primary" aria-hidden="true" />
                 {t("profile.subjects", lang)}
              </h3>
@@ -222,13 +222,13 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                   <button
                     key={combo.id}
                     onClick={() => setSelectedComboId(combo.id)}
-                    className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-center min-h-[70px] ${
+                    className={`p-4 rounded-xl border transition-colors text-left flex flex-col justify-center min-h-[70px] ${
                       selectedComboId === combo.id
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-primary/30"
+                      : "border-slate-200 hover:border-primary/40"
                     }`}
                   >
-                    <div className="text-sm font-bold text-text">
+                    <div className="text-sm font-bold text-slate-800">
                       {lang === "ru" ? combo.subject1.nameRu : combo.subject1.nameKz} + {lang === "ru" ? combo.subject2.nameRu : combo.subject2.nameKz}
                     </div>
                   </button>
@@ -236,15 +236,15 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
              </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-             <h3 className="font-bold text-text mb-6 flex items-center gap-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6">
+             <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-primary" aria-hidden="true" />
                 {lang === "ru" ? "Университет и Специальность" : "Университет пен мамандық"}
              </h3>
              
              <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-bold text-text-secondary uppercase mb-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
                     {lang === "ru" ? "Университет" : "Университет"}
                   </label>
                   <select
@@ -254,7 +254,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                       setTargetUniversityId(id);
                       setTargetSpecialtyId(null);
                     }}
-                    className="w-full p-3 rounded-xl border border-border bg-bg text-sm font-semibold outline-none focus:border-primary"
+                    className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 outline-none focus:border-primary transition-colors"
                   >
                     <option value="">{lang === "ru" ? "— Выберите университет —" : "— Университетті таңдаңыз —"}</option>
                     {universitiesData.map(u => (
@@ -263,48 +263,41 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                   </select>
                 </div>
 
-                <AnimatePresence>
-                  {targetUniversityId && selectedUniversity && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <label className="block text-xs font-bold text-text-secondary uppercase mb-2 mt-4">
-                        {lang === "ru" ? "Специальность" : "Мамандық"}
-                      </label>
-                      <div className="space-y-2">
-                        {selectedUniversity.programs.map(p => (
-                          <button
-                            key={p.id}
-                            onClick={() => setTargetSpecialtyId(p.id)}
-                            className={`w-full p-3 rounded-xl border text-left transition-all text-sm font-semibold ${
-                              targetSpecialtyId === p.id
-                              ? "border-primary bg-primary/5 text-primary"
-                              : "border-border hover:border-primary/30"
-                            }`}
-                          >
-                            {lang === "ru" ? p.nameRu : p.nameKz}
-                          </button>
-                        ))}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {targetUniversityId && selectedUniversity && (
+                  <div className="pt-4 border-t border-slate-100 mt-4">
+                    <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
+                      {lang === "ru" ? "Специальность" : "Мамандық"}
+                    </label>
+                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                      {selectedUniversity.programs.map(p => (
+                        <button
+                          key={p.id}
+                          onClick={() => setTargetSpecialtyId(p.id)}
+                          className={`w-full p-3 rounded-xl border text-left transition-colors text-sm font-bold ${
+                            targetSpecialtyId === p.id
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-slate-200 text-slate-600 hover:border-primary/40"
+                          }`}
+                        >
+                          {lang === "ru" ? p.nameRu : p.nameKz}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
              </div>
           </div>
 
           <div className="pt-4">
              {error && (
-               <div className="bg-danger/10 text-danger text-sm font-semibold rounded-xl p-4 mb-4 border border-danger/20 text-center">
+               <div className="bg-red-50 text-red-600 text-xs font-bold uppercase tracking-wider rounded-xl p-4 mb-4 border border-red-100 text-center">
                  {error}
                </div>
              )}
              <button
                onClick={handleSave}
                disabled={saving}
-               className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition-all shadow-sm disabled:opacity-50"
+               className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
              >
                {saving ? <Spinner size="sm" color="white" /> : (saved ? t("profile.saved", lang) : t("profile.save", lang))}
              </button>

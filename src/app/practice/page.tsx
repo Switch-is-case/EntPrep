@@ -57,10 +57,10 @@ export default function PracticePage() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-text mb-2">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
           {t("practice.title", lang)}
         </h1>
-        <p className="text-text-secondary">
+        <p className="text-slate-600 font-medium leading-relaxed max-w-2xl">
           {lang === "ru" 
             ? "Выборочная тренировка по конкретным предметам с моментальной проверкой ответов."
             : "Жауаптарды жедел тексерумен нақты пәндер бойынша жаттығу."}
@@ -69,14 +69,14 @@ export default function PracticePage() {
 
       <div className="space-y-6">
         {/* Subject Selection */}
-        <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-bold text-text mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-xs">
             {t("practice.selectSubject", lang)}
           </h3>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div>
-              <p className="text-xs font-bold text-text-secondary uppercase mb-3 px-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">
                 {lang === "ru" ? "Обязательные предметы" : "Міндетті пәндер"}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -84,10 +84,10 @@ export default function PracticePage() {
                   <button
                     key={s}
                     onClick={() => setSelectedSubject(s)}
-                    className={`p-4 rounded-xl border transition-all text-sm font-semibold text-left ${
+                    className={`p-4 rounded-xl border transition-colors text-sm font-bold text-left ${
                       selectedSubject === s
                         ? "border-primary bg-primary/5 text-primary"
-                        : "border-border hover:border-primary/30"
+                        : "border-slate-200 text-slate-600 hover:border-primary/40"
                     }`}
                   >
                     {getSubjectName(s)}
@@ -97,7 +97,7 @@ export default function PracticePage() {
             </div>
 
             <div>
-              <p className="text-xs font-bold text-text-secondary uppercase mb-3 px-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">
                 {lang === "ru" ? "Профильные предметы" : "Профильдік пәндер"}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -105,10 +105,10 @@ export default function PracticePage() {
                   <button
                     key={s}
                     onClick={() => setSelectedSubject(s)}
-                    className={`p-4 rounded-xl border transition-all text-sm font-semibold text-left ${
+                    className={`p-4 rounded-xl border transition-colors text-sm font-bold text-left ${
                       selectedSubject === s
                         ? "border-primary bg-primary/5 text-primary"
-                        : "border-border hover:border-primary/30"
+                        : "border-slate-200 text-slate-600 hover:border-primary/40"
                     }`}
                   >
                     {getSubjectName(s)}
@@ -120,8 +120,8 @@ export default function PracticePage() {
         </div>
 
         {/* Count Selection */}
-        <div className="bg-white rounded-2xl border border-border p-6 shadow-sm">
-          <h3 className="font-bold text-text mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+          <h3 className="font-bold text-slate-900 mb-6 uppercase tracking-wider text-xs">
             {t("practice.questionsCount", lang)}
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -129,10 +129,10 @@ export default function PracticePage() {
               <button
                 key={n}
                 onClick={() => setQuestionCount(n)}
-                className={`w-12 h-12 rounded-xl border font-bold transition-all flex items-center justify-center ${
+                className={`w-12 h-12 rounded-xl border font-bold transition-colors flex items-center justify-center ${
                   questionCount === n
                     ? "border-primary bg-primary text-white"
-                    : "border-border text-text-secondary hover:border-primary/30"
+                    : "border-slate-200 text-slate-500 hover:border-primary/40"
                 }`}
               >
                 {n}
@@ -144,7 +144,7 @@ export default function PracticePage() {
         <button
           onClick={startPractice}
           disabled={!selectedSubject || loading}
-          className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition-all disabled:opacity-50"
+          className="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg hover:bg-primary-dark transition-colors disabled:opacity-50"
         >
           {loading ? (
             <Spinner size="sm" color="white" />

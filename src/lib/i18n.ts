@@ -15,6 +15,7 @@ export const translations = {
   "nav.login": { kz: "Кіру", ru: "Войти", en: "Login" },
   "nav.register": { kz: "Тіркелу", ru: "Регистрация", en: "Register" },
   "nav.logout": { kz: "Шығу", ru: "Выйти", en: "Logout" },
+  "nav.student": { kz: "Студент", ru: "Студент", en: "Student" },
 
   // Admin Navigation
   "admin.nav.dashboard": { kz: "Бақылау тақтасы", ru: "Дашборд", en: "Dashboard" },

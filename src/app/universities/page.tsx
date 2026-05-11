@@ -52,10 +52,10 @@ export default function UniversitiesPage() {
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
-          <h1 className="text-3xl font-black text-text tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
             {lang === "ru" ? "Университеты Казахстана" : lang === "kz" ? "Қазақстан университеттері" : "Universities of Kazakhstan"}
           </h1>
-          <p className="text-text-secondary mt-2 max-w-md">
+          <p className="text-slate-500 font-medium mt-2 max-w-md">
             {lang === "ru" ? "Найди свой идеальный ВУЗ и узнай проходные баллы" : "Өзіңе лайықты ЖОО тауып, өту балдарын біл"}
           </p>
         </div>
@@ -67,13 +67,13 @@ export default function UniversitiesPage() {
               placeholder={lang === "ru" ? "Поиск..." : "Іздеу..."}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full sm:w-64 px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all bg-white"
+              className="w-full sm:w-64 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold"
             />
           </div>
           <select
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all bg-white"
+            className="px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold text-slate-700"
           >
             <option value="">{lang === "ru" ? "Все города" : "Барлық қалалар"}</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -84,20 +84,20 @@ export default function UniversitiesPage() {
       {loading ? (
         <div className="flex justify-center py-20"><Spinner size="lg" /></div>
       ) : unis.length === 0 ? (
-        <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+        <div className="text-center py-20 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
           <div className="flex justify-center mb-4">
             <Search className="w-16 h-16 text-slate-300" aria-hidden="true" />
           </div>
-          <div className="text-lg font-bold text-text">{lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады"}</div>
-          <div className="text-sm text-text-secondary mt-1">{lang === "ru" ? "Попробуйте изменить параметры поиска" : "Іздеу параметрлерін өзгертіп көріңіз"}</div>
+          <div className="text-lg font-bold text-slate-900">{lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады"}</div>
+          <div className="text-sm font-medium text-slate-500 mt-1">{lang === "ru" ? "Попробуйте изменить параметры поиска" : "Іздеу параметрлерін өзгертіп көріңіз"}</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {unis.map((uni) => (
-            <div key={uni.id} className="group bg-white rounded-[2rem] border border-border p-1 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-              <div className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+            <div key={uni.id} className="bg-white rounded-2xl border border-slate-200 flex flex-col transition-colors hover:border-primary/40 overflow-hidden">
+              <div className="p-6 flex-1">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
                     {uni.logoUrl ? (
                       <Image 
                         src={uni.logoUrl} 
@@ -110,46 +110,45 @@ export default function UniversitiesPage() {
                       <Building className="w-8 h-8 text-slate-300" aria-hidden="true" />
                     )}
                   </div>
-                  <div className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider">
+                  <div className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest">
                     {lang === "ru" ? uni.cityRu : uni.cityKz}
                   </div>
                 </div>
 
-                <h3 className="text-lg font-bold text-text leading-tight mb-2 group-hover:text-primary transition-colors">
+                <h3 className="text-lg font-bold text-slate-900 leading-tight mb-4 group-hover:text-primary transition-colors">
                   {lang === "ru" ? uni.nameRu : uni.nameKz}
                 </h3>
 
-                <div className="space-y-3 mt-6">
+                <div className="space-y-2 mt-6">
                   {uni.programs.slice(0, 2).map((prog: any) => (
-                    <div key={prog.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
-                      <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">{prog.combination?.subject1?.nameRu} + {prog.combination?.subject2?.nameRu}</div>
-                      <div className="flex justify-between items-end">
-                        <div className="text-xs font-bold text-text line-clamp-1 flex-1 pr-2">{lang === "ru" ? prog.nameRu : prog.nameKz}</div>
+                    <div key={prog.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                      <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{prog.combination?.subject1?.nameRu} + {prog.combination?.subject2?.nameRu}</div>
+                      <div className="flex justify-between items-center">
+                        <div className="text-xs font-bold text-slate-700 line-clamp-1 flex-1 pr-2">{lang === "ru" ? prog.nameRu : prog.nameKz}</div>
                         <div className="text-right shrink-0">
-                          <div className="text-[10px] text-text-secondary leading-none">Грант 2024</div>
-                          <div className="text-sm font-black text-primary">{prog.scoreHistory?.[0]?.grantScore || "—"}</div>
+                          <div className="text-sm font-bold text-primary">{prog.scoreHistory?.[0]?.grantScore || "—"}</div>
                         </div>
                       </div>
                     </div>
                   ))}
                   
                   {uni.programs.length > 2 && (
-                    <div className="text-center text-[10px] font-bold text-text-secondary py-1">
-                      + еще {uni.programs.length - 2} программы
+                    <div className="text-center text-[10px] font-bold text-slate-400 py-1 uppercase tracking-widest">
+                      + {uni.programs.length - 2} {lang === "ru" ? "программы" : "бағдарлама"}
                     </div>
                   )}
                 </div>
               </div>
               
-              <div className="px-6 py-4 bg-gray-50 rounded-b-[1.9rem] border-t border-gray-100 flex justify-between items-center">
-                <span className="text-[11px] font-bold text-text-secondary uppercase">
-                  {uni.programs.length} {lang === "ru" ? "программ" : "бағдарлама"}
+              <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {uni.programs.length} {lang === "ru" ? "курсов" : "курс"}
                 </span>
                 <Link 
                   href={`/universities/${uni.id}`}
-                  className="text-xs font-black text-primary hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
                 >
-                  Подробнее →
+                  {lang === "ru" ? "Подробнее" : "Толығырақ"} →
                 </Link>
               </div>
             </div>

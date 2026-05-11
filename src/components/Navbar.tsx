@@ -7,6 +7,8 @@ import { useApp } from "./Providers";
 import { t, type Lang } from "@/lib/i18n";
 import { useIsPWAInstalled } from "@/hooks/useIsPWAInstalled";
 
+import { ChevronDown, User, LogOut } from "lucide-react";
+
 const langLabels: Record<Lang, string> = {
   kz: "Қаз",
   ru: "Рус",
@@ -58,22 +60,39 @@ const Icons = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
     </svg>
   ),
-  Profile: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-    </svg>
-  ),
-  ChevronDown: () => (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-    </svg>
-  ),
 };
 
 export default function Navbar() {
   const { lang, setLang, user, logout } = useApp();
   const isInstalled = useIsPWAInstalled();
   const pathname = usePathname();
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
+  // Close dropdown on ESC
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsMenuOpen(false);
+    };
+    if (isMenuOpen) {
+      window.addEventListener("keydown", handleEsc);
+    }
+    return () => window.removeEventListener("keydown", handleEsc);
+  }, [isMenuOpen]);
 
   const mainLinks = user
     ? [
@@ -83,7 +102,6 @@ export default function Navbar() {
         { href: "/progress", label: t("nav.progress", lang), icon: Icons.Progress },
         { href: "/history", label: t("nav.history", lang), icon: Icons.History },
         { href: "/universities", label: t("nav.universities", lang), icon: Icons.Universities },
-        { href: "/profile", label: t("nav.profile", lang), icon: Icons.Profile },
       ]
     : [];
 
@@ -125,13 +143,13 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-1.5 px-2 xl:px-4 py-2 rounded-xl text-[11px] xl:text-sm font-bold transition-all ${
+                  className={`flex items-center gap-1.5 px-2 xl:px-4 py-2 rounded-xl text-[11px] xl:text-sm font-bold whitespace-nowrap transition-all ${
                     active
                       ? "bg-primary text-white shadow-md shadow-primary/20 scale-105"
                       : "text-text-secondary hover:text-text hover:bg-gray-100"
                   }`}
                 >
-                  <link.icon />
+                  <span className="shrink-0"><link.icon /></span>
                   <span>{link.label}</span>
                 </Link>
               );
@@ -159,16 +177,53 @@ export default function Navbar() {
 
             {/* Auth */}
             {user ? (
-              <div className="hidden xl:flex items-center gap-4">
-                <div className="flex flex-col items-end leading-tight">
-                  <span className="text-xs font-black text-text truncate max-w-[100px]">{user.name}</span>
-                  <button
-                    onClick={logout}
-                    className="text-[10px] font-bold text-danger hover:underline"
-                  >
-                    {t("nav.logout", lang)}
-                  </button>
-                </div>
+              <div className="hidden lg:flex items-center relative" ref={dropdownRef}>
+                <button 
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-xl hover:bg-slate-50 transition-colors"
+                  aria-label="User menu"
+                >
+                  <div className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                    {(user.name?.[0] || user.email[0]).toUpperCase()}
+                  </div>
+                  <span className="text-sm font-bold text-text hidden xl:block">
+                    {user.name}
+                  </span>
+                  <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${isMenuOpen ? 'rotate-180' : ''}`} />
+                </button>
+
+                {isMenuOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-56 bg-white border border-slate-200 rounded-2xl shadow-xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-3 border-b border-slate-100 mb-1">
+                      <div className="font-black text-slate-900 text-sm truncate">{user.name}</div>
+                      <div className="text-[10px] font-black text-primary uppercase tracking-widest mt-0.5">
+                        {t("nav.student", lang)}
+                      </div>
+                    </div>
+                    
+                    <Link 
+                      href="/profile" 
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors"
+                      onClick={() => setIsMenuOpen(false)}
+                    >
+                      <User className="w-4 h-4 text-slate-400" />
+                      {t("nav.profile", lang)}
+                    </Link>
+                    
+                    <div className="h-px bg-slate-100 my-1 mx-2" />
+                    
+                    <button
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm font-bold text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      {t("nav.logout", lang)}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="hidden lg:flex items-center gap-2">

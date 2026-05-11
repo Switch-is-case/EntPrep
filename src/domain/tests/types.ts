@@ -58,4 +58,5 @@ export interface SessionHistoryDTO {
   skippedAnswers: number;
   score: number;
   startedAt: Date;
+  subjects: { id: number; slug?: string; nameRu?: string; nameKz?: string; nameEn?: string; type?: string }[];
 }

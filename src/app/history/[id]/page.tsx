@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { useHistoryReview } from "@/hooks/useHistoryReview";
@@ -59,6 +59,40 @@ export default function HistoryReviewPage() {
     }
   }, [lang, authHeaders, explanations, loadingExplanations]);
 
+  const questionsBySubject = useMemo(() => {
+    if (!session?.subjects || !Array.isArray(session.subjects)) {
+      return [{ id: 0, name: "Test", questions }];
+    }
+    
+    const map = new Map<number, Question[]>();
+    questions.forEach(q => {
+      const sid = q.subjectId || 0;
+      if (!map.has(sid)) map.set(sid, []);
+      map.get(sid)!.push(q);
+    });
+    
+    return session.subjects.map((s: any) => ({
+      id: s.id,
+      name: lang === "ru" ? (s.nameRu || s.slug) : lang === "kz" ? (s.nameKz || s.slug) : (s.nameEn || s.nameRu || s.slug || "—"),
+      questions: map.get(s.id) || []
+    })).filter(s => s.questions.length > 0);
+  }, [questions, session, lang]);
+
+  const [activeSubjectId, setActiveSubjectId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!activeSubjectId && questionsBySubject.length > 0) {
+      setActiveSubjectId(questionsBySubject[0].id);
+    }
+  }, [questionsBySubject, activeSubjectId]);
+
+  useEffect(() => {
+    const currentQ = questions[currentIndex];
+    if (currentQ && currentQ.subjectId !== activeSubjectId) {
+      setActiveSubjectId(currentQ.subjectId);
+    }
+  }, [currentIndex, questions, activeSubjectId]);
+
   if (!user || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-slate-50">
@@ -70,6 +104,16 @@ export default function HistoryReviewPage() {
   if (!session || questions.length === 0) return null;
 
   const currentQ = questions[currentIndex];
+  const activeSubject = questionsBySubject.find(s => s.id === activeSubjectId);
+  const visibleQuestions = activeSubject?.questions ?? [];
+  const currentIndexInSubject = visibleQuestions.findIndex(q => q.id === currentQ.id);
+
+  const handleSelectIndex = (idxInSubject: number) => {
+    const targetQ = visibleQuestions[idxInSubject];
+    const globalIdx = questions.findIndex(q => q.id === targetQ.id);
+    if (globalIdx !== -1) setCurrentIndex(globalIdx);
+  };
+
   const accentBg = "bg-primary";
   const testTypeLabel = session.testType === "diagnostic" ? "Diagnostic" : session.testType === "practice" ? "Practice" : "Mock Exam";
 
@@ -83,15 +127,15 @@ export default function HistoryReviewPage() {
           </div>
           <div className="h-6 w-px bg-border hidden md:block" />
           <div className="text-sm font-bold text-text-secondary hidden md:block uppercase tracking-widest">
-            {currentQ.subject}
+            {activeSubject?.name || currentQ.subject}
           </div>
         </div>
 
         <button 
           onClick={() => router.push("/history")}
-          className="px-6 py-2 border border-border rounded-xl font-bold text-sm hover:bg-slate-50 transition-all shadow-sm"
+          className="px-5 py-2 bg-primary/10 text-primary rounded-xl font-bold text-sm hover:bg-primary/20 transition-colors"
         >
-          {lang === "ru" ? "← Вернуться к истории" : lang === "kz" ? "← Тарихқа оралу" : "← Back to History"}
+          {lang === "ru" ? "← К истории" : lang === "kz" ? "← Тарихқа" : "← To History"}
         </button>
       </header>
 
@@ -128,14 +172,48 @@ export default function HistoryReviewPage() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto p-4">
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col">
+            {/* Subject Tabs - horizontally scrollable on mobile, vertical on desktop */}
+            {questionsBySubject.length > 1 && (
+              <div className="flex overflow-x-auto md:flex-col gap-1 mb-6 pb-2 md:pb-0 shrink-0 scrollbar-hide">
+                {questionsBySubject.map(subject => (
+                  <button
+                    key={subject.id}
+                    onClick={() => {
+                      setActiveSubjectId(subject.id);
+                      // Auto-select first question of subject
+                      const firstQ = subject.questions[0];
+                      const globalIdx = questions.findIndex(q => q.id === firstQ.id);
+                      if (globalIdx !== -1) setCurrentIndex(globalIdx);
+                    }}
+                    className={`whitespace-nowrap text-left px-4 py-2.5 rounded-xl text-xs font-bold transition-colors shrink-0 ${
+                      activeSubjectId === subject.id
+                        ? "bg-primary text-white"
+                        : "text-slate-600 hover:bg-slate-50"
+                    }`}
+                  >
+                    {subject.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <QuestionNavigator
-              questions={questions}
-              currentIndex={currentIndex}
-              onSelectIndex={setCurrentIndex}
+              questions={visibleQuestions}
+              currentIndex={currentIndexInSubject}
+              onSelectIndex={handleSelectIndex}
               accentBg={accentBg}
               showFeedback={true}
             />
+
+            <div className="mt-auto pt-8">
+              <button 
+                onClick={() => router.push("/history")}
+                className="w-full px-5 py-3 border border-border text-text-secondary rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors"
+              >
+                {lang === "ru" ? "← Вернуться к истории" : lang === "kz" ? "← Тарихқа оралу" : "← Back to History"}
+              </button>
+            </div>
           </div>
         </aside>
 

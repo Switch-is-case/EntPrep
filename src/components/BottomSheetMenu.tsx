@@ -62,11 +62,11 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
             onDragEnd={(_, info) => {
               if (info.offset.y > 100) onClose();
             }}
-            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] z-[70] md:hidden px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-2xl"
+            className="fixed bottom-0 left-0 right-0 bg-white rounded-t-2xl z-[70] md:hidden px-6 pt-2 pb-[calc(2rem+env(safe-area-inset-bottom))] shadow-lg"
           >
             {/* Handle bar */}
             <div className="flex justify-center mb-6">
-              <div className="w-12 h-1.5 bg-gray-200 rounded-full" />
+              <div className="w-12 h-1.5 bg-slate-200 rounded-full" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -77,17 +77,16 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
                   onClick={onClose}
                   className="group"
                 >
-                  <motion.div
-                    whileTap={{ scale: 0.95 }}
-                    className="h-full flex flex-col items-center justify-center p-5 rounded-3xl bg-gray-50 border border-gray-100 transition-all hover:bg-white hover:shadow-md"
+                  <div
+                    className="h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-white border border-slate-200 transition-colors hover:bg-slate-50"
                   >
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center mb-3 shadow-lg shadow-indigo-500/10`}>
-                      <item.icon className="w-8 h-8 text-white" aria-hidden="true" />
+                    <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
+                      <item.icon className="w-8 h-8 text-primary" aria-hidden="true" />
                     </div>
-                    <span className="text-sm font-bold text-text text-center leading-tight">
+                    <span className="text-sm font-bold text-slate-900 text-center leading-tight">
                       {item.label}
                     </span>
-                  </motion.div>
+                  </div>
                 </Link>
               ))}
             </div>

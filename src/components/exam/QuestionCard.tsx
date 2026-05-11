@@ -39,7 +39,7 @@ export function QuestionCard({
         <img
           src={question.imageUrl}
           alt="Question"
-          className="max-h-64 object-contain rounded-xl mb-8 border border-gray-200 shadow-sm"
+          className="max-h-64 object-contain rounded-2xl mb-8 border border-slate-200"
         />
       )}
 

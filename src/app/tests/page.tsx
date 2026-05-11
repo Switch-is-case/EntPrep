@@ -108,9 +108,6 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
         en: "Quick assessment across all subjects"
       },
       stats: { ru: "25 вопросов • 45 мин", kz: "25 сұрақ • 45 мин", en: "25 questions • 45 min" },
-      bgColor: "bg-blue-50",
-      textColor: "text-blue-600",
-      btnColor: "bg-blue-600",
       mode: "diagnostic" as const,
     },
     {
@@ -127,9 +124,6 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
         en: "Full simulation of real ENT (140 questions)"
       },
       stats: { ru: "140 вопросов • 4 часа", kz: "140 сұрақ • 4 сағат", en: "140 questions • 4 hours" },
-      bgColor: "bg-purple-50",
-      textColor: "text-purple-600",
-      btnColor: "bg-purple-600",
       mode: "mock" as const,
     }
   ];
@@ -137,10 +131,10 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <div className="mb-10">
-        <h1 className="text-3xl font-bold text-text mb-2">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
           {t("nav.tests", lang)}
         </h1>
-        <p className="text-text-secondary">
+        <p className="text-slate-600 font-medium leading-relaxed max-w-2xl">
           {lang === "ru" 
             ? "Выберите режим тестирования для оценки своих знаний."
             : "Біліміңізді тексеру үшін тест түрін таңдаңыз."}
@@ -149,57 +143,48 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
 
       {/* Subject Combination Selector */}
       <div className="mb-8">
-        <div className="bg-white rounded-2xl border border-border overflow-hidden shadow-sm">
-          <div className="p-5 bg-bg border-b border-border flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="p-5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="font-bold text-text">
+              <h2 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
                 {lang === "ru" ? "Профильные предметы" : "Профильдік пәндер"}
               </h2>
             </div>
             
             <button 
               onClick={() => setShowComboPicker(!showComboPicker)}
-              className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-border hover:border-primary transition-all text-sm font-semibold"
+              className="flex items-center gap-3 px-4 py-2 bg-white rounded-xl border border-slate-200 hover:border-primary transition-colors text-sm font-bold text-slate-700"
             >
               {currentCombo ? (
                 <span>
                   {lang === "ru" ? currentCombo.subject1.nameRu : currentCombo.subject1.nameKz} + {lang === "ru" ? currentCombo.subject2.nameRu : currentCombo.subject2.nameKz}
                 </span>
               ) : (
-                <span className="text-danger">{lang === "ru" ? "Не выбрано" : "Таңдалмаған"}</span>
+                <span className="text-red-500">{lang === "ru" ? "Не выбрано" : "Таңдалмаған"}</span>
               )}
               <span className={`text-[10px] transition-transform ${showComboPicker ? "rotate-180" : ""}`}>▼</span>
             </button>
           </div>
 
-          <AnimatePresence>
-            {showComboPicker && (
-              <motion.div 
-                initial={{ height: 0 }}
-                animate={{ height: "auto" }}
-                exit={{ height: 0 }}
-                className="overflow-hidden bg-white"
-              >
-                <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {combinations.map((combo) => (
-                    <button
-                      key={combo.id}
-                      onClick={() => { setSelectedComboId(combo.id); setShowComboPicker(false); }}
-                      className={`p-4 rounded-xl border transition-all text-left flex flex-col justify-center min-h-[70px] ${
-                        selectedComboId === combo.id
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/30"
-                      }`}
-                    >
-                      <div className="text-sm font-bold text-text">
-                        {lang === "ru" ? combo.subject1.nameRu : combo.subject1.nameKz} + {lang === "ru" ? combo.subject2.nameRu : combo.subject2.nameKz}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {showComboPicker && (
+            <div className="p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 border-t border-slate-100">
+              {combinations.map((combo) => (
+                <button
+                  key={combo.id}
+                  onClick={() => { setSelectedComboId(combo.id); setShowComboPicker(false); }}
+                  className={`p-4 rounded-xl border transition-colors text-left flex flex-col justify-center min-h-[70px] ${
+                    selectedComboId === combo.id
+                    ? "border-primary bg-primary/5"
+                    : "border-slate-200 hover:border-primary/40"
+                  }`}
+                >
+                  <div className="text-sm font-bold text-slate-800">
+                    {lang === "ru" ? combo.subject1.nameRu : combo.subject1.nameKz} + {lang === "ru" ? combo.subject2.nameRu : combo.subject2.nameKz}
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -207,37 +192,37 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
         {testOptions.map((opt) => (
           <div 
             key={opt.id}
-            className="bg-white rounded-2xl p-6 border border-border shadow-sm flex flex-col"
+            className="bg-white rounded-2xl p-6 md:p-8 border border-slate-200 flex flex-col"
           >
-            <div className={`w-12 h-12 rounded-xl ${opt.bgColor} ${opt.textColor} flex items-center justify-center mb-6`}>
+            <div className="w-14 h-14 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-6">
               {opt.icon}
             </div>
 
-            <h3 className="text-xl font-bold text-text mb-2">
+            <h3 className="text-2xl font-bold text-slate-900 mb-3 tracking-tight">
               {opt.title[lang as "ru" | "kz" | "en"]}
             </h3>
             
-            <p className="text-text-secondary text-sm mb-6 flex-1">
+            <p className="text-slate-600 text-sm mb-8 flex-1 leading-relaxed font-medium">
               {opt.description[lang as "ru" | "kz" | "en"]}
             </p>
 
-            <div className="text-xs font-bold text-text-secondary uppercase tracking-wider mb-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-8 w-fit">
                {opt.stats[lang as "ru" | "kz" | "en"]}
             </div>
 
             <button 
               onClick={() => startTest(opt.mode)} 
               disabled={!selectedComboId || !!loading}
-              className={`w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 ${
+              className={`w-full py-4 rounded-xl font-bold transition-colors flex items-center justify-center gap-2 ${
                 loading === opt.id
-                ? "bg-gray-100 text-gray-400"
-                : `${opt.btnColor} text-white hover:brightness-110 shadow-sm`
+                ? "bg-slate-100 text-slate-400"
+                : "bg-primary text-white hover:bg-primary-dark"
               } disabled:opacity-50`}
             >
               {loading === opt.id ? <Spinner size="sm" /> : (
                 <>
                   <span>{lang === "ru" ? "Начать тест" : "Тестті бастау"}</span>
-                  <span>→</span>
+                  <span className="text-xl">→</span>
                 </>
               )}
             </button>

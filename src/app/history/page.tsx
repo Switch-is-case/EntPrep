@@ -13,6 +13,7 @@ export default function HistoryPage() {
   const { lang } = useApp();
   const router = useRouter();
   const { sessions, loading, user } = useHistory();
+  const [filterSubject, setFilterSubject] = useState<string>("all");
 
   if (!user) return null;
 
@@ -24,48 +25,92 @@ export default function HistoryPage() {
     );
   }
 
+  // Extract unique subjects from sessions
+  const allSubjects = Array.from(
+    new Map(
+      sessions
+        .flatMap(s => s.subjects || [])
+        .filter(sub => sub && sub.id != null) // skip null/undefined
+        .map(sub => [String(sub.id), sub])
+    ).values()
+  ).sort((a, b) => {
+    const nameA = a.slug || a.nameRu || "";
+    const nameB = b.slug || b.nameRu || "";
+    return nameA.localeCompare(nameB);
+  });
+
+  const filteredSessions = filterSubject === "all" 
+    ? sessions 
+    : sessions.filter(s => s.subjects?.some(sub => sub.slug === filterSubject));
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-10 min-h-[calc(100vh-4rem)]">
-      <h1 className="text-3xl font-bold text-text mb-2">
-        {lang === "ru" ? "История тестов" : lang === "kz" ? "Тест тарихы" : "Test History"}
-      </h1>
-      <p className="text-text-secondary mb-8">
-        {lang === "ru" 
-          ? "Здесь отображаются все пройденные вами тесты. Нажмите на тест, чтобы посмотреть подробный разбор." 
-          : lang === "kz" 
-          ? "Мұнда сіз тапсырған барлық тесттер көрсетілген. Толық талдауды көру үшін тестті басыңыз." 
-          : "All your completed tests are shown here. Click on a test to see a detailed review."}
-      </p>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+            {lang === "ru" ? "История тестов" : lang === "kz" ? "Тест тарихы" : "Test History"}
+          </h1>
+          <p className="text-slate-600 font-medium">
+            {lang === "ru" 
+              ? "Здесь отображаются все пройденные вами тесты." 
+              : lang === "kz" 
+              ? "Мұнда сіз тапсырған барлық тесттер көрсетілген." 
+              : "All your completed tests are shown here."}
+          </p>
+        </div>
 
-      {sessions.length > 0 ? (
-        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-          <div className="divide-y divide-gray-100">
-            {sessions.map((s) => (
+        {sessions.length > 0 && (
+          <div className="shrink-0">
+            <select
+              value={filterSubject}
+              onChange={(e) => setFilterSubject(e.target.value)}
+              className="w-full md:w-64 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold text-slate-700"
+            >
+              <option value="all">{lang === "ru" ? "Все предметы" : "Барлық пәндер"}</option>
+              {allSubjects.map((sub, idx) => (
+                <option key={`${sub.id}-${idx}`} value={sub.slug || `id-${sub.id}`}>
+                  {lang === "ru" 
+                    ? (sub.nameRu || sub.slug || "—") 
+                    : lang === "kz" 
+                    ? (sub.nameKz || sub.slug || "—") 
+                    : (sub.nameEn || sub.slug || "—")}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {filteredSessions.length > 0 ? (
+        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+          <div className="divide-y divide-slate-100">
+            {filteredSessions.map((s) => (
               <div 
                 key={s.id} 
                 onClick={() => router.push(`/history/${s.id}`)}
-                className="flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50 cursor-pointer transition-colors group"
+                className="flex items-center gap-3 px-4 py-4 hover:bg-slate-50 cursor-pointer transition-colors group"
               >
                 {/* Score badge */}
-                <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-white text-xs font-bold shadow-sm ${
-                  s.score >= 80 ? "bg-success" : s.score >= 60 ? "bg-primary" : s.score >= 40 ? "bg-warning" : "bg-danger"
+                <div className={`w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-white text-xs font-bold ${
+                  s.score >= 80 ? "bg-emerald-500" : s.score >= 60 ? "bg-primary" : s.score >= 40 ? "bg-amber-500" : "bg-red-500"
                 }`}>
                   {s.score}%
                 </div>
 
                 {/* Info — takes remaining space, truncates if needed */}
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-semibold text-text group-hover:text-primary transition-colors truncate">
+                  <div className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors truncate">
                     {s.testType === "diagnostic"
                       ? lang === "ru" ? "Диагностический" : lang === "kz" ? "Диагностикалық" : "Diagnostic"
                       : s.testType === "full"
                       ? lang === "ru" ? "Полный ЕНТ" : lang === "kz" ? "Толық ЕНТ" : "Full ENT"
                       : lang === "ru" ? "Практика" : lang === "kz" ? "Жаттығу" : "Practice"}
                   </div>
-                  <div className="text-xs text-text-secondary mt-0.5">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                     {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
                     {" · "}
                     {new Date(s.startedAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}
+                    {s.subjects && s.subjects.length > 0 && ` · ${s.subjects.map(sub => lang === "ru" ? (sub.nameRu || sub.slug) : lang === "kz" ? (sub.nameKz || sub.slug) : (sub.nameEn || sub.slug)).join(", ")}`}
                   </div>
                 </div>
 
@@ -76,29 +121,35 @@ export default function HistoryPage() {
                     wrong={s.wrongAnswers}
                     skipped={s.skippedAnswers}
                   />
-                  <svg className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                  <svg className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </div>
               </div>
             ))}
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-200 p-12 text-center shadow-sm">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center">
+          <div className="w-16 h-16 rounded-xl bg-primary/10 flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
           </div>
-          <h3 className="text-xl font-semibold text-text mb-2">
-            {lang === "ru" ? "История пуста" : lang === "kz" ? "Тарих бос" : "History is empty"}
+          <h3 className="text-xl font-bold text-slate-900 mb-2">
+            {filterSubject !== "all" 
+              ? (lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады")
+              : (lang === "ru" ? "История пуста" : "Тарих бос")}
           </h3>
-          <p className="text-text-secondary mb-6">
-            {lang === "ru" ? "Вы еще не прошли ни одного теста." : lang === "kz" ? "Сіз әлі ешқандай тест тапсырмадыңыз." : "You haven't taken any tests yet."}
+          <p className="text-slate-600 font-medium mb-8 max-w-sm mx-auto">
+            {filterSubject !== "all"
+              ? (lang === "ru" ? "Попробуйте выбрать другой предмет" : "Басқа пәнді таңдап көріңіз")
+              : (lang === "ru" ? "Вы еще не прошли ни одного теста." : "Сіз әлі ешқандай тест тапсырмадыңыз.")}
           </p>
-          <button
-            onClick={() => router.push("/tests")}
-            className="bg-primary text-white px-6 py-3 rounded-xl font-semibold hover:bg-primary-dark transition-colors"
-          >
-            {t("test.start", lang)}
-          </button>
+          {filterSubject === "all" && (
+            <button
+              onClick={() => router.push("/tests")}
+              className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark transition-colors"
+            >
+              {t("test.start", lang)}
+            </button>
+          )}
         </div>
       )}
     </div>

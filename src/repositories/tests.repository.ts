@@ -134,6 +134,7 @@ export class TestsRepository {
         skippedAnswers: testSessions.skippedAnswers,
         score: testSessions.score,
         startedAt: testSessions.startedAt,
+        subjects: testSessions.subjects,
       })
       .from(testSessions)
       .where(

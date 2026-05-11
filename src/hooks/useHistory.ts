@@ -11,6 +11,7 @@ export interface Session {
   wrongAnswers: number;
   score: number;
   startedAt: string;
+  subjects: { id: number; slug?: string; nameRu?: string; nameKz?: string; nameEn?: string; type?: string }[];
 }
 
 export function useHistory() {

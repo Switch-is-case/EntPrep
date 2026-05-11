@@ -56,24 +56,20 @@ export default function MockResultsPage() {
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="bg-white rounded-[3rem] border border-border p-8 md:p-12 shadow-2xl text-center"
-        >
-          <div className={`inline-block px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest mb-4 ${isDiagnostic ? "bg-blue-100 text-blue-600" : "bg-primary/10 text-primary"}`}>
+        <div className="bg-white rounded-3xl border border-slate-200 p-8 md:p-12 text-center">
+          <div className={`inline-block px-4 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest mb-6 bg-slate-100 text-slate-500`}>
             {isDiagnostic ? (lang === "ru" ? "Диагностика" : "Диагностика") : (lang === "ru" ? "Пробный ЕНТ" : "Сынақ ҰБТ")}
           </div>
 
-          <h1 className="text-3xl font-black text-text mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-8 tracking-tight">
             {lang === "ru" ? "Ваш результат" : "Сенің нәтижең"}
           </h1>
   
-          <div className="relative inline-flex items-center justify-center mb-10">
-            <div className={`w-48 h-48 rounded-full border-[12px] border-slate-100 flex items-center justify-center ${isDiagnostic ? "border-blue-50" : "border-slate-100"}`}>
-              <div className={`text-6xl font-black ${isDiagnostic ? "text-blue-600" : "text-primary"}`}>{data.session.score}</div>
+          <div className="relative inline-flex items-center justify-center mb-12">
+            <div className={`w-48 h-48 rounded-full border-[10px] border-slate-50 flex items-center justify-center`}>
+              <div className={`text-6xl font-bold text-primary`}>{data.session.score}</div>
             </div>
-            <div className={`absolute -bottom-4 ${isDiagnostic ? "bg-blue-600" : "bg-primary"} text-white px-6 py-2 rounded-full font-bold text-sm shadow-xl`}>
+            <div className={`absolute -bottom-4 bg-primary text-white px-6 py-2 rounded-xl font-bold text-sm`}>
               {lang === "ru" ? `ИЗ ${isDiagnostic ? 25 : 140}` : `${isDiagnostic ? 25 : 140}-ТАН`}
             </div>
           </div>
@@ -92,11 +88,11 @@ export default function MockResultsPage() {
           ))}
         </div>
 
-        <div className="bg-indigo-50 rounded-3xl p-8 border border-indigo-100 mb-10">
-          <h3 className="font-bold text-indigo-900 mb-2">
-            {lang === "ru" ? "Что дальше? 🤔" : "Әрі қарай не болады? 🤔"}
+        <div className="bg-slate-50 rounded-[2.5rem] p-8 md:p-12 border border-slate-200 mb-10 text-center">
+          <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
+            {lang === "ru" ? "Что дальше?" : "Әрі қарай не болады?"}
           </h3>
-          <p className="text-indigo-800 text-sm mb-6">
+          <p className="text-slate-600 font-medium mb-8 max-w-sm mx-auto">
             {lang === "ru" 
               ? "Наш ИИ готов проанализировать твои ошибки и составить персональный план обучения."
               : "Біздің ИИ сенің қателеріңді талдап, жеке оқу жоспарын құруға дайын."}
@@ -104,16 +100,20 @@ export default function MockResultsPage() {
           <button
             onClick={generateRoadmap}
             disabled={generating}
-            className="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-500/20"
+            className="w-full max-w-xs mx-auto bg-primary text-white py-4 px-8 rounded-2xl font-bold hover:bg-primary-dark transition-colors flex items-center justify-center gap-2"
           >
-            {generating ? <Spinner size="sm" color="white" /> : (lang === "ru" ? "Создать AI Roadmap ✨" : "AI Roadmap жасау ✨")}
+            {generating ? <Spinner size="sm" color="white" /> : (
+              <>
+                <span>{lang === "ru" ? "Создать AI Roadmap" : "AI Roadmap жасау"}</span>
+              </>
+            )}
           </button>
         </div>
 
-        <Link href="/" className="text-text-secondary font-bold hover:text-primary transition-colors">
+        <Link href="/" className="text-slate-400 font-bold hover:text-primary transition-colors text-sm">
           ← {lang === "ru" ? "Вернуться на главную" : "Басты бетке оралу"}
         </Link>
-      </motion.div>
+      </div>
     </div>
   );
 }
