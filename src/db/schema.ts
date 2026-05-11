@@ -231,6 +231,10 @@ export const explanations = pgTable("explanations", {
 
 // ─── RELATIONS ─────────────────────────────────────────────────────
 
+export const universitiesRelations = relations(universities, ({ many }) => ({
+  programs: many(universityPrograms),
+}));
+
 export const entDirectionsRelations = relations(entDirections, ({ many }) => ({
   specialties: many(specialties),
   combinations: many(directionCombinations),

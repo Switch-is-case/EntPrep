@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { universities, universityPrograms } from "@/db/schema";
+import { universities, universityPrograms, programScoreHistory } from "@/db/schema";
 import { eq, like, and, or, asc, desc, SQL } from "drizzle-orm";
 
 export async function GET(req: Request) {
@@ -31,7 +31,7 @@ export async function GET(req: Request) {
               }
             },
             scoreHistory: {
-              orderBy: [desc(universityPrograms.createdAt)], // placeholder for ordering history if needed
+              orderBy: [desc(programScoreHistory.year)],
               limit: 1,
             }
           }
