@@ -1,7 +1,10 @@
 import { db } from "@/db";
 import { universities, universityPrograms } from "@/db/schema";
-import { eq, desc, ilike, or } from "drizzle-orm";
-import { University, CreateUniversityDTO, UpdateUniversityDTO, CreateProgramDTO } from "@/domain/universities/types";
+import { eq, desc, ilike, or, type InferSelectModel } from "drizzle-orm";
+import { University, CreateUniversityDTO, UpdateUniversityDTO } from "@/domain/universities/types";
+
+type UniversityRow = InferSelectModel<typeof universities>;
+type ProgramRow = InferSelectModel<typeof universityPrograms>;
 
 export class UniversitiesRepository {
   async findAll(search?: string): Promise<University[]> {
@@ -15,18 +18,18 @@ export class UniversitiesRepository {
           ilike(universities.nameEn, `%${search}%`),
           ilike(universities.cityRu, `%${search}%`)
         )
-      ) as typeof query;
+      ) as any; // Drizzle query builder type narrowing is complex
     }
 
     const results = await query.orderBy(desc(universities.createdAt));
 
     const allUniversities = await Promise.all(
-      results.map(async (uni: any) => {
+      results.map(async (uni: UniversityRow) => {
         const programs = await db
           .select()
           .from(universityPrograms)
           .where(eq(universityPrograms.universityId, uni.id));
-        return { ...uni, programs };
+        return { ...uni, programs: programs as ProgramRow[] };
       })
     );
 
@@ -42,7 +45,7 @@ export class UniversitiesRepository {
       .from(universityPrograms)
       .where(eq(universityPrograms.universityId, uni.id));
 
-    return { ...uni, programs } as University;
+    return { ...uni, programs: programs as ProgramRow[] } as University;
   }
 
   async create(data: CreateUniversityDTO): Promise<University> {
@@ -63,7 +66,7 @@ export class UniversitiesRepository {
         })
         .returning();
 
-      let insertedPrograms: typeof universityPrograms.$inferSelect[] = [];
+      let insertedPrograms: ProgramRow[] = [];
       if (data.programs && data.programs.length > 0) {
         const programsToInsert = data.programs.map((p) => ({
           universityId: newUni.id,
@@ -75,10 +78,10 @@ export class UniversitiesRepository {
           descriptionKz: p.descriptionKz || null,
           descriptionEn: p.descriptionEn || null,
         }));
-        insertedPrograms = await tx.insert(universityPrograms).values(programsToInsert).returning();
+        insertedPrograms = (await tx.insert(universityPrograms).values(programsToInsert).returning()) as ProgramRow[];
       }
 
-      return { ...newUni, programs: insertedPrograms } as University;
+      return { ...newUni, programs: insertedPrograms } as unknown as University;
     });
   }
 
@@ -87,23 +90,23 @@ export class UniversitiesRepository {
       // 1. Update university
       const { programs, ...uniData } = data;
       
-      let updatedUni;
+      let updatedUni: UniversityRow | undefined;
       if (Object.keys(uniData).length > 0) {
         const [updated] = await tx
           .update(universities)
           .set(uniData)
           .where(eq(universities.id, id))
           .returning();
-        updatedUni = updated;
+        updatedUni = updated as UniversityRow;
       } else {
         const [existing] = await tx.select().from(universities).where(eq(universities.id, id)).limit(1);
-        updatedUni = existing;
+        updatedUni = existing as UniversityRow;
       }
 
       if (!updatedUni) return null;
 
       // 2. Update programs (For simplicity, we delete all existing and re-insert if programs array is provided)
-      let currentPrograms: typeof universityPrograms.$inferSelect[] = [];
+      let currentPrograms: ProgramRow[] = [];
       if (programs) {
         await tx.delete(universityPrograms).where(eq(universityPrograms.universityId, id));
 
@@ -118,13 +121,13 @@ export class UniversitiesRepository {
             descriptionKz: p.descriptionKz || null,
             descriptionEn: p.descriptionEn || null,
           }));
-          currentPrograms = await tx.insert(universityPrograms).values(programsToInsert).returning();
+          currentPrograms = (await tx.insert(universityPrograms).values(programsToInsert).returning()) as ProgramRow[];
         }
       } else {
-        currentPrograms = await tx.select().from(universityPrograms).where(eq(universityPrograms.universityId, id));
+        currentPrograms = (await tx.select().from(universityPrograms).where(eq(universityPrograms.universityId, id))) as ProgramRow[];
       }
 
-      return { ...updatedUni, programs: currentPrograms } as University;
+      return { ...updatedUni, programs: currentPrograms } as unknown as University;
     });
   }
 

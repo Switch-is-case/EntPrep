@@ -27,23 +27,20 @@ export class UniversitiesService {
   async createUniversity(data: CreateUniversityDTO): Promise<University> {
     const validatedData = createUniversitySchema.parse(data);
     const result = await this.universitiesRepository.create(validatedData as CreateUniversityDTO);
-    // @ts-ignore
-    revalidateTag("universities");
+    revalidateTag("universities", "page");
     return result;
   }
 
   async updateUniversity(id: number, data: UpdateUniversityDTO): Promise<University | null> {
     const validatedData = createUniversitySchema.partial().parse(data);
     const result = await this.universitiesRepository.update(id, validatedData as UpdateUniversityDTO);
-    // @ts-ignore
-    revalidateTag("universities");
+    revalidateTag("universities", "page");
     return result;
   }
 
   async deleteUniversity(id: number): Promise<boolean> {
     const result = await this.universitiesRepository.delete(id);
-    // @ts-ignore
-    revalidateTag("universities");
+    revalidateTag("universities", "page");
     return result;
   }
 }

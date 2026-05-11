@@ -59,12 +59,6 @@ export function extractJSON(text: string): any {
     throw new Error("Empty or invalid AI response");
   }
 
-  // --- DEBUG LOGS ---
-  console.log("=== DIFY RAW RESPONSE DEBUG ===");
-  console.log("Length:", text.length);
-  console.log("First 300 chars:", text.substring(0, 300).replace(/\n/g, "\\n"));
-  console.log("Last 100 chars:", text.substring(Math.max(0, text.length - 100)).replace(/\n/g, "\\n"));
-  console.log("=== END DEBUG ===");
 
   const trimmed = text.trim();
 
@@ -120,7 +114,13 @@ export function extractJSON(text: string): any {
 
   // Если ничего не помогло — кричим о помощи
   console.error("=== DIFY FATAL: ALL PARSE STRATEGIES FAILED ===");
-  console.error("Full original response:", text);
+  console.error("AI response parse failed. Response length:", text?.length ?? 0);
   console.error("=== END FATAL ===");
-  throw new Error("Could not extract valid JSON from AI response after 4 attempts");
+  
+  return {
+    error: true,
+    message: "AI response could not be parsed. Please try again.",
+    weeks: [],
+    summary: "Roadmap generation encountered an issue."
+  };
 }

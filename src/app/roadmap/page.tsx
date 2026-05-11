@@ -41,12 +41,12 @@ interface RoadmapResponse {
 }
 
 export default function RoadmapPage() {
-  const { lang } = useApp();
+  const { lang, authHeaders } = useApp();
   const [response, setResponse] = useState<RoadmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/roadmap/latest")
+    fetch("/api/roadmap/latest", { headers: authHeaders() })
       .then(r => r.json())
       .then(data => {
         if (data && data.roadmapData) {
@@ -55,7 +55,7 @@ export default function RoadmapPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [authHeaders]);
 
   if (loading) {
     return (
@@ -236,7 +236,7 @@ export default function RoadmapPage() {
               <div className="relative z-10">
                 <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">💪</div>
                 <p className="text-lg leading-relaxed font-bold italic opacity-95">
-                  "{data.motivationalMessage}"
+                  &quot;{data.motivationalMessage}&quot;
                 </p>
               </div>
               <div className="absolute top-0 right-0 opacity-10 transform translate-x-1/4 -translate-y-1/4">

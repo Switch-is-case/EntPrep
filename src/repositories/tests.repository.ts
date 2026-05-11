@@ -1,8 +1,11 @@
 import { db } from "@/db";
 import { testSessions, testAnswers, questions, progress } from "@/db/schema";
-import { eq, and, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, desc, sql, inArray, type InferSelectModel } from "drizzle-orm";
 import { Question } from "@/domain/questions/types";
 import { TestSession, TestAnswer, SessionHistoryDTO } from "@/domain/tests/types";
+
+type QuestionRow = InferSelectModel<typeof questions>;
+type AnswerRow = InferSelectModel<typeof testAnswers>;
 
 export class TestsRepository {
   async createSession(
@@ -21,7 +24,7 @@ export class TestsRepository {
       })
       .returning();
 
-    return session as TestSession;
+    return session as unknown as TestSession;
   }
 
   async getSessionById(sessionId: string, userId: string): Promise<TestSession | null> {
@@ -31,7 +34,7 @@ export class TestsRepository {
       .where(and(eq(testSessions.id, sessionId), eq(testSessions.userId, userId)))
       .limit(1);
 
-    return (session as TestSession) || null;
+    return (session as unknown as TestSession) || null;
   }
 
   async getQuestionsBySubject(subject: string, count: number): Promise<Question[]> {
@@ -42,7 +45,7 @@ export class TestsRepository {
       .orderBy(sql`RANDOM()`)
       .limit(count);
 
-    return subjectQuestions as Question[];
+    return subjectQuestions as unknown as Question[];
   }
 
   async getQuestionById(questionId: number): Promise<Question | null> {
@@ -51,7 +54,7 @@ export class TestsRepository {
       .from(questions)
       .where(eq(questions.id, questionId))
       .limit(1);
-    return (q as Question) || null;
+    return (q as unknown as Question) || null;
   }
 
   /** Загружает все вопросы одним запросом (замена N+1 в submitTest) */
@@ -61,14 +64,14 @@ export class TestsRepository {
       .select()
       .from(questions)
       .where(inArray(questions.id, questionIds));
-    return qs as Question[];
+    return qs as unknown as Question[];
   }
 
   async saveTestResults(
     userId: string,
     sessionId: string,
-    answersToInsert: any[],
-    sessionUpdates: any,
+    answersToInsert: (typeof testAnswers.$inferInsert)[],
+    sessionUpdates: Partial<typeof testSessions.$inferInsert>,
     subjectResults: Record<string, { correct: number; total: number; skipped: number; wrong: number }>
   ): Promise<void> {
     await db.transaction(async (tx: any) => {
@@ -136,7 +139,7 @@ export class TestsRepository {
       .where(eq(testSessions.userId, userId))
       .orderBy(desc(testSessions.startedAt));
 
-    return sessions;
+    return sessions as SessionHistoryDTO[];
   }
 
   async getSessionWithDetails(sessionId: string, userId: string) {
@@ -152,14 +155,14 @@ export class TestsRepository {
       return { session, questions: [] };
     }
 
-    const questionIds = answers.map((a: any) => a.questionId);
+    const questionIds = answers.map((a: AnswerRow) => a.questionId);
     const qs = await db
       .select()
       .from(questions)
       .where(inArray(questions.id, questionIds));
 
-    const questionsWithAnswers = answers.map((ans: any) => {
-      const q = qs.find((qItem: any) => qItem.id === ans.questionId);
+    const questionsWithAnswers = answers.map((ans: AnswerRow) => {
+      const q = qs.find((qItem: QuestionRow) => qItem.id === ans.questionId);
       return {
         ...q,
         userAnswer: ans.selectedAnswer,

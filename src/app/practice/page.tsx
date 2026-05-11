@@ -62,7 +62,6 @@ export default function PracticePage() {
         sessionStorage.setItem("practice_abandoned", "1");
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startPractice = async () => {

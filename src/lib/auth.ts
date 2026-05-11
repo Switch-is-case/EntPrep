@@ -1,7 +1,13 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = process.env.JWT_SECRET || "ent-prep-ai-secret-key-2024";
+const secret = process.env.JWT_SECRET;
+
+if (!secret) {
+  throw new Error("JWT_SECRET environment variable is required");
+}
+
+const JWT_SECRET = secret;
 
 export async function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
@@ -20,7 +26,7 @@ export function createToken(userId: string): string {
 
 export function verifyToken(token: string): { userId: string } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as { userId: string };
     return decoded;
   } catch {
     return null;

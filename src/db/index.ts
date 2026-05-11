@@ -8,7 +8,7 @@ import * as schema from "./schema";
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL is required");
+  throw new Error("DATABASE_URL environment variable is missing. Please check your .env file or deployment settings.");
 }
 
 const isProduction = process.env.NODE_ENV === "production" || databaseUrl.includes("neon.tech");

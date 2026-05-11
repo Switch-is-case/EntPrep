@@ -98,6 +98,9 @@ export const universityPrograms = pgTable("university_programs", {
   language: varchar("language", { length: 20 }).default("kz_ru").notNull(), // kz | ru | en | kz_ru | kz_en
   durationYears: integer("duration_years").default(4),
   isActive: boolean("is_active").default(true).notNull(),
+  descriptionRu: text("description_ru"),
+  descriptionKz: text("description_kz"),
+  descriptionEn: text("description_en"),
   passingScore: integer("passing_score"), // nullable legacy
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

@@ -24,7 +24,7 @@ export async function POST(req: Request) {
     }
 
     // 2. Rate Limiting
-    const rateLimit = checkRateLimit(userId, "ROADMAP_GENERATE");
+    const rateLimit = await checkRateLimit(userId, "ROADMAP");
     if (!rateLimit.allowed) {
       return NextResponse.json({
         error: "Rate limit exceeded",
@@ -113,6 +113,13 @@ export async function POST(req: Request) {
       );
 
       const roadmapData = extractJSON(difyResponse.answer);
+      
+      if (roadmapData.error) {
+        return NextResponse.json({ 
+          error: "Unprocessable Entity", 
+          message: roadmapData.message 
+        }, { status: 422 });
+      }
 
       const roadmap = await db.insert(studyRoadmaps).values({
         userId: user.id,

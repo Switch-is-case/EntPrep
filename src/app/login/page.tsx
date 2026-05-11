@@ -69,10 +69,11 @@ export default function LoginPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-text mb-1.5">
               {t("auth.email", lang)}
             </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -83,10 +84,11 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-text mb-1.5">
               {t("auth.password", lang)}
             </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

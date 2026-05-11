@@ -1,17 +1,22 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { studyRoadmaps } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { getUserIdFromRequest } from "@/lib/auth";
+import { eq, desc, and } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
-    // In real app, get userId from auth session
-    // For now, we take latest from DB or filter by user
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const latest = await db.query.studyRoadmaps.findFirst({
+      where: eq(studyRoadmaps.userId, userId),
       orderBy: [desc(studyRoadmaps.generatedAt)],
     });
 
-    if (!latest) return NextResponse.json(null);
+    if (!latest) return NextResponse.json({ error: "No roadmap found" }, { status: 404 });
 
     return NextResponse.json(latest);
   } catch (error) {

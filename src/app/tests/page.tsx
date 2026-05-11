@@ -7,7 +7,7 @@ import { t } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 
 export default function TestsPage() {
-  const { lang, user, ready } = useApp();
+  const { lang, user, ready, authHeaders } = useApp();
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
 
@@ -22,7 +22,7 @@ export default function TestsPage() {
     try {
       const res = await fetch("/api/mock/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: authHeaders(),
         body: JSON.stringify({ mode }),
       });
       const data = await res.json();

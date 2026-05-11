@@ -1,6 +1,16 @@
 import { CreateQuestionDTO } from "@/domain/questions/types";
 import { AppError } from "@/lib/errors";
 
+interface AiQuestionResponse {
+  questionTextRu: string;
+  questionTextKz: string;
+  questionTextEn: string;
+  optionsRu: string[];
+  optionsKz: string[];
+  optionsEn: string[];
+  correctAnswer: number;
+}
+
 export class AiGeneratorService {
   async generateQuestions(
     subject: string,
@@ -63,21 +73,21 @@ export class AiGeneratorService {
       }
 
       const data = await response.json();
-      let responseText = data.answer ?? "";
+      let responseText: string = data.answer ?? "";
 
       // Очистка от маркдауна, если ИИ все-таки его добавил
       responseText = responseText.replace(/^```json\s*/i, "").replace(/```$/i, "").trim();
 
-      const parsed = JSON.parse(responseText);
+      const parsed = JSON.parse(responseText) as AiQuestionResponse[];
       
       // Ensure constants are mapped
-      return parsed.map((q: any) => ({
+      return parsed.map((q) => ({
         ...q,
         subject,
         difficulty,
         topic,
-      })) as CreateQuestionDTO[];
-    } catch (e: any) {
+      }));
+    } catch (e: unknown) {
       console.error("AI generation or JSON parsing error:", e);
       if (e instanceof AppError) throw e;
       throw new AppError("Failed to generate or parse valid JSON from AI");

@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function UniversityDetailPage() {
   const { id } = useParams();
@@ -43,8 +44,16 @@ export default function UniversityDetailPage() {
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -mr-32 -mt-32 blur-3xl" />
         
         <div className="flex flex-col md:flex-row gap-8 items-start relative">
-          <div className="w-32 h-32 rounded-3xl bg-gray-50 border border-gray-100 flex items-center justify-center text-5xl shrink-0 shadow-inner">
-            {uni.logoUrl ? <img src={uni.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : "🏛️"}
+          <div className="w-32 h-32 rounded-3xl bg-gray-50 border border-gray-100 flex items-center justify-center text-5xl shrink-0 shadow-inner overflow-hidden">
+            {uni.logoUrl ? (
+              <Image 
+                src={uni.logoUrl} 
+                alt={lang === "ru" ? uni.nameRu : uni.nameKz} 
+                width={128} 
+                height={128} 
+                className="w-full h-full object-cover"
+              />
+            ) : "🏛️"}
           </div>
           <div>
             <div className="inline-block px-3 py-1 rounded-full bg-primary/8 text-primary text-xs font-black uppercase tracking-wider mb-4">

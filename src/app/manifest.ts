@@ -10,6 +10,8 @@ export default function manifest(): MetadataRoute.Manifest {
     display_override: ["standalone", "window-controls-overlay"],
     background_color: "#f4f6fb",
     theme_color: "#2563eb",
+    lang: "ru",
+    dir: "ltr",
     icons: [
       {
         src: "/icons/icon-192x192.png",

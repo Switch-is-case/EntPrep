@@ -1,8 +1,24 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { testSessions, testAnswers, questions, subjects, subjectCombinations, users } from "@/db/schema";
-import { eq, sql, and, inArray } from "drizzle-orm";
+import { eq, sql, and, inArray, type InferSelectModel } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/auth";
+
+type Question = InferSelectModel<typeof questions>;
+type Subject = InferSelectModel<typeof subjects>;
+
+interface MockStartRequest {
+  mode?: "diagnostic" | "mock";
+}
+
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 export async function POST(req: Request) {
   try {
@@ -21,11 +37,16 @@ export async function POST(req: Request) {
       }
     });
 
-    if (!user || !user.targetCombinationId) {
+    if (!user || !user.targetCombinationId || !user.targetCombination) {
       return NextResponse.json({ error: "Please complete Career Wizard first" }, { status: 400 });
     }
 
-    const body = await req.json().catch(() => ({}));
+    let body: MockStartRequest;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json({ error: "Invalid request body. Expected valid JSON." }, { status: 400 });
+    }
     const mode = body.mode === "diagnostic" ? "diagnostic" : "mock";
 
     // 1. Define required subject slugs
@@ -41,7 +62,7 @@ export async function POST(req: Request) {
     });
 
     // 3. Select questions for each subject (Randomized)
-    const mockQuestions: any[] = [];
+    const mockQuestions: Question[] = [];
     
     // Distribution based on mode
     const counts: Record<string, number> = mode === "diagnostic" 
@@ -66,15 +87,19 @@ export async function POST(req: Request) {
     console.log("Required subjects:", Object.keys(counts));
     console.time("MockStart");
 
-    const questionsPromises = allRelevantSubjects.map(async (subject: any) => {
+    const questionsPromises = allRelevantSubjects.map(async (subject: Subject) => {
       const limit = counts[subject.slug] || 0;
+      // Fetch 2x the required count to avoid performance issues with ORDER BY RANDOM()
       const subQuestions = await db.query.questions.findMany({
         where: eq(questions.subjectId, subject.id),
-        orderBy: sql`RANDOM()`,
-        limit: limit,
+        limit: limit * 2,
       });
-      console.log(`- Subject: ${subject.slug}, Found: ${subQuestions.length}, Needed: ${limit}`);
-      return subQuestions;
+      
+      const shuffled = shuffleArray(subQuestions);
+      const selected = shuffled.slice(0, limit);
+      
+      console.log(`- Subject: ${subject.slug}, Pool: ${subQuestions.length}, Selected: ${selected.length}, Needed: ${limit}`);
+      return selected;
     });
 
     const results = await Promise.all(questionsPromises);

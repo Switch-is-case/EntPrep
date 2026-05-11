@@ -5,6 +5,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
+import Image from "next/image";
 
 interface University {
   id: number;
@@ -93,7 +94,15 @@ export default function UniversitiesPage() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-2xl overflow-hidden shrink-0">
-                    {uni.logoUrl ? <img src={uni.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : "🏛️"}
+                    {uni.logoUrl ? (
+                      <Image 
+                        src={uni.logoUrl} 
+                        alt={lang === "ru" ? uni.nameRu : uni.nameKz} 
+                        width={64} 
+                        height={64} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : "🏛️"}
                   </div>
                   <div className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider">
                     {lang === "ru" ? uni.cityRu : uni.cityKz}

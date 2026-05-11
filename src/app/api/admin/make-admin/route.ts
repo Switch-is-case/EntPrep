@@ -6,10 +6,8 @@ import { usersService } from "@/lib/container";
 // This endpoint allows the first user to become admin, or requires admin secret
 export async function POST(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  console.log("Make admin - Auth header:", authHeader ? "present" : "missing");
 
   const userId = getUserIdFromRequest(request);
-  console.log("Make admin - User ID:", userId);
 
   if (!userId) {
     return NextResponse.json({ error: "Unauthorized - no valid token" }, { status: 401 });

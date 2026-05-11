@@ -27,7 +27,7 @@ export default function MockResultsPage() {
       }
     }
     fetchResults();
-  }, [id]);
+  }, [id, authHeaders]);
 
   const generateRoadmap = async () => {
     setGenerating(true);

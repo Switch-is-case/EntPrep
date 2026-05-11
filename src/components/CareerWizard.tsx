@@ -6,7 +6,7 @@ import { useApp } from "./Providers";
 import { t } from "@/lib/i18n";
 import { Spinner } from "./Spinner";
 
-interface Direction {
+export interface Direction {
   id: number;
   nameRu: string;
   nameKz: string;
@@ -16,7 +16,7 @@ interface Direction {
   specialties: Specialty[];
 }
 
-interface Specialty {
+export interface Specialty {
   id: number;
   nameRu: string;
   nameKz: string;
@@ -24,45 +24,29 @@ interface Specialty {
   code: string;
 }
 
-interface Combination {
+export interface Combination {
   id: number;
   subject1: { nameRu: string; nameKz: string; nameEn: string };
   subject2: { nameRu: string; nameKz: string; nameEn: string };
 }
 
-export function CareerWizard() {
-  const { lang, user, updateUser, authHeaders } = useApp();
+interface CareerWizardProps {
+  initialDirections: Direction[];
+  initialCombinations: Combination[];
+}
+
+export function CareerWizard({ initialDirections, initialCombinations }: CareerWizardProps) {
+  const { lang, updateUser, authHeaders } = useApp();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  const [directions, setDirections] = useState<Direction[]>([]);
-  const [combinations, setCombinations] = useState<Combination[]>([]);
+  const [directions] = useState<Direction[]>(initialDirections);
+  const [combinations] = useState<Combination[]>(initialCombinations);
 
   const [selectedDirection, setSelectedDirection] = useState<number | null>(null);
   const [selectedSpecialty, setSelectedSpecialty] = useState<number | null>(null);
   const [selectedCombination, setSelectedCombination] = useState<number | null>(null);
   const [targetScore, setTargetScore] = useState(100);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [dirsRes, combosRes] = await Promise.all([
-          fetch("/api/career?type=directions"),
-          fetch("/api/career?type=combinations"),
-        ]);
-        const dirs = await dirsRes.json();
-        const combos = await combosRes.json();
-        setDirections(dirs);
-        setCombinations(combos);
-      } catch (error) {
-        console.error("Failed to fetch wizard data:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, []);
 
   const handleFinish = async () => {
     setSaving(true);
@@ -89,7 +73,6 @@ export function CareerWizard() {
     }
   };
 
-  if (loading) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
   const currentDirection = directions.find(d => d.id === selectedDirection);
 
@@ -216,7 +199,11 @@ export function CareerWizard() {
                   {lang === "ru" ? "Целевой балл ЕНТ" : "ҰБТ мақсатты балл"}
                 </div>
                 <div className="text-7xl font-black text-primary mb-6">{targetScore}</div>
+                <label htmlFor="target-score" className="sr-only">
+                  {lang === "ru" ? "Целевой балл" : "Мақсатты балл"}
+                </label>
                 <input
+                  id="target-score"
                   type="range"
                   min="50"
                   max="140"

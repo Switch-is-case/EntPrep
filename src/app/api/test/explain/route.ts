@@ -3,6 +3,7 @@ import { verifyToken } from "@/lib/auth";
 import { explanationService } from "@/lib/container";
 import { withApiHandler } from "@/lib/api-handler";
 import { AppError } from "@/lib/errors";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export const POST = withApiHandler(async (req: NextRequest) => {
   if (!process.env.DIFY_API_KEY) {
@@ -15,6 +16,15 @@ export const POST = withApiHandler(async (req: NextRequest) => {
 
   if (!token || !decodedToken) {
     throw new AppError("Unauthorized", 401);
+  }
+
+  const userId = decodedToken.userId;
+  const rateLimit = await checkRateLimit(userId, "AI_GENERAL");
+  if (!rateLimit.allowed) {
+    return NextResponse.json(
+      { error: "Too many requests. Maximum 10 explanations per hour." },
+      { status: 429 }
+    );
   }
 
   const { questionId, questionText, options, correctAnswer, userAnswer, subject, lang } =

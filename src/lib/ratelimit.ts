@@ -1,54 +1,57 @@
-// Простой in-memory rate limiter
-const userRequests = new Map<string, number[]>();
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 
-const LIMITS = {
-  ROADMAP_GENERATE: { 
-    max: 3, 
-    windowMs: 24 * 60 * 60 * 1000 // 24 часа
-  },
-  AI_GENERAL: {
-    max: 10,
-    windowMs: 60 * 60 * 1000 // 1 час
-  }
-};
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-export function checkRateLimit(
-  userId: string, 
-  type: keyof typeof LIMITS
-): { allowed: boolean; resetAt?: Date; remaining: number } {
-  const limit = LIMITS[type];
-  const key = `${type}:${userId}`;
-  const now = Date.now();
-  
-  const requests = userRequests.get(key) || [];
-  const recent = requests.filter(t => now - t < limit.windowMs);
-  
-  if (recent.length >= limit.max) {
-    const oldest = Math.min(...recent);
-    const resetAt = new Date(oldest + limit.windowMs);
-    return { allowed: false, resetAt, remaining: 0 };
-  }
-  
-  recent.push(now);
-  userRequests.set(key, recent);
-  
-  return { 
-    allowed: true, 
-    remaining: limit.max - recent.length 
-  };
+let redis: Redis | null = null;
+let roadmapLimiter: Ratelimit | null = null;
+let aiGeneralLimiter: Ratelimit | null = null;
+
+if (redisUrl && redisToken) {
+  redis = new Redis({
+    url: redisUrl,
+    token: redisToken,
+  });
+
+  roadmapLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(3, "24 h"),
+    analytics: true,
+    prefix: "@upstash/ratelimit/roadmap",
+  });
+
+  aiGeneralLimiter = new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(10, "1 h"),
+    analytics: true,
+    prefix: "@upstash/ratelimit/ai_general",
+  });
+} else {
+  console.warn(
+    "WARNING: UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set.\n" +
+    "Rate limiting is DISABLED. AI costs are unprotected.\n" +
+    "Set these variables before going to production."
+  );
 }
 
-// Очистка старых записей раз в час
-if (typeof setInterval !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, timestamps] of userRequests.entries()) {
-      const recent = timestamps.filter(t => now - t < 24 * 60 * 60 * 1000);
-      if (recent.length === 0) {
-        userRequests.delete(key);
-      } else {
-        userRequests.set(key, recent);
-      }
-    }
-  }, 60 * 60 * 1000);
+export type RateLimitType = "ROADMAP" | "AI_GENERAL";
+
+export async function checkRateLimit(
+  userId: string,
+  type: RateLimitType
+): Promise<{ allowed: boolean; resetAt?: Date; remaining: number }> {
+  // TODO: Redis not configured — rate limiting disabled in this instance
+  if (!redis || !roadmapLimiter || !aiGeneralLimiter) {
+    return { allowed: true, remaining: 999 };
+  }
+
+  const limiter = type === "ROADMAP" ? roadmapLimiter : aiGeneralLimiter;
+  const result = await limiter.limit(userId);
+
+  return {
+    allowed: result.success,
+    remaining: result.remaining,
+    resetAt: new Date(result.reset),
+  };
 }

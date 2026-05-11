@@ -72,10 +72,11 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">
+            <label htmlFor="name" className="block text-sm font-medium text-text mb-1.5">
               {t("auth.name", lang)}
             </label>
             <input
+              id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -85,10 +86,11 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">
+            <label htmlFor="email" className="block text-sm font-medium text-text mb-1.5">
               {t("auth.email", lang)}
             </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -99,10 +101,11 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text mb-1.5">
+            <label htmlFor="password" className="block text-sm font-medium text-text mb-1.5">
               {t("auth.password", lang)}
             </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

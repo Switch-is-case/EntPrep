@@ -18,6 +18,25 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
   const [remainingMs, setRemainingMs] = useState(0);
   const [saving, setSaving] = useState(false);
 
+  const handleFinish = useCallback(async () => {
+    if (!confirm(lang === "ru" ? "Вы уверены, что хотите завершить экзамен?" : "Емтиханды аяқтағыңыз келе ме?")) return;
+    setLoading(true);
+    try {
+      const res = await fetch(`/api/test/submit`, {
+        method: "POST",
+        headers: authHeaders(),
+        body: JSON.stringify({ sessionId }),
+      });
+      if (res.ok) {
+        window.location.href = `/mock-exam/${sessionId}/results`;
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [lang, sessionId, authHeaders]);
+
   useEffect(() => {
     async function fetchSession() {
       try {
@@ -32,7 +51,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       }
     }
     fetchSession();
-  }, [sessionId]);
+  }, [sessionId, authHeaders]);
 
   // Timer logic
   useEffect(() => {
@@ -48,7 +67,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       });
     }, 1000);
     return () => clearInterval(interval);
-  }, [remainingMs]);
+  }, [remainingMs, handleFinish]);
 
   const formatTime = (ms: number) => {
     const totalSecs = Math.floor(ms / 1000);
@@ -82,24 +101,6 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     }
   };
 
-  const handleFinish = async () => {
-    if (!confirm(lang === "ru" ? "Вы уверены, что хотите завершить экзамен?" : "Емтиханды аяқтағыңыз келе ме?")) return;
-    setLoading(true);
-    try {
-      const res = await fetch(`/api/test/submit`, {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({ sessionId }),
-      });
-      if (res.ok) {
-        window.location.href = `/mock-exam/${sessionId}/results`;
-      }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   if (loading || !data) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
@@ -223,13 +224,14 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                 <button
                   key={q.id}
                   onClick={() => setCurrentQuestionIdx(idx)}
-                  className={`h-10 rounded-lg text-xs font-bold transition-all border ${
+                  className={`h-11 rounded-lg text-xs font-bold transition-all border ${
                     currentQuestionIdx === idx 
                       ? `${accentBg} text-white border-transparent` 
                       : q.selectedAnswer !== null 
                         ? "bg-emerald-50 text-emerald-600 border-emerald-200" 
                         : "bg-white text-text-secondary border-border"
                   }`}
+                  aria-label={`${lang === "ru" ? "Вопрос" : "Сұрақ"} ${idx + 1}`}
                 >
                   {idx + 1}
                 </button>
