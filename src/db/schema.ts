@@ -273,3 +273,27 @@ export const topicsRelations = relations(topics, ({ one, many }) => ({
   parent: one(topics, { fields: [topics.parentTopicId], references: [topics.id], relationName: "subtopics" }),
   subtopics: many(topics, { relationName: "subtopics" }),
 }));
+
+export const usersRelations = relations(users, ({ one, many }) => ({
+  targetCombination: one(subjectCombinations, { fields: [users.targetCombinationId], references: [subjectCombinations.id] }),
+  targetSpecialty: one(specialties, { fields: [users.targetSpecialtyId], references: [specialties.id] }),
+  targetUniversity: one(universities, { fields: [users.targetUniversityId], references: [universities.id] }),
+  sessions: many(testSessions),
+  roadmaps: many(studyRoadmaps),
+}));
+
+export const testSessionsRelations = relations(testSessions, ({ one, many }) => ({
+  user: one(users, { fields: [testSessions.userId], references: [users.id] }),
+  answers: many(testAnswers),
+}));
+
+export const testAnswersRelations = relations(testAnswers, ({ one }) => ({
+  session: one(testSessions, { fields: [testAnswers.sessionId], references: [testSessions.id] }),
+  question: one(questions, { fields: [testAnswers.questionId], references: [questions.id] }),
+}));
+
+export const questionsRelations = relations(questions, ({ one, many }) => ({
+  subject: one(subjects, { fields: [questions.subjectId], references: [subjects.id] }),
+  topic: one(topics, { fields: [questions.topicId], references: [topics.id] }),
+  answers: many(testAnswers),
+}));
