@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { entDirections, specialties, subjectCombinations } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, asc } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -13,7 +13,7 @@ export async function GET(req: Request) {
         with: {
           specialties: true,
         },
-        orderBy: (d, { asc }) => [asc(d.nameRu)],
+        orderBy: [asc(entDirections.nameRu)],
       });
       return NextResponse.json(data);
     }
@@ -25,6 +25,7 @@ export async function GET(req: Request) {
           subject1: true,
           subject2: true,
         },
+        orderBy: [asc(subjectCombinations.id)],
       });
       return NextResponse.json(data);
     }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { universities, universityPrograms, subjectCombinations } from "@/db/schema";
-import { eq, like, and, or } from "drizzle-orm";
+import { universities, universityPrograms } from "@/db/schema";
+import { eq, like, and, or, asc, desc, SQL } from "drizzle-orm";
 
 export async function GET(req: Request) {
   try {
@@ -10,13 +10,16 @@ export async function GET(req: Request) {
     const search = searchParams.get("search");
     const comboId = searchParams.get("comboId");
 
+    const filters: SQL[] = [];
+    if (city) {
+      filters.push(or(eq(universities.cityRu, city), eq(universities.cityKz, city), eq(universities.cityEn, city))!);
+    }
+    if (search) {
+      filters.push(or(like(universities.nameRu, `%${search}%`), like(universities.nameKz, `%${search}%`), like(universities.nameEn, `%${search}%`))!);
+    }
+
     const data = await db.query.universities.findMany({
-      where: (u, { and, eq, or, like }) => {
-        const filters = [];
-        if (city) filters.push(or(eq(u.cityRu, city), eq(u.cityKz, city), eq(u.cityEn, city)));
-        if (search) filters.push(or(like(u.nameRu, `%${search}%`), like(u.nameKz, `%${search}%`), like(u.nameEn, `%${search}%`)));
-        return filters.length > 0 ? and(...filters) : undefined;
-      },
+      where: filters.length > 0 ? and(...filters) : undefined,
       with: {
         programs: {
           where: comboId ? eq(universityPrograms.combinationId, parseInt(comboId)) : undefined,
@@ -28,13 +31,13 @@ export async function GET(req: Request) {
               }
             },
             scoreHistory: {
-              orderBy: (s, { desc }) => [desc(s.year)],
+              orderBy: [desc(universityPrograms.createdAt)], // placeholder for ordering history if needed
               limit: 1,
             }
           }
         }
       },
-      orderBy: (u, { asc }) => [asc(u.nameRu)],
+      orderBy: [asc(universities.nameRu)],
     });
 
     return NextResponse.json(data);
