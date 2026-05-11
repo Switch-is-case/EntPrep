@@ -273,6 +273,80 @@ export const translations = {
     ru: "Сначала выберите профильные предметы",
     en: "First select profile subjects",
   },
+
+  // PWA Install
+  "nav.download": { kz: "Жүктеу", ru: "Скачать", en: "Download" },
+  "install.title": { kz: "Қосымшаны орнату", ru: "Установить приложение", en: "Install App" },
+  "install.desc": {
+    kz: "Жылдам қол жеткізу, офлайн жұмыс, нағыз қосымша сияқты",
+    ru: "быстрый доступ, работа офлайн, как настоящее приложение",
+    en: "quick access, offline work, like a real app",
+  },
+  "install.selectPlatform": {
+    kz: "Платформаны таңдаңыз",
+    ru: "Выберите платформу",
+    en: "Select platform",
+  },
+  "install.alreadyInstalled": {
+    kz: "Қосымша орнатылған ✅",
+    ru: "Приложение уже установлено ✅",
+    en: "App is already installed ✅",
+  },
+  "install.alreadyInstalledDesc": {
+    kz: "Оны басты экраннан таба аласыз",
+    ru: "Вы можете найти его на главном экране",
+    en: "You can find it on your home screen",
+  },
+  "install.ios.step1": {
+    kz: "Сайтты Safari-де ашыңыз (Chrome емес!)",
+    ru: "Откройте сайт в Safari (не Chrome!)",
+    en: "Open the site in Safari (not Chrome!)",
+  },
+  "install.ios.step2": {
+    kz: "«Бөлісу» батырмасын басыңыз (шаршы және жоғары көрсеткі)",
+    ru: "Нажмите кнопку «Поделиться» (квадрат со стрелкой вверх)",
+    en: "Tap the 'Share' button (square with up arrow)",
+  },
+  "install.ios.step3": {
+    kz: "Төмен айналдырып, «Басты экранға қосу» таңдаңыз",
+    ru: "Прокрутите вниз → «На экран Домой»",
+    en: "Scroll down → 'Add to Home Screen'",
+  },
+  "install.ios.step4": {
+    kz: "«Қосу» батырмасын басыңыз",
+    ru: "Нажмите «Добавить»",
+    en: "Tap 'Add'",
+  },
+  "install.ios.step5": {
+    kz: "Дайын! Иконка басты экранда пайда болды",
+    ru: "Готово! Иконка на главном экране",
+    en: "Done! Icon is on the home screen",
+  },
+  "install.android.step1": {
+    kz: "Сайтты Chrome браузерінде ашыңыз",
+    ru: "Откройте сайт в Chrome",
+    en: "Open the site in Chrome",
+  },
+  "install.android.step2": {
+    kz: "Жоғарғы оң жақтағы үш нүктені басыңыз",
+    ru: "Нажмите три точки в правом верхнем углу",
+    en: "Tap the three dots in the top right corner",
+  },
+  "install.android.step3": {
+    kz: "«Қосымшаны орнату» немесе «Басты экранға қосу» таңдаңыз",
+    ru: "«Установить приложение» или «Добавить на главный экран»",
+    en: "'Install app' or 'Add to Home Screen'",
+  },
+  "install.android.step4": {
+    kz: "«Орнату» батырмасын басыңыз",
+    ru: "Нажмите «Установить»",
+    en: "Tap 'Install'",
+  },
+  "install.android.step5": {
+    kz: "Дайын! Қосымша орнатылды",
+    ru: "Готово!",
+    en: "Done!",
+  },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
