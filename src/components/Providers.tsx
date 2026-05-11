@@ -18,6 +18,7 @@ interface User {
   profileSubject1: string | null;
   profileSubject2: string | null;
   needsReonboarding?: boolean;
+  targetCombinationId?: number | null;
 }
 
 interface AppContextType {
