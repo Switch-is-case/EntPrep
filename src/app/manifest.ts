@@ -7,6 +7,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: "Платформа подготовки к ЕНТ с использованием искусственного интеллекта",
     start_url: "/",
     display: "standalone",
+    display_override: ["standalone", "window-controls-overlay"],
     background_color: "#f4f6fb",
     theme_color: "#2563eb",
     icons: [
