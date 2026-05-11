@@ -12,6 +12,7 @@ export interface User {
   targetUniversityId: number | null;
   targetScore: number | null;
   needsReonboarding: boolean;
+  emailVerified: boolean;
 
   isAdmin: boolean;
   createdAt: Date;
@@ -31,6 +32,7 @@ export interface UserProfileDTO {
   targetScore?: number | null;
   needsReonboarding?: boolean;
   isAdmin?: boolean;
+  emailVerified?: boolean;
 }
 
 export interface AuthResponseDTO {

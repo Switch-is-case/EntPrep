@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { useApp } from "@/components/Providers";
 import { Spinner } from "@/components/Spinner";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function MockResultsPage() {
   const { id } = useParams();
-  const { lang, authHeaders, user } = useApp();
+  const { lang, authHeaders, user, ready } = useRequireAuth({ requireVerified: true });
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);

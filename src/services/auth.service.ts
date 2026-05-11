@@ -31,6 +31,9 @@ export class AuthService {
         language: user.language,
         profileSubject1: user.profileSubject1,
         profileSubject2: user.profileSubject2,
+        emailVerified: user.emailVerified,
+        isAdmin: user.isAdmin,
+        needsReonboarding: user.needsReonboarding,
       },
     };
   }
@@ -63,6 +66,9 @@ export class AuthService {
         language: user.language,
         profileSubject1: user.profileSubject1,
         profileSubject2: user.profileSubject2,
+        emailVerified: user.emailVerified,
+        isAdmin: user.isAdmin,
+        needsReonboarding: user.needsReonboarding,
       },
     };
   }

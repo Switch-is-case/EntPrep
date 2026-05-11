@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useApp, type User } from "@/components/Providers";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { t, type Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -14,7 +15,7 @@ interface Combination {
 }
 
 export default function TestsPage() {
-  const { lang, user, ready, authHeaders } = useApp();
+  const { lang, user, ready, authHeaders } = useRequireAuth({ requireVerified: true });
   const router = useRouter();
   const [combinations, setCombinations] = useState<Combination[]>([]);
   const [loadingData, setLoadingData] = useState(true);
@@ -39,10 +40,7 @@ export default function TestsPage() {
   }, [ready, user, authHeaders]);
 
   if (!ready || (user && loadingData)) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
-  if (!user) {
-    if (typeof window !== "undefined") router.push("/login");
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <TestsForm 
@@ -81,6 +79,9 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
       const data = await res.json();
       if (res.ok && data.sessionId) {
         router.push(`/mock-exam/${data.sessionId}`);
+      } else if (res.status === 403 && data.error === "EMAIL_NOT_VERIFIED") {
+        alert(t("verifyEmail.required.testBlocked", lang));
+        router.push("/verify-email-pending");
       } else {
         alert(data.error || "Failed to start test");
         setLoading(null);

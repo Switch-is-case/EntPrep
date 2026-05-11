@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import ProgressCharts from "@/components/ProgressCharts";
 import { Spinner } from "@/components/Spinner";
@@ -30,18 +29,16 @@ interface RecentSession {
   startedAt: string;
 }
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+
 export default function ProgressPage() {
-  const { lang, user, token, authHeaders, ready } = useApp();
+  const { lang, user, token, authHeaders, ready } = useRequireAuth();
   const router = useRouter();
   const [subjectProgress, setSubjectProgress] = useState<SubjectProgress[]>([]);
   const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (ready && !user && !token) {
-      window.location.href = "/login";
-      return;
-    }
     if (!user || !token) return;
 
     const fetchProgress = async () => {

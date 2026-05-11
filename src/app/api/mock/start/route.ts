@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { testSessions, testAnswers, questions, subjects, subjectCombinations, users } from "@/db/schema";
 import { eq, sql, and, inArray, type InferSelectModel } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/auth";
+import { requireVerifiedEmail } from "@/lib/auth-checks";
 
 type Question = InferSelectModel<typeof questions>;
 type Subject = InferSelectModel<typeof subjects>;
@@ -18,6 +19,14 @@ export async function POST(req: Request) {
   try {
     const userId = getUserIdFromRequest(req);
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const verification = await requireVerifiedEmail(userId);
+    if (!verification.ok) {
+      return NextResponse.json(
+        { error: "EMAIL_NOT_VERIFIED", message: "Please verify your email to use this feature" },
+        { status: 403 }
+      );
+    }
 
     const user = await db.query.users.findFirst({
       where: eq(users.id, userId),

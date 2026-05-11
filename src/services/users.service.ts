@@ -75,6 +75,7 @@ export class UsersService {
       targetUniversityId: user.targetUniversityId,
       targetScore: user.targetScore,
       needsReonboarding: user.needsReonboarding,
+      emailVerified: user.emailVerified,
       isAdmin: user.isAdmin ?? false,
     };
   }

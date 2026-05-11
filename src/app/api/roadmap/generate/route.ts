@@ -3,6 +3,7 @@ import { db } from "@/db";
 import { testSessions, studyRoadmaps, users } from "@/db/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/auth";
+import { requireVerifiedEmail } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { callDify, extractJSON } from "@/lib/dify";
 import { buildRoadmapPrompt } from "@/lib/prompts/roadmap";
@@ -14,6 +15,14 @@ export async function POST(req: Request) {
     const userId = getUserIdFromRequest(req);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const verification = await requireVerifiedEmail(userId);
+    if (!verification.ok) {
+      return NextResponse.json(
+        { error: "EMAIL_NOT_VERIFIED", message: "Please verify your email to use this feature" },
+        { status: 403 }
+      );
     }
 
     const { sessionId } = await req.json();

@@ -70,6 +70,12 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       try {
         const res = await fetch(`/api/mock/${sessionId}`, { headers: authHeaders() });
         const json = await res.json();
+        
+        if (res.status === 403 && json.error === "EMAIL_NOT_VERIFIED") {
+          window.location.href = "/verify-email-pending";
+          return;
+        }
+        
         setData(json);
         setRemainingMs(json.remainingMs);
       } catch (err) {

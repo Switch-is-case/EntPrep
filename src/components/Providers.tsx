@@ -7,6 +7,7 @@ import React, {
   useEffect,
   useCallback,
 } from "react";
+import { useRouter } from "next/navigation";
 import type { Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 
@@ -22,6 +23,7 @@ export interface User {
   targetUniversityId?: number | null;
   targetScore?: number | null;
   needsReonboarding?: boolean;
+  emailVerified?: boolean;
 }
 
 interface AppContextType {
@@ -32,6 +34,7 @@ interface AppContextType {
   login: (token: string, user: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
+  refreshUser: () => Promise<void>;
   authHeaders: () => Record<string, string>;
   ready: boolean;
   isFullPageMode: boolean;
@@ -46,6 +49,7 @@ const AppContext = createContext<AppContextType>({
   login: () => {},
   logout: () => {},
   updateUser: () => {},
+  refreshUser: async () => {},
   authHeaders: () => ({}),
   ready: false,
   isFullPageMode: false,
@@ -58,12 +62,13 @@ export function useApp() {
 
 function OnboardingCheck({ children }: { children: React.ReactNode }) {
   const { user, ready } = useApp();
+  const router = useRouter();
 
   useEffect(() => {
     if (ready && user?.needsReonboarding && window.location.pathname !== "/profile") {
-      window.location.href = "/profile";
+      router.replace("/profile");
     }
-  }, [user, ready]);
+  }, [user, ready, router]);
 
   return <>{children}</>;
 }
@@ -78,8 +83,10 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   // Simple: load from localStorage, no async validation
   useEffect(() => {
     const savedLang = localStorage.getItem("ent-lang") as Lang;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (savedLang) setLangState(savedLang);
+    if (savedLang) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setLangState(savedLang);
+    }
 
     const savedToken = localStorage.getItem("ent-token");
     const savedUser = localStorage.getItem("ent-user");
@@ -93,6 +100,27 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       }
     }
     setReady(true);
+  }, []);
+
+  // Sync state across tabs
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "ent-user" && e.newValue) {
+        try {
+          setUser(JSON.parse(e.newValue));
+        } catch (err) {
+          console.error("Failed to parse synced user:", err);
+        }
+      }
+      if (e.key === "ent-token") {
+        setToken(e.newValue);
+      }
+      if (e.key === "ent-lang" && e.newValue) {
+        setLangState(e.newValue as Lang);
+      }
+    };
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   const setLang = useCallback((l: Lang) => {
@@ -130,6 +158,22 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       : { "Content-Type": "application/json" };
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    try {
+      const res = await fetch("/api/profile", { 
+        headers: authHeaders(),
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const u = await res.json();
+        setUser(u);
+        localStorage.setItem("ent-user", JSON.stringify(u));
+      }
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  }, [authHeaders]);
+
   if (!ready) {
     return (
       <div className="min-h-screen bg-bg flex items-center justify-center">
@@ -148,6 +192,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         login,
         logout,
         updateUser,
+        refreshUser,
         authHeaders,
         ready,
         isFullPageMode,

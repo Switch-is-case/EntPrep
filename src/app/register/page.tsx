@@ -7,7 +7,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
 export default function RegisterPage() {
-  const { lang, login, user } = useApp();
+  const { lang, login, user, ready } = useApp();
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,10 +17,10 @@ export default function RegisterPage() {
 
   // Already logged in
   useEffect(() => {
-    if (user) {
-      router.push("/profile");
+    if (ready && user) {
+      router.replace("/profile");
     }
-  }, [user, router]);
+  }, [user, ready, router]);
 
   if (user) return null;
 
@@ -45,7 +45,7 @@ export default function RegisterPage() {
       }
 
       login(data.token, data.user);
-      window.location.href = "/profile";
+      router.push("/verify-email-pending");
     } catch {
       setError("Network error");
       setLoading(false);

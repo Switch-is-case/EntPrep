@@ -2,22 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useApp } from "@/components/Providers";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 import { t } from "@/lib/i18n";
 import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 import { Spinner } from "@/components/Spinner";
 
 export default function PracticePage() {
-  const { lang, user, authHeaders, ready } = useApp();
+  const { lang, user, authHeaders, ready } = useRequireAuth({ requireVerified: true });
   const router = useRouter();
 
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questionCount, setQuestionCount] = useState(10);
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    if (ready && !user) router.push("/login");
-  }, [ready, user, router]);
 
   const startPractice = async () => {
     if (!selectedSubject) return;
@@ -37,6 +33,9 @@ export default function PracticePage() {
       const data = await res.json();
       if (res.ok && data.sessionId) {
         router.push(`/mock-exam/${data.sessionId}`);
+      } else if (res.status === 403 && data.error === "EMAIL_NOT_VERIFIED") {
+        alert(t("verifyEmail.required.testBlocked", lang));
+        router.push("/verify-email-pending");
       } else {
         alert(data.error || "Failed to start practice");
       }

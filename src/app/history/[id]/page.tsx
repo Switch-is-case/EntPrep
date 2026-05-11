@@ -82,6 +82,7 @@ export default function HistoryReviewPage() {
 
   useEffect(() => {
     if (!activeSubjectId && questionsBySubject.length > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveSubjectId(questionsBySubject[0].id);
     }
   }, [questionsBySubject, activeSubjectId]);
@@ -89,6 +90,7 @@ export default function HistoryReviewPage() {
   useEffect(() => {
     const currentQ = questions[currentIndex];
     if (currentQ && currentQ.subjectId !== activeSubjectId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveSubjectId(currentQ.subjectId);
     }
   }, [currentIndex, questions, activeSubjectId]);

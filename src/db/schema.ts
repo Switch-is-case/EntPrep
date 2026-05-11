@@ -9,6 +9,7 @@ import {
   varchar,
   serial,
   primaryKey,
+  index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -148,8 +149,22 @@ export const users = pgTable("users", {
   
   isAdmin: boolean("is_admin").default(false).notNull(),
   needsReonboarding: boolean("needs_reonboarding").default(true).notNull(),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  emailVerifiedAt: timestamp("email_verified_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const emailVerificationTokens = pgTable("email_verification_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  token: varchar("token", { length: 255 }).notNull().unique(),
+  expiresAt: timestamp("expires_at").notNull(),
+  usedAt: timestamp("used_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+}, (table) => ({
+  tokenIdx: index("email_verification_tokens_token_idx").on(table.token),
+  userIdx: index("email_verification_tokens_user_id_idx").on(table.userId),
+}));
 
 export const studyRoadmaps = pgTable("study_roadmaps", {
   id: serial("id").primaryKey(),
@@ -283,6 +298,11 @@ export const usersRelations = relations(users, ({ one, many }) => ({
   targetUniversity: one(universities, { fields: [users.targetUniversityId], references: [universities.id] }),
   sessions: many(testSessions),
   roadmaps: many(studyRoadmaps),
+  verificationTokens: many(emailVerificationTokens),
+}));
+
+export const emailVerificationTokensRelations = relations(emailVerificationTokens, ({ one }) => ({
+  user: one(users, { fields: [emailVerificationTokens.userId], references: [users.id] }),
 }));
 
 export const testSessionsRelations = relations(testSessions, ({ one, many }) => ({

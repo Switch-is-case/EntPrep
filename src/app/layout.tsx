@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import { BottomNav } from "@/components/BottomNav";
+import { VerificationBanner } from "@/components/VerificationBanner";
 import PWARegistration from "@/components/PWARegistration";
 
 export const viewport: Viewport = {
@@ -38,6 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-bg text-text antialiased min-h-screen">
         <Providers>
           <PWARegistration />
+          <VerificationBanner />
           <NavbarWrapper />
           <main className="pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">{children}</main>
           <BottomNav />

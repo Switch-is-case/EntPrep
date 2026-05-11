@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState } from "react";
-import { useApp } from "@/components/Providers";
 import { Spinner } from "@/components/Spinner";
 import { motion } from "framer-motion";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function MockExamLanding() {
-  const { lang, user, authHeaders } = useApp();
+  const { lang, user, authHeaders, ready } = useRequireAuth({ requireVerified: true });
   const [loading, setLoading] = useState(false);
 
   const startMock = async () => {

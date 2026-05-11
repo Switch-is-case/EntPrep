@@ -355,6 +355,25 @@ export const translations = {
     ru: "Готово!",
     en: "Done!",
   },
+
+  // Email Verification
+  "verifyEmail.pending.title": { kz: "Поштаңызды тексеріңіз", ru: "Проверь свою почту", en: "Check your email" },
+  "verifyEmail.pending.body": { 
+    kz: "Біз {email} поштасына растау сілтемесін жібердік. ENTPrep-ті пайдалануды бастау үшін оны басыңыз.", 
+    ru: "Мы отправили ссылку для подтверждения на {email}. Кликни её чтобы начать пользоваться ENTPrep.", 
+    en: "We sent a verification link to {email}. Click it to start using ENTPrep." 
+  },
+  "verifyEmail.pending.resendButton": { kz: "Қайта жіберу", ru: "Отправить заново", en: "Resend email" },
+  "verifyEmail.pending.resendSuccess": { kz: "Растау хаты жіберілді!", ru: "Письмо для подтверждения отправлено!", en: "Verification email sent!" },
+  "verifyEmail.pending.cooldown": { kz: "{seconds} секунд күтіңіз", ru: "Подожди {seconds} секунд", en: "Wait {seconds} seconds" },
+  "verifyEmail.success.title": { kz: "Email расталды!", ru: "Email подтверждён!", en: "Email verified!" },
+  "verifyEmail.success.body": { kz: "Керемет! Енді сізде барлық мүмкіндіктер ашылды. Қайта бағытталуда...", ru: "Отлично! Теперь тебе доступны все возможности. Перенаправляем...", en: "Great! Now you have full access. Redirecting..." },
+  "verifyEmail.error.expired": { kz: "Сілтеме мерзімі өтіп кеткен. Профильден жаңа хат сұраңыз.", ru: "Ссылка истекла. Запроси новое письмо в профиле.", en: "Link expired. Request a new one in your profile." },
+  "verifyEmail.error.invalid": { kz: "Жарамсыз сілтеме.", ru: "Недействительная ссылка.", en: "Invalid link." },
+  "verifyEmail.error.alreadyUsed": { kz: "Email бұрын расталған. Аккаунтыңызға кіре аласыз.", ru: "Email уже подтверждён. Можешь войти в аккаунт.", en: "Email already verified. You can log in." },
+  "verifyEmail.banner.message": { kz: "Толық қолжетімділік алу үшін email-ді растаңыз", ru: "Подтверди email чтобы получить полный доступ", en: "Verify your email for full access" },
+  "verifyEmail.banner.button": { kz: "Растау →", ru: "Подтвердить →", en: "Verify →" },
+  "verifyEmail.required.testBlocked": { kz: "Тестті бастау үшін email-ді растаңыз", ru: "Подтверди email чтобы начать тест", en: "Verify email to start the test" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;

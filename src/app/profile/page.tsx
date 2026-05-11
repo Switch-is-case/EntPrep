@@ -31,15 +31,13 @@ interface Program {
 
 import { Target, BookOpen, GraduationCap, Check } from "lucide-react";
 
+import { useRequireAuth } from "@/hooks/useRequireAuth";
+
 export default function ProfilePage() {
-  const { lang, user, ready, authHeaders } = useApp();
+  const { lang, user, ready, authHeaders } = useRequireAuth();
   const [combinations, setCombinations] = useState<Combination[]>([]);
   const [universitiesData, setUniversitiesData] = useState<University[]>([]);
   const [loadingData, setLoadingData] = useState(true);
-
-  useEffect(() => {
-    if (ready && !user) window.location.href = "/login";
-  }, [ready, user]);
 
   useEffect(() => {
     async function fetchData() {

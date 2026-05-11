@@ -1,13 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 
 export default function LoginPage() {
-  const { lang, login, user } = useApp();
+  const { lang, login, user, ready } = useApp();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,10 +15,13 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   // Already logged in
-  if (user) {
-    router.replace("/profile");
-    return null;
-  }
+  useEffect(() => {
+    if (ready && user) {
+      router.replace("/profile");
+    }
+  }, [user, ready, router]);
+
+  if (user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

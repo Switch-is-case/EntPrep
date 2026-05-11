@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
-import { useApp } from "@/components/Providers";
 
 interface RoadmapData {
   summary: {
@@ -41,16 +40,21 @@ interface RoadmapResponse {
 }
 
 import { Target, Calendar, TrendingUp, Clock, Trophy } from "lucide-react";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
 export default function RoadmapPage() {
-  const { lang, authHeaders } = useApp();
+  const { lang, authHeaders, ready, user } = useRequireAuth({ requireVerified: true });
   const [response, setResponse] = useState<RoadmapResponse | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/roadmap/latest", { headers: authHeaders() })
-      .then(r => r.json())
-      .then(data => {
+      .then(async r => {
+        const data = await r.json();
+        if (r.status === 403 && data.error === "EMAIL_NOT_VERIFIED") {
+          window.location.href = "/verify-email-pending";
+          return;
+        }
         if (data && data.roadmapData) {
           setResponse(data);
         }

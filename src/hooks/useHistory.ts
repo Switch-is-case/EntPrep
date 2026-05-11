@@ -22,7 +22,7 @@ export function useHistory() {
 
   useEffect(() => {
     if (ready && !user && !token) {
-      router.push("/login");
+      router.replace("/login");
       return;
     }
     if (!user || !token) return;

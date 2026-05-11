@@ -16,7 +16,7 @@ export function useHistoryReview() {
 
   useEffect(() => {
     if (ready && !user && !token) {
-      router.push("/login");
+      router.replace("/login");
       return;
     }
     if (!user || !token) return;
@@ -29,11 +29,11 @@ export function useHistoryReview() {
           setSession(data.session);
           setQuestions(data.questions || []);
         } else {
-          router.push("/history");
+          router.replace("/history");
         }
       } catch (e) {
         console.error(e);
-        router.push("/history");
+        router.replace("/history");
       } finally {
         setLoading(false);
       }
