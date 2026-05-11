@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { testSessions, testAnswers, questions, subjects, subjectCombinations, users } from "@/db/schema";
 import { eq, sql, and, inArray } from "drizzle-orm";
-import { getServerSession } from "@/lib/auth"; // Assuming auth exists
+import { getUserIdFromRequest } from "@/lib/auth";
 
 export async function POST(req: Request) {
   try {
-    const { userId } = await req.json(); // Simple for now, ideally from auth session
+    const userId = getUserIdFromRequest(req);
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const user = await db.query.users.findFirst({
@@ -58,18 +58,19 @@ export async function POST(req: Request) {
     }
 
     if (mockQuestions.length < 140) {
-      // For development, if we don't have enough real questions, we might reuse some or warn
-      console.warn(`Only ${mockQuestions.length} questions found for mock exam. Need 140.`);
+      return NextResponse.json({ 
+        error: "Insufficient questions in database", 
+        details: `Found only ${mockQuestions.length} questions. Need 140 for a full mock exam. Please contact support or add more questions.`
+      }, { status: 400 });
     }
 
     // 4. Create Session
     const session = await db.insert(testSessions).values({
       userId: user.id,
       testType: "mock",
-      subjects: JSON.stringify(allRelevantSubjects),
+      subjects: allRelevantSubjects, // Drizzle handles jsonb mapping
       totalQuestions: mockQuestions.length,
       startedAt: new Date(),
-      // 240 minutes = 4 hours
       completed: false,
     }).returning();
 

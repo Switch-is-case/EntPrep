@@ -6,6 +6,13 @@ export interface User {
   language: string;
   profileSubject1: string | null;
   profileSubject2: string | null;
+  
+  targetCombinationId: number | null;
+  targetSpecialtyId: number | null;
+  targetUniversityId: number | null;
+  targetScore: number | null;
+  needsReonboarding: boolean;
+
   isAdmin: boolean;
   createdAt: Date;
 }
@@ -17,6 +24,13 @@ export interface UserProfileDTO {
   language: string;
   profileSubject1: string | null;
   profileSubject2: string | null;
+  
+  targetCombinationId?: number | null;
+  targetSpecialtyId?: number | null;
+  targetUniversityId?: number | null;
+  targetScore?: number | null;
+  needsReonboarding?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface AuthResponseDTO {
@@ -29,6 +43,7 @@ export interface CreateUserDTO {
   passwordHash: string;
   name: string;
   language?: string;
+  needsReonboarding?: boolean;
 }
 
 export interface UpdateUserDTO {
@@ -36,6 +51,13 @@ export interface UpdateUserDTO {
   language?: string;
   profileSubject1?: string | null;
   profileSubject2?: string | null;
+  
+  targetCombinationId?: number | null;
+  targetSpecialtyId?: number | null;
+  targetUniversityId?: number | null;
+  targetScore?: number | null;
+  needsReonboarding?: boolean;
+  isAdmin?: boolean;
 }
 
 export interface LoginDTO {

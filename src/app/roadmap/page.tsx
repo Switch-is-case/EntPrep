@@ -29,19 +29,25 @@ export default function RoadmapPage() {
 
   if (!roadmap) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-20 text-center">
-        <div className="text-6xl mb-6">🗺️</div>
-        <h1 className="text-2xl font-bold text-text mb-4">
-          {lang === "ru" ? "Дорожная карта пока не создана" : "Жол картасы әлі жасалмаған"}
-        </h1>
-        <p className="text-text-secondary mb-8">
-          {lang === "ru" 
-            ? "Пройдите Mock-экзамен, чтобы ИИ мог составить ваш персональный план."
-            : "ИИ сізге жеке жоспар құруы үшін Mock-емтиханынан өтіңіз."}
-        </p>
-        <a href="/mock-exam" className="bg-primary text-white px-8 py-3 rounded-xl font-bold hover:bg-primary-dark transition-all">
-          {lang === "ru" ? "К экзамену 🚀" : "Емтиханға 🚀"}
-        </a>
+      <div className="max-w-3xl mx-auto px-4 py-20 text-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-[3rem] border border-border p-12 shadow-xl"
+        >
+          <div className="text-6xl mb-8">🗺️</div>
+          <h1 className="text-3xl font-black text-text mb-4">
+            {lang === "ru" ? "Дорожная карта не создана" : "Жол картасы жасалмаған"}
+          </h1>
+          <p className="text-text-secondary text-lg mb-10 leading-relaxed">
+            {lang === "ru" 
+              ? "Для создания персонального плана обучения ИИ нужно проанализировать твои знания. Пройди Mock-экзамен, и мы построим твою карту подготовки."
+              : "Жеке оқу жоспарын құру үшін ИИ сенің біліміңді талдауы керек. Mock-емтиханынан өт, біз сенің дайындық картаңды жасаймыз."}
+          </p>
+          <a href="/mock-exam" className="inline-block bg-primary text-white px-10 py-4 rounded-2xl font-bold text-lg hover:bg-primary-dark transition-all shadow-xl shadow-primary/20 active:scale-95">
+            {lang === "ru" ? "К экзамену 🚀" : "Емтиханға 🚀"}
+          </a>
+        </motion.div>
       </div>
     );
   }

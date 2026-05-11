@@ -17,8 +17,11 @@ interface User {
   language: string;
   profileSubject1: string | null;
   profileSubject2: string | null;
-  needsReonboarding?: boolean;
   targetCombinationId?: number | null;
+  targetSpecialtyId?: number | null;
+  targetUniversityId?: number | null;
+  targetScore?: number | null;
+  needsReonboarding?: boolean;
 }
 
 interface AppContextType {

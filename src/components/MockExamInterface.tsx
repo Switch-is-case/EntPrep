@@ -103,8 +103,60 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
 
   if (loading || !data) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
+  if (!data.subjects || !Array.isArray(data.subjects) || data.subjects.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto p-12 text-center">
+        <div className="text-5xl mb-6">⚠️</div>
+        <h2 className="text-2xl font-bold text-text mb-4">
+          {lang === "ru" ? "Ошибка загрузки экзамена" : "Емтиханды жүктеу қатесі"}
+        </h2>
+        <p className="text-text-secondary mb-8">
+          {lang === "ru" 
+            ? "Данные экзамена не найдены. Пожалуйста, попробуйте начать новый экзамен."
+            : "Емтихан деректері табылмады. Жаңа емтиханды бастап көріңіз."}
+        </p>
+        <button onClick={() => window.location.href = "/mock-exam"} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
+          {lang === "ru" ? "Вернуться назад" : "Артқа қайту"}
+        </button>
+      </div>
+    );
+  }
+
   const currentSubject = data.subjects[currentSubjectIdx];
+  if (!currentSubject?.questions || currentSubject.questions.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto p-12 text-center">
+        <div className="text-5xl mb-6">📝</div>
+        <h2 className="text-2xl font-bold text-text mb-4">
+          {lang === "ru" ? "В этом предмете нет вопросов" : "Бұл пәнде сұрақтар жоқ"}
+        </h2>
+        <p className="text-text-secondary mb-8">
+          {lang === "ru" 
+            ? `Для предмета "${currentSubject.nameRu}" вопросы еще не добавлены.`
+            : `"${currentSubject.nameKz}" пәні үшін сұрақтар әлі қосылмаған.`}
+        </p>
+        <div className="flex flex-col gap-2">
+            {data.subjects.map((s: any, idx: number) => (
+                <button key={s.id} onClick={() => setCurrentSubjectIdx(idx)} className="text-primary font-bold">
+                    {lang === "ru" ? `Перейти к ${s.nameRu}` : `${s.nameKz} пәніне өту`}
+                </button>
+            ))}
+        </div>
+      </div>
+    );
+  }
+
   const currentQuestion = currentSubject.questions[currentQuestionIdx];
+  if (!currentQuestion) {
+    return (
+      <div className="max-w-xl mx-auto p-12 text-center">
+        <h2 className="text-xl font-bold text-text mb-4">{lang === "ru" ? "Вопрос не найден" : "Сұрақ табылмады"}</h2>
+        <button onClick={() => setCurrentQuestionIdx(0)} className="bg-primary text-white px-6 py-2 rounded-xl">
+           {lang === "ru" ? "Начать с начала" : "Басынан бастау"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

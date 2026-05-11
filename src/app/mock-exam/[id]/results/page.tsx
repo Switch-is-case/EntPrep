@@ -49,7 +49,7 @@ export default function MockResultsPage() {
 
   if (loading || !data) return <div className="flex justify-center py-20"><Spinner size="lg" /></div>;
 
-  const results = JSON.parse(data.session.results || "{}");
+  const results = data.session.results || {};
   const breakdown = results.subjectBreakdown || {};
 
   return (

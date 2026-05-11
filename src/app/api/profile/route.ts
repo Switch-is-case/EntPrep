@@ -25,14 +25,9 @@ export async function PUT(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { language, profileSubject1, profileSubject2, name } = body;
-
-    const updated = await usersService.updateProfile(userId, {
-      language,
-      name,
-      profileSubject1,
-      profileSubject2,
-    });
+    
+    // Accept all profile fields including Career Wizard results
+    const updated = await usersService.updateProfile(userId, body);
 
     return NextResponse.json(updated);
   } catch (error: unknown) {

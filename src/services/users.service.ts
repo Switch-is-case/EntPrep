@@ -62,7 +62,7 @@ export class UsersService {
     if (!deleted) throw new NotFoundError("User not found");
   }
 
-  private mapToProfileDTO(user: User): UserProfileDTO & { isAdmin?: boolean } {
+  private mapToProfileDTO(user: User): UserProfileDTO {
     return {
       id: user.id,
       email: user.email,
@@ -70,6 +70,11 @@ export class UsersService {
       language: user.language,
       profileSubject1: user.profileSubject1,
       profileSubject2: user.profileSubject2,
+      targetCombinationId: user.targetCombinationId,
+      targetSpecialtyId: user.targetSpecialtyId,
+      targetUniversityId: user.targetUniversityId,
+      targetScore: user.targetScore,
+      needsReonboarding: user.needsReonboarding,
       isAdmin: user.isAdmin ?? false,
     };
   }
