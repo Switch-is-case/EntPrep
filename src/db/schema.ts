@@ -67,7 +67,9 @@ export const testAnswers = pgTable("test_answers", {
 
 export const progress = pgTable("progress", {
   id: serial("id").primaryKey(),
-  userId: uuid("user_id").notNull().references(() => users.id),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   subject: varchar("subject", { length: 100 }).notNull(),
   totalAttempted: integer("total_attempted").default(0).notNull(),
   totalCorrect: integer("total_correct").default(0).notNull(),
