@@ -29,6 +29,8 @@ interface AppContextType {
   updateUser: (user: User) => void;
   authHeaders: () => Record<string, string>;
   ready: boolean;
+  isFullPageMode: boolean;
+  setIsFullPageMode: (val: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType>({
@@ -41,6 +43,8 @@ const AppContext = createContext<AppContextType>({
   updateUser: () => {},
   authHeaders: () => ({}),
   ready: false,
+  isFullPageMode: false,
+  setIsFullPageMode: () => {},
 });
 
 export function useApp() {
@@ -52,6 +56,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const [isFullPageMode, setIsFullPageMode] = useState(false);
 
   // Simple: load from localStorage, no async validation
   useEffect(() => {
@@ -118,7 +123,19 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ lang, setLang, user, token, login, logout, updateUser, authHeaders, ready }}
+      value={{
+        lang,
+        setLang,
+        user,
+        token,
+        login,
+        logout,
+        updateUser,
+        authHeaders,
+        ready,
+        isFullPageMode,
+        setIsFullPageMode,
+      }}
     >
       {children}
     </AppContext.Provider>

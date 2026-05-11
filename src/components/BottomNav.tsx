@@ -12,10 +12,11 @@ import { t } from "@/lib/i18n";
  * Hidden on md+ screens where the top navbar takes over.
  */
 export function BottomNav() {
-  const { lang, user } = useApp();
+  const { lang, user, isFullPageMode } = useApp();
   const pathname = usePathname();
 
-  if (!user) return null;
+  // Hide BottomNav during active testing/practice or in history review
+  if (!user || isFullPageMode || pathname.startsWith("/history/")) return null;
 
   const tabs = [
     {

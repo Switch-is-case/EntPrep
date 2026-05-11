@@ -24,10 +24,20 @@ interface PracticeQuestion {
 type PracticeState = "select" | "practicing" | "review";
 
 export default function PracticePage() {
-  const { lang, user, token, authHeaders, ready } = useApp();
+  const { lang, user, token, authHeaders, ready, setIsFullPageMode } = useApp();
   const router = useRouter();
 
   const [state, setState] = useState<PracticeState>("select");
+
+  // Toggle Full Page Mode (hides BottomNav) when practicing
+  useEffect(() => {
+    if (state === "practicing") {
+      setIsFullPageMode(true);
+    } else {
+      setIsFullPageMode(false);
+    }
+    return () => setIsFullPageMode(false);
+  }, [state, setIsFullPageMode]);
   const [selectedSubject, setSelectedSubject] = useState("");
   const [questionCount, setQuestionCount] = useState(10);
   const [questions, setQuestions] = useState<PracticeQuestion[]>([]);
@@ -441,7 +451,7 @@ export default function PracticePage() {
         </div>
 
         {/* ── MOBILE FIXED BOTTOM NAVIGATION ── */}
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-3">
           <button
             onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
             disabled={currentIndex === 0}

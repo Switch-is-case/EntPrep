@@ -40,9 +40,19 @@ interface TestResults {
 type TestState = "select" | "testing" | "results";
 
 export default function TestsPage() {
-  const { lang, user, token, authHeaders, ready } = useApp();
+  const { lang, user, token, authHeaders, ready, setIsFullPageMode } = useApp();
   const router = useRouter();
   const [testState, setTestState] = useState<TestState>("select");
+  
+  // Toggle Full Page Mode (hides BottomNav) when testing
+  useEffect(() => {
+    if (testState === "testing") {
+      setIsFullPageMode(true);
+    } else {
+      setIsFullPageMode(false);
+    }
+    return () => setIsFullPageMode(false);
+  }, [testState, setIsFullPageMode]);
   const [sessionId, setSessionId] = useState("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -429,7 +439,7 @@ export default function TestsPage() {
         </div>
 
         {/* ── MOBILE FIXED BOTTOM NAVIGATION ── */}
-        <div className="md:hidden fixed bottom-16 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 py-3 flex items-center gap-3">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white border-t border-gray-200 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex items-center gap-3">
           <button
             onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
             disabled={currentIndex === 0}
