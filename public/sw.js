@@ -1,71 +1,69 @@
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.0.0/workbox-sw.js');
+const CACHE_NAME = 'ent-prep-v1';
+const OFFLINE_URL = '/offline.html';
 
-if (workbox) {
-  // Force update the service worker
+const ASSETS_TO_CACHE = [
+  '/',
+  OFFLINE_URL,
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png',
+  '/icons/apple-touch-icon.png',
+  '/manifest.webmanifest'
+];
+
+// 1. Install - Precache core assets
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS_TO_CACHE);
+    })
+  );
   self.skipWaiting();
-  workbox.core.clientsClaim();
+});
 
-  // Precache the offline page
-  self.addEventListener('install', (event) => {
-    event.waitUntil(
-      caches.open('offline-cache').then((cache) => {
-        return cache.add('/~offline');
+// 2. Activate - Clean up old caches
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((cacheNames) => {
+      return Promise.all(
+        cacheNames.map((cacheName) => {
+          if (cacheName !== CACHE_NAME) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
+  );
+  self.clientsClaim();
+});
+
+// 3. Fetch - Strategy implementation
+self.addEventListener('fetch', (event) => {
+  // Ignore non-GET requests
+  if (event.request.method !== 'GET') return;
+
+  // Ignore API requests (NetworkOnly)
+  if (event.request.url.includes('/api/')) {
+    event.respondWith(fetch(event.request));
+    return;
+  }
+
+  // Navigation requests: NetworkFirst with Offline Fallback
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match(OFFLINE_URL);
       })
     );
-  });
+    return;
+  }
 
-  const { registerRoute } = workbox.routing;
-  const { StaleWhileRevalidate, CacheFirst, NetworkOnly, NetworkFirst } = workbox.strategies;
-  const { ExpirationPlugin } = workbox.expiration;
-
-  // Cache Google Fonts
-  registerRoute(
-    ({ url }) => url.origin === 'https://fonts.googleapis.com' || url.origin === 'https://fonts.gstatic.com',
-    new CacheFirst({
-      cacheName: 'google-fonts',
-      plugins: [
-        new ExpirationPlugin({
-          maxEntries: 20,
-          maxAgeSeconds: 60 * 60 * 24 * 365,
-        }),
-      ],
+  // Other assets: CacheFirst or StaleWhileRevalidate
+  event.respondWith(
+    caches.match(event.request).then((response) => {
+      return response || fetch(event.request).then((fetchResponse) => {
+        // Optionally cache new assets here
+        return fetchResponse;
+      });
     })
   );
-
-  // Cache Static Assets (Images)
-  registerRoute(
-    ({ request }) => request.destination === 'image',
-    new StaleWhileRevalidate({
-      cacheName: 'images',
-    })
-  );
-
-  // Cache Static Assets (JS/CSS)
-  registerRoute(
-    ({ request }) => request.destination === 'script' || request.destination === 'style',
-    new StaleWhileRevalidate({
-      cacheName: 'static-resources',
-    })
-  );
-
-  // Default API caching: NetworkOnly (Don't cache sensitive data)
-  registerRoute(
-    ({ url }) => url.pathname.startsWith('/api/'),
-    new NetworkOnly()
-  );
-
-  // Navigation requests: NetworkFirst (Fallback to offline page if needed)
-  registerRoute(
-    ({ request }) => request.mode === 'navigate',
-    new NetworkFirst({
-      cacheName: 'pages',
-      plugins: [
-        {
-          handlerDidError: async () => {
-            return caches.match('/~offline');
-          },
-        },
-      ],
-    })
-  );
-}
+});
