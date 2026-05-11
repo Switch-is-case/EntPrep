@@ -47,6 +47,9 @@ export async function POST(req: Request) {
       [profileSlugs[1]]: 45
     };
 
+    console.log("=== MOCK START DEBUG ===");
+    console.log("Required subjects:", Object.keys(counts));
+
     for (const subject of allRelevantSubjects) {
       const limit = counts[subject.slug] || 0;
       const subQuestions = await db.query.questions.findMany({
@@ -54,10 +57,14 @@ export async function POST(req: Request) {
         orderBy: sql`RANDOM()`,
         limit: limit,
       });
+      console.log(`- Subject: ${subject.slug}, Found: ${subQuestions.length}, Needed: ${limit}`);
       mockQuestions.push(...subQuestions);
     }
 
+    console.log("Total questions collected:", mockQuestions.length);
+
     if (mockQuestions.length < 140) {
+      console.error("NOT ENOUGH QUESTIONS. Total:", mockQuestions.length);
       return NextResponse.json({ 
         error: "Insufficient questions in database", 
         details: `Found only ${mockQuestions.length} questions. Need 140 for a full mock exam. Please contact support or add more questions.`
