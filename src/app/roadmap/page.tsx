@@ -90,7 +90,7 @@ export default function RoadmapPage() {
           </p>
           <Link 
             href="/mock-exam" 
-            className="inline-block px-10 py-5 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold text-lg hover:shadow-lg transition-all active:scale-95"
+            className="inline-block px-10 py-5 bg-gradient-to-r from-primary to-accent text-white rounded-2xl font-bold text-lg transition-colors"
           >
             {lang === "ru" ? "Начать Пробный ЕНТ" : lang === "kz" ? "Пробный ЕНТ бастау" : "Start Mock Exam"}
           </Link>
@@ -117,7 +117,7 @@ export default function RoadmapPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-20 animate-in fade-in duration-500">
+    <div className="max-w-5xl mx-auto p-4 md:p-8 space-y-8 pb-20">
       
       {/* HERO - Summary */}
       <div className="bg-gradient-to-br from-primary via-indigo-600 to-indigo-700 rounded-3xl p-8 md:p-12 text-white shadow-xl relative overflow-hidden">
@@ -216,7 +216,7 @@ export default function RoadmapPage() {
             </h2>
             <div className="space-y-4">
               {data.priorityTopics?.map((topic, i) => (
-                <div key={i} className="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 transition-all">
+                <div key={i} className="group p-5 bg-gray-50 rounded-2xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 transition-colors">
                   <div className="flex items-start gap-4">
                     <div className="flex-shrink-0 w-8 h-8 bg-white border-2 border-orange-200 text-orange-600 rounded-lg flex items-center justify-center font-black text-sm">
                       {i + 1}
@@ -242,7 +242,7 @@ export default function RoadmapPage() {
           {data.motivationalMessage && (
             <div className="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden group">
               <div className="relative z-10">
-                <div className="mb-4 group-hover:scale-110 transition-transform duration-300">
+                <div className="mb-4">
                   <Trophy className="w-12 h-12 text-white/90" aria-hidden="true" />
                 </div>
                 <p className="text-lg leading-relaxed font-bold italic opacity-95">
@@ -259,13 +259,13 @@ export default function RoadmapPage() {
           <div className="grid grid-cols-1 gap-4">
             <Link 
               href="/practice" 
-              className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-center shadow-lg shadow-primary/20 hover:shadow-primary/30 hover:-translate-y-1 transition-all active:translate-y-0"
+              className="px-8 py-5 bg-primary text-white rounded-2xl font-black text-center transition-colors"
             >
               {lang === "ru" ? "ПЕРЕЙТИ К ПРАКТИКЕ" : "GO TO PRACTICE"}
             </Link>
             <Link 
               href="/mock-exam" 
-              className="px-8 py-5 bg-white border-2 border-primary/20 text-primary rounded-2xl font-black text-center hover:bg-gray-50 transition-all"
+              className="px-8 py-5 bg-white border-2 border-primary/20 text-primary rounded-2xl font-black text-center hover:bg-gray-50 transition-colors"
             >
               {lang === "ru" ? "НОВЫЙ ПРОБНЫЙ ЕНТ" : "NEW MOCK EXAM"}
             </Link>
