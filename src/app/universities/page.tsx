@@ -1,17 +1,10 @@
 "use client";
-/* eslint-disable @next/next/no-img-element */
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/components/Providers";
+import { t } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
-
-interface Program {
-  id: number;
-  nameRu: string;
-  nameKz: string;
-  nameEn: string;
-  passingScore: number;
-}
+import Link from "next/link";
 
 interface University {
   id: number;
@@ -21,148 +14,133 @@ interface University {
   cityRu: string;
   cityKz: string;
   cityEn: string;
-  descriptionRu: string | null;
-  descriptionKz: string | null;
-  descriptionEn: string | null;
-  logoUrl: string | null;
-  programs: Program[];
+  logoUrl?: string;
+  programs: any[];
 }
 
 export default function UniversitiesPage() {
-  const { lang } = useApp();
-  const [universities, setUniversities] = useState<University[]>([]);
+  const { lang, user } = useApp();
+  const [unis, setUnis] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [city, setCity] = useState("");
 
   useEffect(() => {
-    const fetchUniversities = async () => {
+    async function fetchUnis() {
       setLoading(true);
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-
       try {
-        const res = await fetch(`/api/universities?${params}`);
-        if (res.ok) {
-          const data = await res.json();
-          setUniversities(data.universities);
-        }
+        const url = `/api/universities?search=${search}&city=${city}${user?.targetCombinationId ? `&comboId=${user.targetCombinationId}` : ""}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        setUnis(data);
       } catch (error) {
-        console.error("Failed to fetch universities", error);
+        console.error("Failed to fetch universities:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    };
+    }
+    const timer = setTimeout(fetchUnis, 300);
+    return () => clearTimeout(timer);
+  }, [search, city, user?.targetCombinationId]);
 
-    const delayDebounceFn = setTimeout(() => {
-      fetchUniversities();
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [search]);
-
-  const getName = (item: any) => lang === "kz" ? item.nameKz : lang === "en" ? item.nameEn : item.nameRu;
-  const getCity = (item: any) => lang === "kz" ? item.cityKz : lang === "en" ? item.cityEn : item.cityRu;
-  const getDescription = (item: any) => lang === "kz" ? item.descriptionKz : lang === "en" ? item.descriptionEn : item.descriptionRu;
+  const cities = ["Алматы", "Астана", "Шымкент", "Караганда", "Павлодар", "Каскелен"];
 
   return (
-    <div className="min-h-[calc(100vh-4rem)] bg-gray-50 py-10 px-4">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-text mb-2">
-              {lang === "ru" ? "Университеты Казахстана" : lang === "kz" ? "Қазақстан Университеттері" : "Universities of Kazakhstan"}
-            </h1>
-            <p className="text-text-secondary">
-              {lang === "ru" 
-                ? "Узнайте проходные баллы на грант и доступные специальности." 
-                : lang === "kz" 
-                ? "Грантқа өту балдарын және қолжетімді мамандықтарды біліңіз." 
-                : "Find out passing scores for grants and available professions."}
-            </p>
-          </div>
-          
-          <div className="w-full md:w-80">
-            <input
-              type="text"
-              placeholder={lang === "ru" ? "Поиск по названию или городу..." : lang === "kz" ? "Атауы немесе қаласы бойынша іздеу..." : "Search by name or city..."}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all shadow-sm"
-            />
-          </div>
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div>
+          <h1 className="text-3xl font-black text-text tracking-tight">
+            {lang === "ru" ? "Университеты Казахстана" : lang === "kz" ? "Қазақстан университеттері" : "Universities of Kazakhstan"}
+          </h1>
+          <p className="text-text-secondary mt-2 max-w-md">
+            {lang === "ru" ? "Найди свой идеальный ВУЗ и узнай проходные баллы" : "Өзіңе лайықты ЖОО тауып, өту балдарын біл"}
+          </p>
         </div>
 
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <Spinner size="lg" />
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder={lang === "ru" ? "Поиск..." : "Іздеу..."}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="w-full sm:w-64 px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all bg-white"
+            />
           </div>
-        ) : universities.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-gray-200 p-10 text-center shadow-sm">
-            <div className="text-4xl mb-4">🏫</div>
-            <h3 className="text-lg font-bold text-text mb-2">
-              {lang === "ru" ? "Ничего не найдено" : lang === "kz" ? "Ештеңе табылмады" : "Nothing found"}
-            </h3>
-            <p className="text-text-secondary">
-              {lang === "ru" ? "Попробуйте изменить параметры поиска" : lang === "kz" ? "Іздеу параметрлерін өзгертіп көріңіз" : "Try changing your search parameters"}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {universities.map((uni) => (
-              <div key={uni.id} className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition-shadow">
-                <div className="p-6 border-b border-gray-100 bg-gradient-to-br from-white to-gray-50 flex-1">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-                      {uni.logoUrl ? (
-                        <img src={uni.logoUrl} alt={getName(uni)} className="w-full h-full object-contain rounded-xl" />
-                      ) : (
-                        <span className="text-xl font-bold text-primary">{getName(uni).charAt(0)}</span>
-                      )}
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      📍 {getCity(uni)}
-                    </span>
+          <select
+            value={city}
+            onChange={(e) => setCity(e.target.value)}
+            className="px-4 py-3 rounded-xl border border-border focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none text-sm transition-all bg-white"
+          >
+            <option value="">{lang === "ru" ? "Все города" : "Барлық қалалар"}</option>
+            {cities.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      ) : unis.length === 0 ? (
+        <div className="text-center py-20 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
+          <div className="text-4xl mb-4">🔍</div>
+          <div className="text-lg font-bold text-text">{lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады"}</div>
+          <div className="text-sm text-text-secondary mt-1">{lang === "ru" ? "Попробуйте изменить параметры поиска" : "Іздеу параметрлерін өзгертіп көріңіз"}</div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {unis.map((uni) => (
+            <div key={uni.id} className="group bg-white rounded-[2rem] border border-border p-1 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+              <div className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-2xl overflow-hidden shrink-0">
+                    {uni.logoUrl ? <img src={uni.logoUrl} alt="Logo" className="w-full h-full object-cover" /> : "🏛️"}
                   </div>
-                  
-                  <h3 className="text-xl font-bold text-text mb-2 line-clamp-2" title={getName(uni)}>
-                    {getName(uni)}
-                  </h3>
-                  
-                  {getDescription(uni) && (
-                    <p className="text-sm text-text-secondary line-clamp-3 mb-4">
-                      {getDescription(uni)}
-                    </p>
-                  )}
+                  <div className="px-3 py-1 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-wider">
+                    {lang === "ru" ? uni.cityRu : uni.cityKz}
+                  </div>
                 </div>
 
-                <div className="p-5 bg-white">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-text-secondary mb-3">
-                    {lang === "ru" ? "Проходные баллы" : lang === "kz" ? "Өту балдары" : "Passing scores"}
-                  </h4>
-                  
-                  {uni.programs && uni.programs.length > 0 ? (
-                    <div className="space-y-2.5">
-                      {uni.programs.map((program) => (
-                        <div key={program.id} className="flex items-center justify-between group">
-                          <span className="text-sm font-medium text-text group-hover:text-primary transition-colors line-clamp-1 pr-2" title={getName(program)}>
-                            {getName(program)}
-                          </span>
-                          <span className="inline-flex items-center justify-center px-2 py-1 rounded-lg bg-success/10 text-success text-xs font-bold shrink-0">
-                            {program.passingScore} {lang === "ru" ? "б." : lang === "kz" ? "б." : "pts"}
-                          </span>
+                <h3 className="text-lg font-bold text-text leading-tight mb-2 group-hover:text-primary transition-colors">
+                  {lang === "ru" ? uni.nameRu : uni.nameKz}
+                </h3>
+
+                <div className="space-y-3 mt-6">
+                  {uni.programs.slice(0, 2).map((prog: any) => (
+                    <div key={prog.id} className="bg-gray-50 rounded-2xl p-4 border border-gray-100">
+                      <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">{prog.combination?.subject1?.nameRu} + {prog.combination?.subject2?.nameRu}</div>
+                      <div className="flex justify-between items-end">
+                        <div className="text-xs font-bold text-text line-clamp-1 flex-1 pr-2">{lang === "ru" ? prog.nameRu : prog.nameKz}</div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[10px] text-text-secondary leading-none">Грант 2024</div>
+                          <div className="text-sm font-black text-primary">{prog.scoreHistory?.[0]?.grantScore || "—"}</div>
                         </div>
-                      ))}
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-400 italic">
-                      {lang === "ru" ? "Информации о специальностях пока нет" : lang === "kz" ? "Мамандықтар туралы ақпарат әлі жоқ" : "No program information available yet"}
-                    </p>
+                  ))}
+                  
+                  {uni.programs.length > 2 && (
+                    <div className="text-center text-[10px] font-bold text-text-secondary py-1">
+                      + еще {uni.programs.length - 2} программы
+                    </div>
                   )}
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-      </div>
+              
+              <div className="px-6 py-4 bg-gray-50 rounded-b-[1.9rem] border-t border-gray-100 flex justify-between items-center">
+                <span className="text-[11px] font-bold text-text-secondary uppercase">
+                  {uni.programs.length} {lang === "ru" ? "программ" : "бағдарлама"}
+                </span>
+                <Link 
+                  href={`/universities/${uni.id}`}
+                  className="text-xs font-black text-primary hover:underline flex items-center gap-1"
+                >
+                  Подробнее →
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -16,34 +16,34 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
 
   const menuItems = [
     {
-      href: "/universities",
-      label: t("nav.universities", lang),
-      icon: "🎓",
+      href: "/career",
+      label: lang === "ru" ? "Выбор карьеры" : lang === "kz" ? "Мамандық таңдау" : "Career Wizard",
+      icon: "🎯",
       color: "from-blue-500 to-indigo-600",
+    },
+    {
+      href: "/universities",
+      label: lang === "ru" ? "Университеты" : lang === "kz" ? "Университеттер" : "Universities",
+      icon: "🏛️",
+      color: "from-emerald-500 to-teal-600",
+    },
+    {
+      href: "/mock-exam",
+      label: lang === "ru" ? "Пробный ЕНТ" : lang === "kz" ? "Пробный ҰБТ" : "Mock Exam",
+      icon: "📝",
+      color: "from-amber-500 to-orange-600",
+    },
+    {
+      href: "/analytics",
+      label: lang === "ru" ? "Аналитика" : lang === "kz" ? "Аналитика" : "Analytics",
+      icon: "📊",
+      color: "from-purple-500 to-pink-600",
     },
     {
       href: "/profile",
       label: lang === "ru" ? "Настройки" : lang === "kz" ? "Баптаулар" : "Settings",
       icon: "⚙️",
       color: "from-slate-500 to-slate-700",
-    },
-    {
-      href: "#",
-      label: t("nav.about", lang),
-      icon: "ℹ️",
-      color: "from-emerald-500 to-teal-600",
-    },
-    {
-      href: "#",
-      label: t("nav.help", lang),
-      icon: "❓",
-      color: "from-amber-500 to-orange-600",
-    },
-    {
-      href: "#",
-      label: t("nav.contact", lang),
-      icon: "📞",
-      color: "from-rose-500 to-pink-600",
     },
   ];
 

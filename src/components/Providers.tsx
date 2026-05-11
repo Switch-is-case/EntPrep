@@ -17,6 +17,7 @@ interface User {
   language: string;
   profileSubject1: string | null;
   profileSubject2: string | null;
+  needsReonboarding?: boolean;
 }
 
 interface AppContextType {
@@ -49,6 +50,18 @@ const AppContext = createContext<AppContextType>({
 
 export function useApp() {
   return useContext(AppContext);
+}
+
+function OnboardingCheck({ children }: { children: React.ReactNode }) {
+  const { user, ready } = useApp();
+
+  useEffect(() => {
+    if (ready && user?.needsReonboarding && window.location.pathname !== "/career") {
+      window.location.href = "/career";
+    }
+  }, [user, ready]);
+
+  return <>{children}</>;
 }
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -137,7 +150,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
         setIsFullPageMode,
       }}
     >
-      {children}
+      <OnboardingCheck>{children}</OnboardingCheck>
     </AppContext.Provider>
   );
 }

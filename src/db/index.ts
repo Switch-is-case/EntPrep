@@ -3,6 +3,8 @@ import { drizzle as drizzleNeon } from "drizzle-orm/neon-http";
 import { Pool } from "pg";
 import { neon } from "@neondatabase/serverless";
 
+import * as schema from "./schema";
+
 const databaseUrl = process.env.DATABASE_URL;
 
 if (!databaseUrl) {
@@ -18,13 +20,13 @@ const globalForDb = globalThis as typeof globalThis & {
 export const db = (() => {
   if (isProduction) {
     const sql = neon(databaseUrl);
-    return drizzleNeon(sql);
+    return drizzleNeon(sql, { schema });
   }
 
   // Local development with node-postgres
   if (!globalForDb.__db) {
     const pool = new Pool({ connectionString: databaseUrl });
-    globalForDb.__db = drizzlePg(pool);
+    globalForDb.__db = drizzlePg(pool, { schema });
   }
   return globalForDb.__db;
 })();
