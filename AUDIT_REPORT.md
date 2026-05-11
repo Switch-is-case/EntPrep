@@ -1,20 +1,19 @@
 # Audit Report
 
 ## 1. Executive Summary
-- **Top 5 critical issues:**
-  1. **Exposed Server Errors:** `DATABASE_URL` error exposes server paths and prevents build if not set. Also `npm run build` failed due to missing env variables instead of graceful degradation or handling.
-  2. **Security - IDOR / Missing Auth on Critical Routes:** Missing robust auth/authorization wrappers in several `/api` routes (e.g. `src/app/api/roadmap/latest/route.ts` lacks proper `userId` verification and simply takes the latest record from DB).
-  3. **Security - AI API Key Exposure & Cost Risk:** In-memory rate limiting in `src/lib/ratelimit.ts` fails across multiple server instances (Vercel/Node.js clusters), risking unlimited costly API calls to Dify.
-  4. **Database - Missing Foreign Keys / Relations:** `src/db/schema.ts` lacks full relational completeness in some tables (e.g., questions table's `subject` vs `subjectId` legacy fields).
-  5. **Architecture - God Components:** `MockExamInterface.tsx` (300 lines) and `CareerWizard.tsx` (247 lines) mix UI, business logic, timer states, and API calls, leading to hard-to-maintain code.
+- **Top Critical Issues:**
+  1. **Security - Hardcoded JWT Secret:** `src/lib/auth.ts` uses a static string fallback. If the env variable is missing, an attacker can craft valid auth tokens for any user.
+  2. **Security - Sensitive Data Logging:** The app logs raw AI text responses to `stdout` upon parse failure, exposing potentially private user context to server logs.
+  3. **Exposed Server Errors:** `DATABASE_URL` error exposes server paths and prevents build if not set.
+  4. **Security - IDOR on Roadmap Route:** Missing robust auth wrappers in `/api/roadmap/latest/route.ts` lack `userId` verification and fetch global latest records. (Note: `src/app/api/mock/[id]/route.ts` was checked and *is* properly secured with `eq(testSessions.userId, userId)`. The routes `src/app/api/diagnostic/[id]/route.ts` and `src/app/api/results/[id]/route.ts` do not exist in the codebase, meaning diagnostic and results fetching likely occurs through `mock/[id]`).
 - **Production readiness assessment:** **No**. The app has critical missing environment validations, weak rate limiting for cost-sensitive AI integrations, unhandled IDOR vulnerabilities, and god components that could lead to unpredictable state errors during an exam.
 
 ## 2. Statistics
-- Critical issues (🔴): 3
+- Critical issues (🔴): 4
 - High priority (🟠): 5
 - Medium (🟡): 4
 - Low (🟢): 2
-- Total: 14
+- Total: 15
 
 ## 3. Critical Issues (🔴)
 
@@ -38,19 +37,29 @@
 - Suggested fix: Enforce `getUserIdFromRequest` and add `where: eq(studyRoadmaps.userId, userId)` to the query.
 - Priority: Before production
 
-### Issue #3: Missing Environment Variables Validation & Crash on Build
+### Issue #3: Hardcoded JWT Secret & Missing Environment Variables Validation
 - Category: Architecture & Security
 - Severity: 🔴
 - Estimated Time: 🔧 Small (15-60min)
-- File(s): `src/db/index.ts:11`, `.env.example`
-- Problem: The build fails immediately if `DATABASE_URL` is missing. Moreover, there is no `.env.example` file to document required variables (`DATABASE_URL`, `DIFY_API_KEY`, `JWT_SECRET`).
-- Why it matters: New developers cannot easily set up the project, and deployments can fail unexpectedly. Missing secure defaults can lead to weak JWTs in production (fallback to `"ent-prep-ai-secret-key-2024"`).
-- Suggested fix: Implement environment validation (e.g., using `zod` in `env.ts`) and create a comprehensive `.env.example`.
+- File(s): `src/lib/auth.ts`, `src/db/index.ts:11`, `.env.example`
+- Problem: `JWT_SECRET` has a hardcoded fallback (`"ent-prep-ai-secret-key-2024"`). The build fails immediately if `DATABASE_URL` is missing. Moreover, there is no `.env.example` file to document required variables (`DATABASE_URL`, `DIFY_API_KEY`, `JWT_SECRET`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`).
+- Why it matters: This is a critical security vulnerability. If `JWT_SECRET` is missing in production, attackers can forge valid authentication tokens using the known open-source fallback string.
+- Suggested fix: Remove the JWT fallback. The app should refuse to start if `JWT_SECRET` is undefined. Implement environment validation (e.g., using `zod` in `env.ts`) and create a comprehensive `.env.example` including the new Redis vars.
+- Priority: Before production
+
+### Issue #4: Sensitive Data Exposure in API Error Logs
+- Category: Security
+- Severity: 🔴
+- Estimated Time: ⚡ Quick (<15min)
+- File(s): `src/lib/dify.ts:123`, `src/app/api/admin/make-admin/route.ts`
+- Problem: The application explicitly logs `console.error("Full original response:", text);` when AI JSON parsing fails. The `make-admin` route logs whether an Auth header is present.
+- Why it matters: Logging full, raw AI text responses or request contexts exposes potential PII, prompts, and sensitive user data to monitoring tools (like Datadog/Sentry) where it shouldn't be accessible by all developers.
+- Suggested fix: Remove or redact sensitive variables from `console.log` and `console.error` calls. Never log raw AI generation bodies to standard output in production.
 - Priority: Before production
 
 ## 4. High Priority Issues (🟠)
 
-### Issue #4: God Component & Mixed Logic in MockExamInterface
+### Issue #5: God Component & Mixed Logic in MockExamInterface
 - Category: Clean Code & Architecture
 - Severity: 🟠
 - Estimated Time: 🛠️ Medium (1-3h)
@@ -60,7 +69,7 @@
 - Suggested fix: Extract timer logic into a `useExamTimer` hook. Extract API fetching and saving into a `useMockExam` hook. Split UI into smaller components (e.g., `QuestionRenderer`, `SubjectTabs`).
 - Priority: Before production
 
-### Issue #5: AI JSON Parsing Fragility & Malformed Responses
+### Issue #6: AI JSON Parsing Fragility & Malformed Responses
 - Category: AI Integration
 - Severity: 🟠
 - Estimated Time: 🔧 Small (15-60min)
@@ -70,7 +79,7 @@
 - Suggested fix: Enforce Dify to return strict JSON by tweaking the prompt. Wrap the final parsing in a safe fallback that returns a degraded generic roadmap if parsing completely fails, rather than throwing.
 - Priority: Before production
 
-### Issue #6: Missing React Dependency Arrays
+### Issue #7: Missing React Dependency Arrays
 - Category: Performance / Clean Code
 - Severity: 🟠
 - Estimated Time: ⚡ Quick (<15min)
@@ -80,7 +89,7 @@
 - Suggested fix: Add missing dependencies to the `useEffect` arrays or wrap functions in `useCallback`.
 - Priority: Before production
 
-### Issue #7: Potential N+1 / Unoptimized Queries in Mock Start
+### Issue #8: Potential N+1 / Unoptimized Queries in Mock Start
 - Category: Database & ORM / Performance
 - Severity: 🟠
 - Estimated Time: 🔧 Small (15-60min)
@@ -90,7 +99,7 @@
 - Suggested fix: Optimize the random row selection (e.g., using TABLESAMPLE or picking random IDs in application logic instead of `ORDER BY RANDOM()`).
 - Priority: Before production
 
-### Issue #8: Legacy Fields and Database Schema Debt
+### Issue #9: Legacy Fields and Database Schema Debt
 - Category: Database & ORM
 - Severity: 🟠
 - Estimated Time: 🛠️ Medium (1-3h)
@@ -102,7 +111,7 @@
 
 ## 5. Medium Priority (🟡)
 
-### Issue #9: Heavy 'any' Type Usage
+### Issue #10: Heavy 'any' Type Usage
 - Category: TypeScript Quality
 - Severity: 🟡
 - Estimated Time: 🛠️ Medium (1-3h)
@@ -111,7 +120,7 @@
 - Why it matters: Defeats the purpose of using TypeScript and Drizzle ORM, masking potential runtime errors.
 - Suggested fix: Define proper interfaces for API responses and use Drizzle's inferred types (`InferSelectModel`).
 
-### Issue #10: Mixed Client/Server Components
+### Issue #11: Mixed Client/Server Components
 - Category: Clean Code & Architecture
 - Severity: 🟡
 - Estimated Time: 🔧 Small (15-60min)
@@ -120,7 +129,7 @@
 - Why it matters: Increases client bundle size.
 - Suggested fix: Shift data fetching to a server component and pass the initial data as props to the interactive client component.
 
-### Issue #11: PWA Service Worker Hardcoded URLs
+### Issue #12: PWA Service Worker Hardcoded URLs
 - Category: PWA & Mobile UX
 - Severity: 🟡
 - Estimated Time: ⚡ Quick (<15min)
@@ -129,7 +138,7 @@
 - Why it matters: If files are renamed or added, the PWA will fail to cache them offline.
 - Suggested fix: Use `next-pwa` or Workbox to auto-generate the service worker with the correct webpack/turbopack assets.
 
-### Issue #12: Using `<img>` instead of `next/image`
+### Issue #13: Using `<img>` instead of `next/image`
 - Category: Performance
 - Severity: 🟡
 - Estimated Time: ⚡ Quick (<15min)
@@ -140,7 +149,7 @@
 
 ## 6. Low Priority (🟢)
 
-### Issue #13: Unescaped Entities in Roadmap Page
+### Issue #14: Unescaped Entities in Roadmap Page
 - Category: Clean Code
 - Severity: 🟢
 - Estimated Time: ⚡ Quick (<15min)
@@ -149,7 +158,7 @@
 - Why it matters: Fails linting, might cause minor rendering quirks.
 - Suggested fix: Replace `"` with `&quot;`.
 
-### Issue #14: Empty Catch Blocks & Missing Error Boundaries
+### Issue #15: Empty Catch Blocks & Missing Error Boundaries
 - Category: Error Handling
 - Severity: 🟢
 - Estimated Time: 🔧 Small (15-60min)
@@ -170,7 +179,7 @@
 - [ ] Error handling robust (No silent JSON parses)
 - [ ] Mobile tested
 - [ ] Performance acceptable (`ORDER BY RANDOM()` fixed)
-- [ ] Security validated (IDOR fixed on roadmap route)
+- [ ] Security validated (IDOR fixed on roadmap route, `mock/[id]` confirmed secure)
 - [ ] AI cost protected (Redis rate limiting)
 
 ## 9. Recommended Action Plan
