@@ -4,6 +4,7 @@ import "./globals.css";
 import Providers from "@/components/Providers";
 import NavbarWrapper from "@/components/NavbarWrapper";
 import { BottomNav } from "@/components/BottomNav";
+import PWARegistration from "@/components/PWARegistration";
 
 export const viewport: Viewport = {
   themeColor: "#2563eb",
@@ -35,6 +36,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="ru">
       <body className="bg-bg text-text antialiased min-h-screen">
         <Providers>
+          <PWARegistration />
           <NavbarWrapper />
           <main className="pb-20 md:pb-0">{children}</main>
           <BottomNav />
