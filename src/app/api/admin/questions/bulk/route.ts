@@ -1,43 +1,21 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { NextRequest } from "next/server";
 import { questionsService } from "@/lib/container";
-
-async function checkAdmin(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return null;
-
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  if (!user?.isAdmin) return null;
-  return user;
-}
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) {
-    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-  }
-
   try {
+    const admin = await requireAdmin(request);
+    
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_BULK");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const body = await request.json();
     const result = await questionsService.bulkImport(body);
-    return NextResponse.json(result);
+    return createAdminResponse(result);
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
+    if (error instanceof Response) return error;
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return createErrorResponse("Internal Server Error", 500);
   }
 }

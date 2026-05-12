@@ -1,0 +1,25 @@
+import { NextRequest } from "next/server";
+import { usersService } from "@/lib/container";
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
+
+type RouteContext = { params: Promise<{ id: string }> };
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_USERS");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
+    const { id } = await context.params;
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    await usersService.restoreUser(admin.userId, admin.email, id, ip);
+    
+    return createAdminResponse({ message: "User restored successfully" });
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
+    console.error("Restore user error:", error);
+    return createErrorResponse("Failed to restore user", 500);
+  }
+}

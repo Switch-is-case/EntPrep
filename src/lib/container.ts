@@ -8,6 +8,7 @@ import { ExplanationRepository } from "@/repositories/explanation.repository";
 
 import { AiGeneratorService } from "@/services/ai-generator.service";
 import { AnalyticsService } from "@/services/analytics.service";
+import { AuditService } from "@/services/audit.service";
 import { AuthService } from "@/services/auth.service";
 import { ExplanationService } from "@/services/explanation.service";
 import { ProgressService } from "@/services/progress.service";
@@ -28,8 +29,9 @@ export const explanationRepository = new ExplanationRepository();
 // Instantiate services and inject dependencies
 export const aiGeneratorService = new AiGeneratorService();
 export const analyticsService = new AnalyticsService(analyticsRepository);
+export const auditService = new AuditService();
 export const explanationService = new ExplanationService(explanationRepository);
-export const usersService = new UsersService(usersRepository);
+export const usersService = new UsersService(usersRepository, auditService);
 export const authService = new AuthService(usersRepository);
 export const progressService = new ProgressService(progressRepository);
 export const questionsService = new QuestionsService(questionsRepository);

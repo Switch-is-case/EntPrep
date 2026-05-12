@@ -22,7 +22,7 @@ export default function TestsPage() {
 
   useEffect(() => {
     let isMounted = true;
-    if (ready && user) {
+    if (ready && user && localStorage.getItem("ent-token")) {
       fetch("/api/combinations", { headers: authHeaders() })
         .then(res => res.json())
         .then(data => {

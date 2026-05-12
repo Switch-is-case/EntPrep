@@ -44,7 +44,16 @@ export async function POST(request: NextRequest) {
       // We don't fail the registration if email fails, user can resend later
     }
 
-    return NextResponse.json(result);
+    const response = NextResponse.json(result);
+    response.cookies.set("ent-token", result.token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    });
+
+    return response;
   } catch (error: unknown) {
     if (error instanceof AppError) {
       return NextResponse.json(

@@ -67,7 +67,8 @@ export function useAdminUniversities() {
         headers: authHeaders(),
       });
       if (res.ok) {
-        const data = await res.json();
+        const resData = await res.json();
+        const data = resData.data;
         setUniversities(data.universities || []);
       }
     } catch (e) {
@@ -219,16 +220,17 @@ export function useAdminUniversities() {
         body: JSON.stringify(bulkParsed),
       });
       
-      const data = await res.json();
+      const resData = await res.json();
+      const data = resData.data;
       if (res.ok || res.status === 207) {
         if (res.ok) setBulkResult(data);
         if (res.status === 207) {
-          setBulkResult({ success: false, message: data.message });
-          setBulkErrors(data.details || []);
+          setBulkResult({ success: false, message: resData.message });
+          setBulkErrors(resData.details || []);
         }
         fetchUniversities();
       } else {
-        setBulkErrors([data.error || "Ошибка импорта"]);
+        setBulkErrors([resData.error || "Ошибка импорта"]);
       }
     } catch (e) {
       console.error(e);

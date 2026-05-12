@@ -1,62 +1,45 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
-import { getUserIdFromRequest } from "@/lib/auth";
+import { NextRequest } from "next/server";
 import { usersService } from "@/lib/container";
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-async function getRequesterAdminId(request: NextRequest): Promise<string | null> {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return null;
-
-  const profile = await usersService.getUserProfile(userId);
-  if (!profile || !(profile as any).isAdmin) return null;
-  return userId;
-}
-
 export async function PUT(request: NextRequest, context: RouteContext) {
-  const requesterId = await getRequesterAdminId(request);
-  if (!requesterId) {
-    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-  }
-
-  const { id } = await context.params;
-
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_USERS");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
+    const { id } = await context.params;
     const { isAdmin } = await request.json();
-    const updated = await usersService.setAdminStatus(requesterId, id, isAdmin);
-    return NextResponse.json({ user: updated });
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    const updated = await usersService.setAdminStatus(admin.userId, admin.email, id, isAdmin, ip);
+    
+    return createAdminResponse({ user: updated });
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
+    if (error instanceof Response) return error;
     console.error("Update user error:", error);
-    return NextResponse.json({ error: "Failed to update user" }, { status: 500 });
+    return createErrorResponse("Failed to update user", 500);
   }
 }
 
 export async function DELETE(request: NextRequest, context: RouteContext) {
-  const requesterId = await getRequesterAdminId(request);
-  if (!requesterId) {
-    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-  }
-
-  const { id } = await context.params;
-
   try {
-    await usersService.deleteUser(requesterId, id);
-    return NextResponse.json({ success: true });
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_USERS");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
+    const { id } = await context.params;
+    const ip = request.headers.get("x-forwarded-for") || "unknown";
+    await usersService.softDeleteUser(admin.userId, admin.email, id, ip);
+    
+    return createAdminResponse({ success: true });
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
+    if (error instanceof Response) return error;
     console.error("Delete user error:", error);
-    return NextResponse.json({ error: "Failed to delete user" }, { status: 500 });
+    return createErrorResponse("Failed to delete user", 500);
   }
 }

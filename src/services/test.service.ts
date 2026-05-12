@@ -115,6 +115,10 @@ export class TestService {
     return this.testsRepository.getSessionWithDetails(sessionId, userId);
   }
 
+  async getAllSessions(options: { page: number; limit: number; testType?: string; completed?: boolean }) {
+    return this.testsRepository.getAllSessions(options);
+  }
+
   private generateRecommendations(
     subjectResults: Record<string, { correct: number; total: number; skipped: number; wrong: number }>
   ): string {

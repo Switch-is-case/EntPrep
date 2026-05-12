@@ -1,28 +1,22 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { db } from "@/db";
-import { universities, universityPrograms, users } from "@/db/schema";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { universities, universityPrograms } from "@/db/schema";
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user?.isAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_BULK");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const body = await request.json();
 
     if (!Array.isArray(body) || body.length === 0) {
-      return NextResponse.json(
-        { error: "Invalid format. Expected a non-empty array of universities." },
-        { status: 400 }
-      );
+      return createErrorResponse("Invalid format. Expected a non-empty array of universities.", 400);
     }
 
-    // 1. Валидация всех элементов перед вставкой
     const validationErrors: string[] = [];
     for (let i = 0; i < body.length; i++) {
       const item = body[i];
@@ -32,13 +26,9 @@ export async function POST(request: NextRequest) {
     }
 
     if (validationErrors.length > 0) {
-      return NextResponse.json(
-        { error: "Validation failed", details: validationErrors },
-        { status: 400 }
-      );
+      return createErrorResponse("Validation failed", 400);
     }
 
-    // 2. ✅ Один INSERT для всех университетов вместо N INSERT-ов
     const uniRows = body.map((item: any) => ({
       nameRu: item.nameRu,
       nameKz: item.nameKz,
@@ -54,7 +44,6 @@ export async function POST(request: NextRequest) {
 
     const insertedUnis = await db.insert(universities).values(uniRows).returning();
 
-    // 3. ✅ Один INSERT для всех программ вместо N INSERT-ов
     const allProgramRows = insertedUnis.flatMap((uni: any, idx: number) => {
       const item = body[idx];
       if (!item.programs || !Array.isArray(item.programs) || item.programs.length === 0) return [];
@@ -74,15 +63,13 @@ export async function POST(request: NextRequest) {
       await db.insert(universityPrograms).values(allProgramRows);
     }
 
-    return NextResponse.json({
+    return createAdminResponse({
       success: true,
       message: `Successfully imported ${insertedUnis.length} universities with ${allProgramRows.length} programs.`,
     });
-  } catch (error) {
-    if (error instanceof AppError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    }
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
     console.error("Admin universities bulk import error:", error);
-    return NextResponse.json({ error: "Failed to process bulk import." }, { status: 500 });
+    return createErrorResponse("Failed to process bulk import.", 500);
   }
 }

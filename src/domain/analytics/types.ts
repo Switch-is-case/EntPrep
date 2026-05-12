@@ -34,6 +34,8 @@ export interface AdminStats {
   totalQuestions: number;
   totalSessions: number;
   totalAnswers: number;
+  newUsersThisPeriod?: number;
+  newSessionsThisPeriod?: number;
 }
 
 export interface QuestionsBySubject {
@@ -41,9 +43,40 @@ export interface QuestionsBySubject {
   count: number;
 }
 
+export interface TimeSeriesData {
+  date: string;
+  count: number;
+}
+
+export interface SubjectPerformance {
+  subject: string;
+  avgScore: number;
+  totalSessions: number;
+}
+
+export interface UserEngagementStats {
+  totalUsers: number;
+  verifiedUsers: number;
+  bannedUsers: number;
+  deletedUsers: number;
+  activeThisWeek: number;
+}
+
+export interface TestCompletionRate {
+  testType: string;
+  total: number;
+  completed: number;
+  rate: number;
+}
+
 export interface AdminDashboardDTO {
   stats: AdminStats;
   questionsBySubject: QuestionsBySubject[];
+  userRegistrations: TimeSeriesData[];
+  testSessions: TimeSeriesData[];
+  subjectPerformance: SubjectPerformance[];
+  engagement: UserEngagementStats;
+  completionRates: TestCompletionRate[];
   recentSessions: {
     id: string;
     userId: string;
@@ -58,5 +91,8 @@ export interface AdminDashboardDTO {
     email: string;
     createdAt: Date;
     isAdmin: boolean;
+    emailVerified: boolean;
+    bannedAt: Date | null;
   }[];
 }
+export type Period = "7d" | "30d" | "90d";

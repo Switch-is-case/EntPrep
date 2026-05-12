@@ -67,13 +67,13 @@ export default function AdminUniversitiesPage() {
             }}
             className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-600 transition-colors"
           >
-            Массовый импорт
+            {t("admin.questions.bulkImport", lang)}
           </button>
           <button
             onClick={() => openModal()}
             className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors"
           >
-            + Добавить университет
+            + {t("admin.universities.add", lang)}
           </button>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function AdminUniversitiesPage() {
       <div className="mb-6">
         <input
           type="text"
-          placeholder="Поиск по названию или городу..."
+          placeholder={t("admin.universities.searchPlaceholder", lang)}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm"
@@ -89,7 +89,7 @@ export default function AdminUniversitiesPage() {
       </div>
 
       {loading ? (
-        <div className="text-slate-400">Загрузка...</div>
+        <div className="text-slate-400">{t("common.loading", lang)}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {universities.map((uni) => (
@@ -109,13 +109,13 @@ export default function AdminUniversitiesPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-xs font-medium">
-                  <button onClick={() => openModal(uni)} className="text-slate-400 hover:text-white transition-colors">Редактировать</button>
-                  <button onClick={() => deleteUniversity(uni.id)} className="text-danger hover:text-red-400 transition-colors">Удалить</button>
+                  <button onClick={() => openModal(uni)} className="text-slate-400 hover:text-white transition-colors">{t("admin.common.edit", lang)}</button>
+                  <button onClick={() => deleteUniversity(uni.id)} className="text-danger hover:text-red-400 transition-colors">{t("admin.users.actions.delete", lang)}</button>
                 </div>
               </div>
               
               <div className="mt-4 pt-4 border-t border-slate-700">
-                <h4 className="text-sm font-semibold text-slate-300 mb-2">Специальности ({uni.programs.length})</h4>
+                <h4 className="text-sm font-semibold text-slate-300 mb-2">{t("admin.universities.programs", lang)} ({uni.programs.length})</h4>
                 <div className="flex flex-wrap gap-2">
                   {uni.programs.slice(0, 3).map((p, idx) => (
                     <span key={idx} className="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">
@@ -123,7 +123,7 @@ export default function AdminUniversitiesPage() {
                     </span>
                   ))}
                   {uni.programs.length > 3 && (
-                    <span className="text-xs text-slate-500">+{uni.programs.length - 3} еще</span>
+                    <span className="text-xs text-slate-500">{t("admin.universities.more", lang).replace("{count}", String(uni.programs.length - 3))}</span>
                   )}
                 </div>
               </div>
@@ -137,7 +137,7 @@ export default function AdminUniversitiesPage() {
           <div className="bg-slate-800 rounded-2xl w-full max-w-4xl border border-slate-700 max-h-[90vh] flex flex-col">
             <div className="p-6 border-b border-slate-700 flex justify-between items-center shrink-0">
               <h2 className="text-xl font-bold text-white">
-                {editingUni ? "Редактировать" : "Добавить"} университет
+                {editingUni ? t("admin.universities.modal.edit", lang) : t("admin.universities.modal.new", lang)}
               </h2>
               <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-white">✕</button>
             </div>
@@ -146,30 +146,30 @@ export default function AdminUniversitiesPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Название (RU)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.nameRu", lang)}</label>
                   <input type="text" value={nameRu} onChange={e => setNameRu(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Название (KZ)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.nameKz", lang)}</label>
                   <input type="text" value={nameKz} onChange={e => setNameKz(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Название (EN)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.nameEn", lang)}</label>
                   <input type="text" value={nameEn} onChange={e => setNameEn(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Город (RU)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.cityRu", lang)}</label>
                   <input type="text" value={cityRu} onChange={e => setCityRu(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Город (KZ)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.cityKz", lang)}</label>
                   <input type="text" value={cityKz} onChange={e => setCityKz(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">Город (EN)*</label>
+                  <label className="block text-sm font-medium text-slate-300 mb-1">{t("admin.universities.form.cityEn", lang)}</label>
                   <input type="text" value={cityEn} onChange={e => setCityEn(e.target.value)} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                 </div>
               </div>
@@ -180,7 +180,7 @@ export default function AdminUniversitiesPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">Описание</label>
+                <label className="block text-sm font-medium text-slate-300 mb-2">{t("admin.universities.form.description", lang)}</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <textarea placeholder="RU..." value={descriptionRu} onChange={e => setDescriptionRu(e.target.value)} rows={3} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
                   <textarea placeholder="KZ..." value={descriptionKz} onChange={e => setDescriptionKz(e.target.value)} rows={3} className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm" />
@@ -190,8 +190,8 @@ export default function AdminUniversitiesPage() {
 
               <div className="pt-6 border-t border-slate-700">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-bold text-white">Программы / Специальности</h3>
-                  <button onClick={addProgram} className="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600">+ Добавить</button>
+                  <h3 className="text-lg font-bold text-white">{t("admin.universities.form.programs", lang)}</h3>
+                  <button onClick={addProgram} className="bg-slate-700 text-white px-3 py-1.5 rounded-lg text-sm hover:bg-slate-600">+ {t("admin.common.add", lang).replace("Добавить", "Добавить").replace("Қосу", "Қосу").replace("Add", "Add")}</button>
                 </div>
 
                 <div className="space-y-4">
@@ -199,24 +199,24 @@ export default function AdminUniversitiesPage() {
                     <div key={idx} className="bg-slate-900 border border-slate-700 rounded-lg p-4 relative">
                       <button onClick={() => removeProgram(idx)} className="absolute top-2 right-2 text-slate-500 hover:text-danger">✕</button>
                       <div className="grid grid-cols-3 gap-3 mb-3 pr-8">
-                        <input type="text" placeholder="Название (RU)" value={p.nameRu} onChange={e => updateProgram(idx, "nameRu", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
-                        <input type="text" placeholder="Название (KZ)" value={p.nameKz} onChange={e => updateProgram(idx, "nameKz", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
-                        <input type="text" placeholder="Название (EN)" value={p.nameEn} onChange={e => updateProgram(idx, "nameEn", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
+                        <input type="text" placeholder={`${t("admin.questions.table.question", lang).replace("Вопрос", "Название").replace("Сұрақ", "Атауы").replace("Question", "Name")} (RU)`} value={p.nameRu} onChange={e => updateProgram(idx, "nameRu", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
+                        <input type="text" placeholder={`${t("admin.questions.table.question", lang).replace("Вопрос", "Название").replace("Сұрақ", "Атауы").replace("Question", "Name")} (KZ)`} value={p.nameKz} onChange={e => updateProgram(idx, "nameKz", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
+                        <input type="text" placeholder={`${t("admin.questions.table.question", lang).replace("Вопрос", "Название").replace("Сұрақ", "Атауы").replace("Question", "Name")} (EN)`} value={p.nameEn} onChange={e => updateProgram(idx, "nameEn", e.target.value)} className="bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
                       </div>
                       <div className="w-1/3">
-                        <input type="number" placeholder="Проходной балл" value={p.passingScore} onChange={e => updateProgram(idx, "passingScore", parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
+                        <input type="number" placeholder={t("admin.universities.form.passingScore", lang)} value={p.passingScore} onChange={e => updateProgram(idx, "passingScore", parseInt(e.target.value))} className="w-full bg-slate-800 border border-slate-700 rounded p-2 text-sm text-white" />
                       </div>
                     </div>
                   ))}
-                  {programs.length === 0 && <div className="text-sm text-slate-400 text-center py-4 border border-dashed border-slate-700 rounded-lg">Нет добавленных программ</div>}
+                  {programs.length === 0 && <div className="text-sm text-slate-400 text-center py-4 border border-dashed border-slate-700 rounded-lg">{t("admin.universities.form.noPrograms", lang)}</div>}
                 </div>
               </div>
 
             </div>
 
             <div className="p-6 border-t border-slate-700 flex justify-end gap-3 shrink-0">
-              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-700">Отмена</button>
-              <button onClick={saveUniversity} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark">Сохранить</button>
+              <button onClick={() => setShowModal(false)} className="px-4 py-2 rounded-lg text-sm font-semibold text-slate-300 hover:bg-slate-700">{t("admin.common.cancel", lang)}</button>
+              <button onClick={saveUniversity} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark">{t("admin.common.save", lang)}</button>
             </div>
           </div>
         </div>
@@ -225,7 +225,7 @@ export default function AdminUniversitiesPage() {
       {showBulkModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
           <div className="bg-slate-800 rounded-2xl w-full max-w-3xl border border-slate-700 p-6">
-            <h2 className="text-xl font-bold text-white mb-6">Массовый импорт университетов</h2>
+            <h2 className="text-xl font-bold text-white mb-6">{t("admin.universities.bulk.title", lang)}</h2>
             {/* Modal Body for bulk is kept similar to before, omitting details for brevity since it handles raw JSON which user constructs */}
             <div className="space-y-4">
               <textarea
@@ -237,8 +237,8 @@ export default function AdminUniversitiesPage() {
               {bulkParseError && <div className="text-danger text-sm">{bulkParseError}</div>}
               {bulkErrors.length > 0 && <div className="text-danger text-sm">{bulkErrors.join(', ')}</div>}
               <div className="flex justify-end gap-3 pt-4 border-t border-slate-700">
-                <button onClick={() => setShowBulkModal(false)} className="px-4 py-2 text-slate-300 hover:bg-slate-700 rounded-lg">Отмена</button>
-                <button onClick={handleBulkImport} disabled={!bulkParsed || bulkImporting} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark">Импортировать</button>
+                <button onClick={() => setShowBulkModal(false)} className="px-4 py-2 text-slate-300 hover:bg-slate-700 rounded-lg">{t("admin.common.cancel", lang)}</button>
+                <button onClick={handleBulkImport} disabled={!bulkParsed || bulkImporting} className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark">{t("admin.questions.bulkImport", lang).replace("Массовый импорт", "Импортировать").replace("Жаппай импорт", "Импорттау").replace("Bulk Import", "Import")}</button>
               </div>
             </div>
           </div>

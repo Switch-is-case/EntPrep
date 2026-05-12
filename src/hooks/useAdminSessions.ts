@@ -39,7 +39,8 @@ export function useAdminSessions() {
       const res = await fetch(`/api/admin/sessions?${params}`, { headers: authHeaders() });
 
       if (res.ok) {
-        const data = await res.json();
+        const resData = await res.json();
+        const data = resData.data;
         setSessions(data.sessions);
         setTotalPages(data.totalPages);
       }

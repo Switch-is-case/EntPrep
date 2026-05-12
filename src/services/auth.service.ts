@@ -1,7 +1,7 @@
 import { hashPassword, verifyPassword, createToken } from "@/lib/auth";
 import { AuthResponseDTO, LoginDTO, RegisterDTO } from "@/domain/users/types";
 import { loginSchema, registerSchema } from "@/domain/validation";
-import { ValidationError, UnauthorizedError, ConflictError } from "@/lib/errors";
+import { ValidationError, UnauthorizedError, ConflictError, ForbiddenError } from "@/lib/errors";
 import { UsersRepository } from "@/repositories/users.repository";
 
 export class AuthService {
@@ -20,7 +20,15 @@ export class AuthService {
       throw new UnauthorizedError("Invalid credentials");
     }
 
-    const token = createToken(user.id);
+    if (user.deletedAt) {
+      throw new UnauthorizedError("Account not found");
+    }
+
+    if (user.bannedAt) {
+      throw new ForbiddenError(`Ваш аккаунт заблокирован. Причина: ${user.banReason || "Не указана"}`);
+    }
+
+    const token = createToken(user.id, user.email, user.isAdmin, user.sessionVersion);
 
     return {
       token,
@@ -55,7 +63,7 @@ export class AuthService {
       language: data.language || "ru",
     });
 
-    const token = createToken(user.id);
+    const token = createToken(user.id, user.email, user.isAdmin, user.sessionVersion);
 
     return {
       token,

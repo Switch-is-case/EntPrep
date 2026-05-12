@@ -4,9 +4,32 @@ import { getUserIdFromRequest } from "@/lib/auth";
 import { usersService } from "@/lib/container";
 
 export async function GET(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) {
+  const token = request.headers.get("authorization")?.startsWith("Bearer ") 
+    ? request.headers.get("authorization")?.slice(7)
+    : request.cookies.get("ent-token")?.value;
+
+  const { verifyToken } = await import("@/lib/auth");
+  
+  if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const payload = verifyToken(token);
+  
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const userId = payload.userId;
+  const validation = await usersService.validateSession(userId, payload.sessionVersion);
+  
+  if (!validation.valid) {
+    console.log("[PROFILE API] Session invalid:", { userId, reason: validation.reason, banReason: validation.banReason });
+    return NextResponse.json({ 
+      error: "Unauthorized", 
+      reason: validation.reason,
+      banReason: validation.banReason 
+    }, { status: 401 });
   }
 
   const profile = await usersService.getUserProfile(userId);

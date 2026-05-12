@@ -1,5 +1,5 @@
 import { db } from "@/db";
-import { testSessions, testAnswers, questions, progress } from "@/db/schema";
+import { testSessions, testAnswers, questions, progress, users } from "@/db/schema";
 import { eq, and, desc, sql, inArray, type InferSelectModel } from "drizzle-orm";
 import { Question } from "@/domain/questions/types";
 import { TestSession, TestAnswer, SessionHistoryDTO } from "@/domain/tests/types";
@@ -178,6 +178,59 @@ export class TestsRepository {
     });
 
     return { session, questions: questionsWithAnswers };
+  }
+
+  async getAllSessions({ page, limit, testType, completed }: { 
+    page: number; 
+    limit: number; 
+    testType?: string; 
+    completed?: boolean; 
+  }) {
+    const offset = (page - 1) * limit;
+    
+    const whereConditions = [];
+    if (testType) whereConditions.push(eq(testSessions.testType, testType));
+    if (completed !== undefined) whereConditions.push(eq(testSessions.completed, completed));
+    
+    const where = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+
+    const [totalRes] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(testSessions)
+      .where(where);
+
+    const sessions = await db
+      .select({
+        id: testSessions.id,
+        userId: testSessions.userId,
+        testType: testSessions.testType,
+        subjects: testSessions.subjects,
+        totalQuestions: testSessions.totalQuestions,
+        correctAnswers: testSessions.correctAnswers,
+        skippedAnswers: testSessions.skippedAnswers,
+        wrongAnswers: testSessions.wrongAnswers,
+        score: testSessions.score,
+        completed: testSessions.completed,
+        startedAt: testSessions.startedAt,
+        completedAt: testSessions.completedAt,
+        user: {
+          id: users.id,
+          name: users.name,
+          email: users.email
+        }
+      })
+      .from(testSessions)
+      .leftJoin(users, eq(testSessions.userId, users.id))
+      .where(where)
+      .orderBy(desc(testSessions.startedAt))
+      .limit(limit)
+      .offset(offset);
+
+    return {
+      sessions,
+      totalPages: Math.ceil(totalRes.count / limit),
+      totalCount: totalRes.count
+    };
   }
 }
 

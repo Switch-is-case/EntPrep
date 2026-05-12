@@ -12,6 +12,7 @@ import { Spinner } from "@/components/Spinner";
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
 
 export default function AdminQuestions() {
+  const { user, lang } = useApp();
   const {
     questions,
     loading,
@@ -68,13 +69,13 @@ export default function AdminQuestions() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Вопросы</h1>
+        <h1 className="text-2xl font-bold text-white">{t("admin.questions.title", lang)}</h1>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setShowAiModal(true)}
             className="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-4 py-2 rounded-lg font-medium hover:bg-purple-600/30 transition-colors flex items-center gap-2 text-sm"
           >
-            Сгенерировать ИИ
+            {t("admin.questions.generateAi", lang)}
           </button>
           <button
             onClick={() => {
@@ -87,13 +88,13 @@ export default function AdminQuestions() {
             }}
             className="border border-slate-600 text-slate-300 px-4 py-2 rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm"
           >
-            Массовый импорт
+            {t("admin.questions.bulkImport", lang)}
           </button>
           <button
             onClick={openCreate}
             className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
           >
-            <span className="text-lg">+</span> Добавить вопрос
+            <span className="text-lg">+</span> {t("admin.questions.add", lang)}
           </button>
         </div>
       </div>
@@ -108,7 +109,7 @@ export default function AdminQuestions() {
           }}
           className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
         >
-          <option value="">Все предметы</option>
+          <option value="">{t("admin.questions.filter.allSubjects", lang)}</option>
           {allSubjects.map((s) => (
             <option key={s} value={s}>
               {getSubjectName(s)}
@@ -117,7 +118,7 @@ export default function AdminQuestions() {
         </select>
         <input
           type="text"
-          placeholder="Поиск..."
+          placeholder={t("admin.common.search", lang)}
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -139,11 +140,11 @@ export default function AdminQuestions() {
               <thead className="bg-slate-700/50">
                 <tr className="text-left text-slate-300">
                   <th className="px-4 py-3 font-medium">ID</th>
-                  <th className="px-4 py-3 font-medium">Предмет</th>
-                  <th className="px-4 py-3 font-medium">Вопрос (RU)</th>
-                  <th className="px-4 py-3 font-medium">Ответ</th>
-                  <th className="px-4 py-3 font-medium">Сложность</th>
-                  <th className="px-4 py-3 font-medium">Действия</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.questions.form.subject", lang).replace(" *", "")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.question", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.answer", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.difficulty", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.common.actions", lang)}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
@@ -171,7 +172,7 @@ export default function AdminQuestions() {
                             : "bg-warning/20 text-warning"
                         }`}
                       >
-                        {q.difficulty}
+                        {t(`admin.questions.difficulty.${q.difficulty}` as any, lang)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
@@ -180,13 +181,13 @@ export default function AdminQuestions() {
                           onClick={() => openEdit(q)}
                           className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                         >
-                          Изменить
+                          {t("admin.common.edit", lang)}
                         </button>
                         <button
                           onClick={() => handleDelete(q.id)}
                           className="text-xs font-medium px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
                         >
-                          Удалить
+                          {t("admin.users.actions.delete", lang)}
                         </button>
                       </div>
                     </td>
@@ -198,7 +199,7 @@ export default function AdminQuestions() {
                       colSpan={6}
                       className="px-4 py-8 text-center text-slate-400"
                     >
-                      Нет вопросов
+                      {t("admin.common.noData", lang)}
                     </td>
                   </tr>
                 )}
@@ -237,7 +238,7 @@ export default function AdminQuestions() {
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white">
-                {editingQuestion ? "Редактировать вопрос" : "Новый вопрос"}
+                {editingQuestion ? t("admin.questions.modal.edit", lang) : t("admin.questions.modal.new", lang)}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -252,7 +253,7 @@ export default function AdminQuestions() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Предмет *
+                    {t("admin.questions.form.subject", lang)}
                   </label>
                   <select
                     value={form.subject}
@@ -270,7 +271,7 @@ export default function AdminQuestions() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Сложность
+                    {t("admin.questions.table.difficulty", lang)}
                   </label>
                   <select
                     value={form.difficulty}
@@ -279,21 +280,21 @@ export default function AdminQuestions() {
                     }
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
                   >
-                    <option value="easy">Легкий</option>
-                    <option value="medium">Средний</option>
-                    <option value="hard">Сложный</option>
+                    <option value="easy">{t("admin.questions.difficulty.easy", lang)}</option>
+                    <option value="medium">{t("admin.questions.difficulty.medium", lang)}</option>
+                    <option value="hard">{t("admin.questions.difficulty.hard", lang)}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Тема
+                    {t("admin.questions.form.topic", lang)}
                   </label>
                   <input
                     type="text"
                     value={form.topic}
                     onChange={(e) => setForm({ ...form, topic: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
-                    placeholder="Алгебра, Геометрия..."
+                    placeholder={t("admin.questions.form.topicPlaceholder", lang)}
                   />
                 </div>
               </div>
@@ -302,7 +303,7 @@ export default function AdminQuestions() {
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Вопрос (RU) *
+                    {t("admin.questions.form.questionRu", lang)}
                   </label>
                   <textarea
                     value={form.questionTextRu}
@@ -315,7 +316,7 @@ export default function AdminQuestions() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Сұрақ (KZ)
+                    {t("admin.questions.form.questionKz", lang)}
                   </label>
                   <textarea
                     value={form.questionTextKz}
@@ -328,7 +329,7 @@ export default function AdminQuestions() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Question (EN)
+                    {t("admin.questions.form.questionEn", lang)}
                   </label>
                   <textarea
                     value={form.questionTextEn}
@@ -344,11 +345,11 @@ export default function AdminQuestions() {
               {/* Image Upload */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                  Изображение к вопросу (необязательно)
+                  {t("admin.questions.form.imageLabel", lang)}
                 </label>
                 <div className="flex items-start gap-4">
                   <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageUploading ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-400" : "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"}`}>
-                    {imageUploading ? "Загрузка..." : "Выбрать файл"}
+                    {imageUploading ? t("common.loading", lang) : t("admin.questions.bulk.uploadJson", lang).replace(".json ", "")}
                     <input
                       type="file"
                       accept="image/jpeg,image/png,image/webp,image/gif"
@@ -369,20 +370,20 @@ export default function AdminQuestions() {
                         onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
                         className="text-xs text-danger hover:text-red-400"
                       >
-                        Удалить
+                        {t("admin.users.actions.delete", lang)}
                       </button>
                     </div>
                   )}
                 </div>
                 <p className="text-xs text-slate-500 mt-1">
-                  JPEG, PNG, WebP или GIF — максимум 5 МБ
+                  {t("admin.questions.form.imageHint", lang)}
                 </p>
               </div>
 
               {/* Options */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-3">
-                  Варианты ответов (4 варианта на каждом языке)
+                  {t("admin.questions.form.optionsLabel", lang)}
                 </label>
                 <div className="space-y-4">
                   {[0, 1, 2, 3].map((i) => (
@@ -408,8 +409,8 @@ export default function AdminQuestions() {
                         </button>
                         <span className="text-xs text-slate-400">
                           {form.correctAnswer === i
-                            ? "Правильный ответ"
-                            : "Нажмите, чтобы выбрать правильный"}
+                            ? t("admin.questions.form.correctAnswer", lang)
+                            : t("admin.questions.form.selectCorrect", lang)}
                         </span>
                       </div>
                       <div className="grid md:grid-cols-3 gap-2">
@@ -417,7 +418,7 @@ export default function AdminQuestions() {
                           type="text"
                           value={form.optionsRu[i]}
                           onChange={(e) => updateOption("Ru", i, e.target.value)}
-                          placeholder={`Вариант ${String.fromCharCode(65 + i)} (RU)`}
+                          placeholder={`${t("admin.questions.form.option", lang)} ${String.fromCharCode(65 + i)} (RU)`}
                           className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-white text-sm"
                         />
                         <input
@@ -438,7 +439,7 @@ export default function AdminQuestions() {
                       {/* Option image upload */}
                       <div className="mt-2 flex items-center gap-3">
                         <label className={`flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded border text-xs font-medium transition-colors ${optionImageUploading[i] ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-500" : "border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white"}`}>
-                          {optionImageUploading[i] ? "Загрузка..." : "Картинка к ответу"}
+                          {optionImageUploading[i] ? t("common.loading", lang) : t("admin.questions.form.optionImage", lang)}
                           <input
                             type="file"
                             accept="image/jpeg,image/png,image/webp,image/gif"
@@ -475,14 +476,14 @@ export default function AdminQuestions() {
                 onClick={() => setShowModal(false)}
                 className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
               >
-                Отмена
+                {t("admin.common.cancel", lang)}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.questionTextRu || !form.optionsRu[0]}
                 className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
               >
-                {saving ? "Сохранение..." : "Сохранить"}
+                {saving ? t("admin.questions.form.saving", lang) : t("admin.common.save", lang)}
               </button>
             </div>
           </div>
@@ -494,7 +495,7 @@ export default function AdminQuestions() {
         <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">Массовый импорт вопросов</h2>
+              <h2 className="text-lg font-semibold text-white">{t("admin.questions.bulk.title", lang)}</h2>
               <button
                 onClick={() => setShowBulkModal(false)}
                 className="text-slate-400 hover:text-white text-xl"
@@ -506,7 +507,7 @@ export default function AdminQuestions() {
             <div className="p-6 space-y-4">
               {/* Format hint */}
               <div className="bg-slate-700/50 rounded-lg p-4 text-xs text-slate-300 font-mono leading-relaxed">
-                <p className="text-slate-400 mb-2 font-sans font-medium text-sm">Формат JSON-файла:</p>
+                <p className="text-slate-400 mb-2 font-sans font-medium text-sm">{t("admin.questions.bulk.formatHint", lang)}</p>
                 {`[
   {
     "subject": "math_literacy",
@@ -526,7 +527,7 @@ export default function AdminQuestions() {
               {/* File upload */}
               <div>
                 <label className="flex items-center gap-2 cursor-pointer border border-dashed border-slate-600 rounded-lg p-4 text-slate-400 hover:border-primary hover:text-white transition-colors text-sm">
-                  Загрузить .json файл
+                  {t("admin.questions.bulk.uploadJson", lang)}
                   <input
                     type="file"
                     accept=".json,application/json"
@@ -539,7 +540,7 @@ export default function AdminQuestions() {
               {/* Textarea */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
-                  или вставьте JSON вручную
+                  {t("admin.questions.bulk.manualLabel", lang)}
                 </label>
                 <textarea
                   value={bulkJson}
@@ -560,14 +561,14 @@ export default function AdminQuestions() {
               {/* Preview count */}
               {bulkParsed && !bulkParseError && (
                 <div className="bg-success/10 text-success text-sm rounded-lg p-3 border border-success/20">
-                  Готово к импорту: <strong>{bulkParsed.length}</strong> вопросов
+                  {t("admin.questions.bulk.ready", lang).replace("{count}", String(bulkParsed.length))}
                 </div>
               )}
 
               {/* Import errors */}
               {bulkErrors.length > 0 && (
                 <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 max-h-40 overflow-y-auto">
-                  <p className="text-danger text-sm font-medium mb-1">Ошибки валидации:</p>
+                  <p className="text-danger text-sm font-medium mb-1">{t("admin.questions.bulk.validationErrors", lang)}</p>
                   {bulkErrors.map((e, i) => (
                     <p key={i} className="text-danger/80 text-xs">{e}</p>
                   ))}
@@ -587,14 +588,14 @@ export default function AdminQuestions() {
                 onClick={() => setShowBulkModal(false)}
                 className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
               >
-                Закрыть
+                {t("admin.common.cancel", lang)}
               </button>
               <button
                 onClick={handleBulkImport}
                 disabled={!bulkParsed || bulkImporting || !!bulkParseError}
                 className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
               >
-                {bulkImporting ? "Импорт..." : "Импортировать"}
+                {bulkImporting ? t("admin.questions.bulk.importing", lang) : t("admin.questions.bulkImport", lang)}
               </button>
             </div>
           </div>
@@ -607,7 +608,7 @@ export default function AdminQuestions() {
           <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-xl my-8">
             <div className="p-4 border-b border-slate-700 flex items-center justify-between">
               <h2 className="text-lg font-semibold text-white flex items-center gap-2">
-                Генератор ИИ
+                {t("admin.questions.ai.title", lang)}
               </h2>
               <button
                 onClick={() => setShowAiModal(false)}
@@ -619,12 +620,12 @@ export default function AdminQuestions() {
 
             <div className="p-6 space-y-4">
               <div className="bg-purple-500/10 text-purple-300 text-sm rounded-lg p-3 border border-purple-500/20 leading-relaxed">
-                Сгенерированные вопросы будут загружены в окно Массового импорта, где вы сможете их проверить и отредактировать перед сохранением.
+                {t("admin.questions.ai.hint", lang)}
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Предмет *
+                  {t("admin.questions.form.subject", lang)}
                 </label>
                 <select
                   value={aiForm.subject}
@@ -641,35 +642,35 @@ export default function AdminQuestions() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-1">
-                  Тема (описание для ИИ) *
+                  {t("admin.questions.ai.promptLabel", lang)}
                 </label>
                 <input
                   type="text"
                   value={aiForm.topic}
                   onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-400"
-                  placeholder="Например: Квадратные уравнения, Производные..."
+                  placeholder={t("admin.questions.ai.promptPlaceholder", lang)}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Сложность
+                    {t("admin.questions.table.difficulty", lang)}
                   </label>
                   <select
                     value={aiForm.difficulty}
                     onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
                   >
-                    <option value="easy">Легкий</option>
-                    <option value="medium">Средний</option>
-                    <option value="hard">Сложный</option>
+                    <option value="easy">{t("admin.questions.difficulty.easy", lang)}</option>
+                    <option value="medium">{t("admin.questions.difficulty.medium", lang)}</option>
+                    <option value="hard">{t("admin.questions.difficulty.hard", lang)}</option>
                   </select>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-slate-300 mb-1">
-                    Количество (макс. 20)
+                    {t("admin.questions.ai.count", lang)}
                   </label>
                   <input
                     type="number"
@@ -695,7 +696,7 @@ export default function AdminQuestions() {
                 className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
                 disabled={aiGenerating}
               >
-                Отмена
+                {t("admin.common.cancel", lang)}
               </button>
               <button
                 onClick={handleAiGenerate}
@@ -705,10 +706,10 @@ export default function AdminQuestions() {
                 {aiGenerating ? (
                   <>
                     <Spinner size="sm" color="white" />
-                    Генерация...
+                    {t("admin.questions.ai.generating", lang)}
                   </>
                 ) : (
-                  "Сгенерировать"
+                  t("admin.questions.generateAi", lang).replace(t("admin.questions.title", lang), "").trim() || t("admin.questions.ai.title", lang)
                 )}
               </button>
             </div>

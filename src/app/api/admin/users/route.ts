@@ -1,35 +1,42 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { NextRequest } from "next/server";
 import { usersService } from "@/lib/container";
-
-async function checkAdmin(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return null;
-
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user?.isAdmin) return null;
-  return user;
-}
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function GET(request: NextRequest) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) {
-    return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-  }
-
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get("page") || "1");
-  const limit = parseInt(searchParams.get("limit") || "20");
-  const search = searchParams.get("search") || "";
-
   try {
-    const result = await usersService.getAllUsers(page, limit, search);
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("Admin users error:", error);
-    return NextResponse.json({ error: "Failed to load users" }, { status: 500 });
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_GENERAL");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("pageSize") || searchParams.get("limit") || "15");
+    const search = searchParams.get("search") || undefined;
+    
+    const isAdmin = searchParams.get("isAdmin") === "true" ? true : searchParams.get("isAdmin") === "false" ? false : undefined;
+    const isBanned = searchParams.get("isBanned") === "true" ? true : searchParams.get("isBanned") === "false" ? false : undefined;
+    const isDeleted = searchParams.get("isDeleted") === "true" ? true : searchParams.get("isDeleted") === "false" ? false : undefined;
+    const emailVerified = searchParams.get("emailVerified") === "true" ? true : searchParams.get("emailVerified") === "false" ? false : undefined;
+
+    const result = await usersService.getAllUsers(page, limit, search, {
+      isAdmin,
+      isBanned,
+      isDeleted,
+      emailVerified
+    });
+    
+    return createAdminResponse({
+      users: result.users,
+      total: result.total,
+      page: result.page,
+      pageSize: result.limit,
+      totalPages: result.totalPages
+    });
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
+    console.error("Fetch users error:", error);
+    return createErrorResponse("Failed to fetch users", 500);
   }
 }

@@ -1,66 +1,49 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { NextRequest } from "next/server";
 import { universitiesService } from "@/lib/container";
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
-async function checkAdmin(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return null;
+type RouteContext = { params: Promise<{ id: string }> };
 
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user?.isAdmin) return null;
-  return user;
-}
-
-export async function PUT(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-
+export async function PUT(request: NextRequest, context: RouteContext) {
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_GENERAL");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const { id } = await context.params;
     const uniId = parseInt(id);
     const body = await request.json();
 
     const updated = await universitiesService.updateUniversity(uniId, body);
     if (!updated) {
-      return NextResponse.json({ error: "Not found" }, { status: 404 });
+      return createErrorResponse("Not found", 404);
     }
 
-    return NextResponse.json({ success: true, university: updated });
+    return createAdminResponse({ success: true, university: updated });
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
+    if (error instanceof Response) return error;
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return createErrorResponse("Internal Server Error", 500);
   }
 }
 
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ id: string }> }
-) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-
+export async function DELETE(request: NextRequest, context: RouteContext) {
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_GENERAL");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const { id } = await context.params;
     const uniId = parseInt(id);
 
     await universitiesService.deleteUniversity(uniId);
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
+    return createAdminResponse({ success: true });
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
     console.error("Admin universities DELETE error:", error);
-    return NextResponse.json({ error: "Failed to delete university" }, { status: 500 });
+    return createErrorResponse("Failed to delete university", 500);
   }
 }

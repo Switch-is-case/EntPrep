@@ -16,7 +16,8 @@ export default function LoginPage() {
 
   // Already logged in
   useEffect(() => {
-    if (ready && user) {
+    // Only redirect if both user and token are present (authenticated)
+    if (ready && user && localStorage.getItem("ent-token")) {
       router.replace("/profile");
     }
   }, [user, ready, router]);
@@ -38,7 +39,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Login failed");
+        // Specifically handle ban error (403)
+        if (res.status === 403) {
+          setError(data.error || "Аккаунт заблокирован");
+        } else {
+          setError(data.error || "Login failed");
+        }
         setLoading(false);
         return;
       }

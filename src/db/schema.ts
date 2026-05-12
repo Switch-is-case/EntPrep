@@ -151,8 +151,18 @@ export const users = pgTable("users", {
   needsReonboarding: boolean("needs_reonboarding").default(true).notNull(),
   emailVerified: boolean("email_verified").notNull().default(false),
   emailVerifiedAt: timestamp("email_verified_at"),
+  
+  // Moderation fields
+  bannedAt: timestamp("banned_at"),
+  banReason: text("ban_reason"),
+  deletedAt: timestamp("deleted_at"),
+  sessionVersion: integer("session_version").default(1).notNull(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (table) => ({
+  bannedAtIdx: index("users_banned_at_idx").on(table.bannedAt),
+  deletedAtIdx: index("users_deleted_at_idx").on(table.deletedAt),
+}));
 
 export const emailVerificationTokens = pgTable("email_verification_tokens", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -246,6 +256,26 @@ export const explanations = pgTable("explanations", {
   explanationText: text("explanation_text").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+export const auditLogs = pgTable("audit_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
+  actorEmail: text("actor_email").notNull(),
+  action: text("action").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: text("entity_id"),
+  description: text("description").notNull(),
+  oldValue: jsonb("old_value"),
+  newValue: jsonb("new_value"),
+  ip: text("ip"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+}, (table) => ({
+  actorIdIdx: index("audit_logs_actor_id_idx").on(table.actorId),
+  actionIdx: index("audit_logs_action_idx").on(table.action),
+  entityTypeIdx: index("audit_logs_entity_type_idx").on(table.entityType),
+  createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
+}));
 
 // ─── RELATIONS ─────────────────────────────────────────────────────
 

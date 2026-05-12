@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { testSessions, studyRoadmaps, users } from "@/db/schema";
 import { eq, desc, and, gte } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { requireVerifiedEmail } from "@/lib/auth-checks";
+import { requireVerifiedEmail } from "@/lib/auth-server";
 import { checkRateLimit } from "@/lib/ratelimit";
 import { callDify, extractJSON } from "@/lib/dify";
 import { buildRoadmapPrompt } from "@/lib/prompts/roadmap";

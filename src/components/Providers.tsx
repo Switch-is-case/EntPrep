@@ -24,6 +24,10 @@ export interface User {
   targetScore?: number | null;
   needsReonboarding?: boolean;
   emailVerified?: boolean;
+  isAdmin?: boolean;
+  bannedAt?: string | null;
+  banReason?: string | null;
+  deletedAt?: string | null;
 }
 
 interface AppContextType {
@@ -79,8 +83,85 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
   const [isFullPageMode, setIsFullPageMode] = useState(false);
+  const router = useRouter();
 
-  // Simple: load from localStorage, no async validation
+  const setLang = useCallback((l: Lang) => {
+    setLangState(l);
+    localStorage.setItem("ent-lang", l);
+  }, []);
+
+  const login = useCallback(
+    (newToken: string, newUser: User) => {
+      setToken(newToken);
+      setUser(newUser);
+      localStorage.setItem("ent-token", newToken);
+      localStorage.setItem("ent-user", JSON.stringify(newUser));
+      if (newUser.language) setLang(newUser.language as Lang);
+    },
+    [setLang]
+  );
+
+  const logout = useCallback(async () => {
+    setToken(null);
+    setUser(null);
+    localStorage.removeItem("ent-token");
+    localStorage.removeItem("ent-user");
+    // Trigger logout in other tabs
+    localStorage.setItem("ent-auth-event", "logout");
+    localStorage.removeItem("ent-auth-event");
+    
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Failed to call logout API:", err);
+    }
+  }, []);
+
+  const updateUser = useCallback((u: User) => {
+    setUser(u);
+    localStorage.setItem("ent-user", JSON.stringify(u));
+  }, []);
+
+  const authHeaders = useCallback((): Record<string, string> => {
+    const tk = localStorage.getItem("ent-token");
+    return tk
+      ? { "Content-Type": "application/json", Authorization: `Bearer ${tk}` }
+      : { "Content-Type": "application/json" };
+  }, []);
+
+  const refreshUser = useCallback(async () => {
+    const tk = localStorage.getItem("ent-token");
+    if (!tk) return;
+
+    try {
+      const res = await fetch("/api/profile", { 
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${tk}` },
+        cache: "no-store" 
+      });
+      if (res.ok) {
+        const u = await res.json();
+        setUser(u);
+        localStorage.setItem("ent-user", JSON.stringify(u));
+      } else if (res.status === 401) {
+        const data = await res.json();
+        if (data.reason === "banned") {
+          // If banned, we still logout but redirect specifically to /banned
+          const reason = data.banReason || "";
+          console.log("[PROVIDERS REDIRECT] Ban reason:", reason);
+          console.log("[PROVIDERS REDIRECT] Final URL:", `/banned?reason=${encodeURIComponent(reason)}`);
+          logout();
+          window.location.href = `/banned?reason=${encodeURIComponent(reason)}`;
+        } else {
+          // Token is invalid/expired/mismatched/deleted
+          logout();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to refresh user:", err);
+    }
+  }, [logout, router]);
+
+  // Initial load
   useEffect(() => {
     const savedLang = localStorage.getItem("ent-lang") as Lang;
     if (savedLang) {
@@ -100,16 +181,30 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       }
     }
     setReady(true);
-  }, []);
+    refreshUser();
+  }, [refreshUser]);
+
+  // Periodic session check
+  useEffect(() => {
+    if (!token) return;
+    const interval = setInterval(() => {
+      refreshUser();
+    }, 60000); // Check every minute
+    return () => clearInterval(interval);
+  }, [token, refreshUser]);
 
   // Sync state across tabs
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "ent-user" && e.newValue) {
-        try {
-          setUser(JSON.parse(e.newValue));
-        } catch (err) {
-          console.error("Failed to parse synced user:", err);
+      if (e.key === "ent-user") {
+        if (!e.newValue) {
+          setUser(null);
+        } else {
+          try {
+            setUser(JSON.parse(e.newValue));
+          } catch (err) {
+            console.error("Failed to parse synced user:", err);
+          }
         }
       }
       if (e.key === "ent-token") {
@@ -118,61 +213,15 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       if (e.key === "ent-lang" && e.newValue) {
         setLangState(e.newValue as Lang);
       }
+      // Broadcasted logout event
+      if (e.key === "ent-auth-event" && e.newValue === "logout") {
+        setToken(null);
+        setUser(null);
+      }
     };
     window.addEventListener("storage", handleStorageChange);
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
-
-  const setLang = useCallback((l: Lang) => {
-    setLangState(l);
-    localStorage.setItem("ent-lang", l);
-  }, []);
-
-  const login = useCallback(
-    (newToken: string, newUser: User) => {
-      setToken(newToken);
-      setUser(newUser);
-      localStorage.setItem("ent-token", newToken);
-      localStorage.setItem("ent-user", JSON.stringify(newUser));
-      if (newUser.language) setLang(newUser.language as Lang);
-    },
-    [setLang]
-  );
-
-  const logout = useCallback(() => {
-    setToken(null);
-    setUser(null);
-    localStorage.removeItem("ent-token");
-    localStorage.removeItem("ent-user");
-  }, []);
-
-  const updateUser = useCallback((u: User) => {
-    setUser(u);
-    localStorage.setItem("ent-user", JSON.stringify(u));
-  }, []);
-
-  const authHeaders = useCallback((): Record<string, string> => {
-    const tk = localStorage.getItem("ent-token");
-    return tk
-      ? { "Content-Type": "application/json", Authorization: `Bearer ${tk}` }
-      : { "Content-Type": "application/json" };
-  }, []);
-
-  const refreshUser = useCallback(async () => {
-    try {
-      const res = await fetch("/api/profile", { 
-        headers: authHeaders(),
-        cache: "no-store" 
-      });
-      if (res.ok) {
-        const u = await res.json();
-        setUser(u);
-        localStorage.setItem("ent-user", JSON.stringify(u));
-      }
-    } catch (err) {
-      console.error("Failed to refresh user:", err);
-    }
-  }, [authHeaders]);
 
   if (!ready) {
     return (

@@ -41,7 +41,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!ready || !user) return;
+      if (!ready || !user || !localStorage.getItem("ent-token")) return;
       try {
         const [combosRes, univsRes] = await Promise.all([
           fetch("/api/combinations", { headers: authHeaders() }),

@@ -1,16 +1,13 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getUserIdFromRequest } from "@/lib/auth";
 import { usersService } from "@/lib/container";
+import { createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 
-// This endpoint allows the first user to become admin, or requires admin secret
 export async function POST(request: NextRequest) {
-  const authHeader = request.headers.get("authorization");
-
   const userId = getUserIdFromRequest(request);
 
   if (!userId) {
-    return NextResponse.json({ error: "Unauthorized - no valid token" }, { status: 401 });
+    return createErrorResponse("Unauthorized - no valid token", 401);
   }
 
   try {
@@ -19,7 +16,7 @@ export async function POST(request: NextRequest) {
 
     const updatedUser = await usersService.makeAdmin(userId, adminSecret);
 
-    return NextResponse.json({
+    return createAdminResponse({
       success: true,
       user: {
         id: updatedUser.id,
@@ -28,13 +25,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return createErrorResponse("Failed to make admin", 500);
   }
 }

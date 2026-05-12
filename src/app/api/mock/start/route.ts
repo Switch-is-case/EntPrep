@@ -3,7 +3,7 @@ import { db } from "@/db";
 import { testSessions, testAnswers, questions, subjects, subjectCombinations, users } from "@/db/schema";
 import { eq, sql, and, inArray, type InferSelectModel } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/auth";
-import { requireVerifiedEmail } from "@/lib/auth-checks";
+import { requireVerifiedEmail } from "@/lib/auth-server";
 
 type Question = InferSelectModel<typeof questions>;
 type Subject = InferSelectModel<typeof subjects>;

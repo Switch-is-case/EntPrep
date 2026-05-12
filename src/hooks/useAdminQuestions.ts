@@ -82,7 +82,8 @@ export function useAdminQuestions() {
     try {
       const res = await fetch(`/api/admin/questions?${params}`, { headers: authHeaders() });
       if (res.ok) {
-        const data = await res.json();
+        const resData = await res.json();
+        const data = resData.data;
         setQuestions(data.questions);
         setTotalPages(data.totalPages);
       }
@@ -191,7 +192,8 @@ export function useAdminQuestions() {
         body: fd,
       });
       if (res.ok) {
-        const data = await res.json();
+        const resData = await res.json();
+        const data = resData.data;
         setForm((f) => ({ ...f, imageUrl: data.url }));
       } else {
         alert("Ошибка загрузки изображения");
@@ -225,7 +227,8 @@ export function useAdminQuestions() {
         body: fd,
       });
       if (res.ok) {
-        const data = await res.json();
+        const resData = await res.json();
+        const data = resData.data;
         setForm((f) => {
           const newImages = [...f.optionImages];
           newImages[index] = data.url;
@@ -324,12 +327,13 @@ export function useAdminQuestions() {
         headers: { ...authHeaders(), "Content-Type": "application/json" },
         body: JSON.stringify(bulkParsed),
       });
-      const data = await res.json();
+      const resData = await res.json();
+      const data = resData.data;
       if (res.ok) {
         setBulkResult(data);
         fetchQuestions();
       } else {
-        setBulkErrors(data.details || [data.error || "Ошибка импорта"]);
+        setBulkErrors(resData.details || [resData.error || "Ошибка импорта"]);
       }
     } catch (e) {
       console.error(e);
@@ -355,8 +359,9 @@ export function useAdminQuestions() {
         body: JSON.stringify(aiForm),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Ошибка генерации");
+      const resData = await res.json();
+      const data = resData.data;
+      if (!res.ok) throw new Error(resData.error || "Ошибка генерации");
 
       setShowAiModal(false);
       

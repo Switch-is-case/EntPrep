@@ -8,6 +8,20 @@
       "when": 1778536794453,
       "tag": "0000_lively_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778544540298,
+      "tag": "0001_tiresome_junta",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778546652816,
+      "tag": "0002_mysterious_prima",
+      "breakpoints": true
     }
   ]
 }

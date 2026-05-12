@@ -1,72 +1,80 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
+import { AdminDashboardDTO, Period } from "@/domain/analytics/types";
 
-export interface Stats {
-  totalUsers: number;
-  totalQuestions: number;
-  totalSessions: number;
-  totalAnswers: number;
-}
-
-export interface QuestionsBySubject {
-  subject: string;
-  count: number;
-}
-
-export interface RecentSession {
-  id: string;
-  testType: string;
-  score: number;
-  completed: boolean;
-  startedAt: string;
-}
-
-export interface RecentUser {
-  id: string;
-  name: string;
-  email: string;
-  createdAt: string;
-  isAdmin: boolean;
-}
+// Re-export Period for convenience
+export type { Period };
 
 export function useAdminStats() {
   const { token, lang, authHeaders } = useApp();
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [questionsBySubject, setQuestionsBySubject] = useState<QuestionsBySubject[]>([]);
-  const [recentSessions, setRecentSessions] = useState<RecentSession[]>([]);
-  const [recentUsers, setRecentUsers] = useState<RecentUser[]>([]);
+  const [data, setData] = useState<AdminDashboardDTO | null>(null);
+  const [period, setPeriod] = useState<Period>("7d");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const fetchStats = useCallback(async (currentPeriod: Period) => {
     if (!token) return;
-
-    fetch("/api/admin/stats", { headers: authHeaders() })
-      .then((res) => {
-        if (!res.ok) throw new Error("Failed to fetch stats");
-        return res.json();
-      })
-      .then((data) => {
-        setStats(data.stats);
-        setQuestionsBySubject(data.questionsBySubject);
-        setRecentSessions(data.recentSessions);
-        setRecentUsers(data.recentUsers);
-      })
-      .catch((e) => console.error(e))
-      .finally(() => setLoading(false));
+    
+    setLoading(true);
+    setError(null);
+    
+    try {
+      const res = await fetch(`/api/admin/stats?period=${currentPeriod}`, { 
+        headers: authHeaders() 
+      });
+      
+      if (!res.ok) throw new Error("Failed to fetch stats");
+      
+      const resData = await res.json();
+      if (resData.ok) {
+        setData(resData.data);
+      } else {
+        throw new Error(resData.error || "Unknown error");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
   }, [token, authHeaders]);
 
+  useEffect(() => {
+    fetchStats(period);
+  }, [period, fetchStats]);
+
   const getSubjectName = (s: string) => {
-    const key = `subject.${s}` as keyof typeof import("@/lib/i18n").translations;
-    return t(key, lang);
+    const key = `subject.${s}` as any;
+    const translated = t(key, lang);
+    // If translation doesn't exist, try to map manually for common keys
+    if (translated === key) {
+      const manual: Record<string, string> = {
+        'math': 'Математика',
+        'history': 'История Казахстана',
+        'physics': 'Физика',
+        'chemistry': 'Химия',
+        'biology': 'Биология',
+        'geography': 'География',
+        'english': 'Английский язык',
+        'russian': 'Русский язык',
+        'kazakh': 'Казахский язык',
+        'literature': 'Литература',
+        'computer_science': 'Информатика',
+        'world_history': 'Всемирная история',
+      };
+      return manual[s] || s;
+    }
+    return translated;
   };
 
   return {
-    stats,
-    questionsBySubject,
-    recentSessions,
-    recentUsers,
+    data,
+    period,
+    setPeriod,
     loading,
+    error,
     getSubjectName,
+    refresh: () => fetchStats(period),
   };
 }

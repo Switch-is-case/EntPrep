@@ -15,6 +15,10 @@ export interface User {
   emailVerified: boolean;
 
   isAdmin: boolean;
+  bannedAt: Date | null;
+  banReason: string | null;
+  deletedAt: Date | null;
+  sessionVersion: number;
   createdAt: Date;
 }
 
@@ -33,6 +37,10 @@ export interface UserProfileDTO {
   needsReonboarding?: boolean;
   isAdmin?: boolean;
   emailVerified?: boolean;
+  bannedAt?: Date | null;
+  banReason?: string | null;
+  deletedAt?: Date | null;
+  sessionVersion?: number;
 }
 
 export interface AuthResponseDTO {

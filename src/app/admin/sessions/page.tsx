@@ -2,11 +2,13 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useApp } from "@/components/Providers";
+import { t } from "@/lib/i18n";
 
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { Spinner } from "@/components/Spinner";
 
 export default function AdminSessions() {
+  const { user, lang } = useApp();
   const {
     sessions,
     loading,
@@ -21,7 +23,7 @@ export default function AdminSessions() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">Тестовые сессии</h1>
+      <h1 className="text-2xl font-bold text-white mb-6">{t("admin.sessions.title", lang)}</h1>
 
       {/* Filter */}
       <div className="mb-6">
@@ -33,10 +35,10 @@ export default function AdminSessions() {
           }}
           className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
         >
-          <option value="">Все типы</option>
-          <option value="diagnostic">Диагностический</option>
-          <option value="full">Полный ЕНТ</option>
-          <option value="practice">Практика</option>
+          <option value="">{t("admin.questions.filter.allSubjects", lang).replace(t("admin.questions.form.subject", lang).replace(" *", ""), t("admin.common.status", lang).toLowerCase()).replace("Предметы", "типы").replace("пәндер", "түрлер").replace("Subjects", "Types")}</option>
+          <option value="diagnostic">{t("admin.testType.diagnostic", lang)}</option>
+          <option value="full">{t("admin.testType.mock", lang)}</option>
+          <option value="practice">{t("admin.testType.practice", lang)}</option>
         </select>
       </div>
 
@@ -51,13 +53,13 @@ export default function AdminSessions() {
             <table className="w-full text-sm">
               <thead className="bg-slate-700/50">
                 <tr className="text-left text-slate-300">
-                  <th className="px-4 py-3 font-medium">Пользователь</th>
-                  <th className="px-4 py-3 font-medium">Тип</th>
-                  <th className="px-4 py-3 font-medium">Результат</th>
-                  <th className="px-4 py-3 font-medium">Детали</th>
-                  <th className="px-4 py-3 font-medium">Статус</th>
-                  <th className="px-4 py-3 font-medium">Время</th>
-                  <th className="px-4 py-3 font-medium">Дата</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.users.table.user", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.common.status", lang).replace("Статус", "Тип").replace("Мәртебе", "Түрі").replace("Status", "Type")}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.result", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.details", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.common.status", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.time", lang)}</th>
+                  <th className="px-4 py-3 font-medium">{t("admin.common.date", lang)}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
@@ -129,11 +131,11 @@ export default function AdminSessions() {
                     <td className="px-4 py-3">
                       {session.completed ? (
                         <span className="text-success text-xs">
-                          Завершён
+                          {t("admin.status.completed", lang)}
                         </span>
                       ) : (
                         <span className="text-warning text-xs">
-                          В процессе
+                          {t("admin.status.inProgress", lang)}
                         </span>
                       )}
                     </td>
@@ -141,7 +143,7 @@ export default function AdminSessions() {
                       {formatDuration(session.startedAt, session.completedAt)}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-400">
-                      {new Date(session.startedAt).toLocaleString("ru-RU", {
+                      {new Date(session.startedAt).toLocaleString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
                         day: "2-digit",
                         month: "2-digit",
                         year: "2-digit",
@@ -157,7 +159,7 @@ export default function AdminSessions() {
                       colSpan={7}
                       className="px-4 py-8 text-center text-slate-400"
                     >
-                      Нет тестовых сессий
+                      {t("admin.sessions.notFound", lang)}
                     </td>
                   </tr>
                 )}

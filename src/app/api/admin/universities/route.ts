@@ -1,52 +1,40 @@
-import { AppError } from "@/lib/errors";
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { NextRequest } from "next/server";
 import { universitiesService } from "@/lib/container";
-
-async function checkAdmin(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) return null;
-
-  const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  if (!user?.isAdmin) return null;
-  return user;
-}
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function GET(request: NextRequest) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-
-  const { searchParams } = new URL(request.url);
-  const search = searchParams.get("search") || undefined;
-
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_GENERAL");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
+    const { searchParams } = new URL(request.url);
+    const search = searchParams.get("search") || undefined;
+
     const allUniversities = await universitiesService.getAllUniversities(search);
-    return NextResponse.json({ universities: allUniversities });
-  } catch (error) {
+    return createAdminResponse({ universities: allUniversities });
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
     console.error("Admin universities GET error:", error);
-    return NextResponse.json({ error: "Failed to load universities" }, { status: 500 });
+    return createErrorResponse("Failed to load universities", 500);
   }
 }
 
 export async function POST(request: NextRequest) {
-  const adminUser = await checkAdmin(request);
-  if (!adminUser) return NextResponse.json({ error: "Unauthorized or Forbidden" }, { status: 403 });
-
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_GENERAL");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const body = await request.json();
     const newUni = await universitiesService.createUniversity(body);
-    return NextResponse.json({ success: true, university: newUni });
+    return createAdminResponse({ success: true, university: newUni });
   } catch (error: unknown) {
-    if (error instanceof AppError) {
-      return NextResponse.json(
-        { error: error.message, details: error.details },
-        { status: error.statusCode }
-      );
-    }
+    if (error instanceof Response) return error;
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return createErrorResponse("Internal Server Error", 500);
   }
 }

@@ -20,13 +20,13 @@ export async function verifyPassword(
   return bcrypt.compare(password, hash);
 }
 
-export function createToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: "7d" });
+export function createToken(userId: string, email: string, isAdmin: boolean = false, sessionVersion: number = 1): string {
+  return jwt.sign({ userId, email, isAdmin, sessionVersion }, JWT_SECRET, { expiresIn: "7d" });
 }
 
-export function verifyToken(token: string): { userId: string } | null {
+export function verifyToken(token: string): { userId: string; email: string; isAdmin: boolean; sessionVersion?: number } | null {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as unknown as { userId: string };
+    const decoded = jwt.verify(token, JWT_SECRET) as unknown as { userId: string; email: string; isAdmin: boolean; sessionVersion?: number };
     return decoded;
   } catch {
     return null;

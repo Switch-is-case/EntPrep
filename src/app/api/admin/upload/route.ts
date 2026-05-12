@@ -1,57 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
-import { db } from "@/db";
-import { users } from "@/db/schema";
-import { getUserIdFromRequest } from "@/lib/auth";
-import { eq } from "drizzle-orm";
+import { NextRequest } from "next/server";
+import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
+import { checkRateLimit } from "@/lib/ratelimit";
 
 export async function POST(request: NextRequest) {
-  const userId = getUserIdFromRequest(request);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-
-  if (!user?.isAdmin) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
   try {
+    const admin = await requireAdmin(request);
+
+    const { allowed } = await checkRateLimit(admin.userId, "ADMIN_UPLOAD");
+    if (!allowed) return createErrorResponse("Too many requests", 429);
+
     const formData = await request.formData();
     const file = formData.get("file") as File;
 
     if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+      return createErrorResponse("No file provided", 400);
     }
 
     const allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/gif"];
     if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: "Only JPEG, PNG, WebP or GIF images allowed" },
-        { status: 400 }
-      );
+      return createErrorResponse("Only JPEG, PNG, WebP or GIF images allowed", 400);
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      return NextResponse.json(
-        { error: "File too large (max 5MB)" },
-        { status: 400 }
-      );
+      return createErrorResponse("File too large (max 5MB)", 400);
     }
 
-    // Upload to Supabase Storage via REST API
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: "Supabase storage not configured" },
-        { status: 500 }
-      );
+      return createErrorResponse("Supabase storage not configured", 500);
     }
 
     const ext = file.name.split(".").pop() || "jpg";
@@ -74,16 +52,14 @@ export async function POST(request: NextRequest) {
     if (!uploadRes.ok) {
       const err = await uploadRes.text();
       console.error("Supabase upload error:", err);
-      return NextResponse.json(
-        { error: "Failed to upload image" },
-        { status: 500 }
-      );
+      return createErrorResponse("Failed to upload image", 500);
     }
 
     const publicUrl = `${supabaseUrl}/storage/v1/object/public/question-images/${fileName}`;
-    return NextResponse.json({ url: publicUrl });
-  } catch (error) {
+    return createAdminResponse({ url: publicUrl });
+  } catch (error: unknown) {
+    if (error instanceof Response) return error;
     console.error("Upload error:", error);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    return createErrorResponse("Upload failed", 500);
   }
 }
