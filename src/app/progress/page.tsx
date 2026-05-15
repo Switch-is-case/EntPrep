@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { t } from "@/lib/i18n";
 import ProgressCharts from "@/components/ProgressCharts";
 import { Spinner } from "@/components/Spinner";
-import { ScoreBadges } from "@/components/ScoreBadges";
+
 
 interface SubjectProgress {
   id: number;
@@ -145,45 +145,9 @@ export default function ProgressPage() {
               })}
             </div>
           </div>
-
-          {/* Recent sessions */}
-          {recentSessions.length > 0 && (
-            <div className="bg-white rounded-2xl border border-border p-6">
-              <h3 className="font-semibold text-text mb-4">{t("progress.history", lang)}</h3>
-              <div className="space-y-3">
-                {recentSessions.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-bg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white text-sm font-bold ${
-                        s.score >= 80 ? "bg-success" : s.score >= 60 ? "bg-primary" : s.score >= 40 ? "bg-warning" : "bg-danger"
-                      }`}>
-                        {s.score}%
-                      </div>
-                      <div>
-                        <div className="text-sm font-medium">
-                          {s.testType === "diagnostic"
-                            ? t("history.typeDiagnostic", lang)
-                            : s.testType === "full"
-                            ? t("history.typeFull", lang)
-                            : t("history.typePractice", lang)}
-                        </div>
-                        <div className="text-xs text-text-secondary">
-                          {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
-                        </div>
-                      </div>
-                    </div>
-                    <ScoreBadges
-                      correct={s.correctAnswers}
-                      wrong={s.wrongAnswers}
-                      skipped={s.skippedAnswers}
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </>
       ) : (
+
         <div className="bg-white rounded-2xl border border-border p-12 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4"><svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
           <h3 className="text-xl font-semibold text-text mb-2">
