@@ -25,6 +25,8 @@ export async function POST(req: Request) {
     // 1. Calculate scores
     let totalScore = 0;
     let correctCount = 0;
+    let skippedCount = 0;
+    let wrongCount = 0;
     const subjectBreakdown: Record<string, { score: number, total: number, skipped: number, name: string }> = {};
 
     const subjectsData = session.subjects as any[];
@@ -42,6 +44,9 @@ export async function POST(req: Request) {
           totalScore++; // Simplified: 1 point per question
         } else if (ans.isSkipped) {
           subjectBreakdown[sId].skipped++;
+          skippedCount++;
+        } else {
+          wrongCount++;
         }
       }
     }
@@ -54,9 +59,12 @@ export async function POST(req: Request) {
         completedAt: new Date(),
         score: totalScore,
         correctAnswers: correctCount,
+        wrongAnswers: wrongCount,
+        skippedAnswers: skippedCount,
         results: { subjectBreakdown },
       })
       .where(eq(testSessions.id, sessionId));
+
 
     // 3. Update Progress Table (Fix: Stats were missing)
     for (const [sIdStr, result] of Object.entries(subjectBreakdown)) {
