@@ -1,4 +1,5 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { universitiesService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -31,6 +32,14 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const newUni = await universitiesService.createUniversity(body);
+
+    revalidatePath("/admin/universities");
+    revalidatePath("/universities");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log("[Cache] Revalidated paths after university creation");
+    }
+
     return createAdminResponse({ success: true, university: newUni });
   } catch (error: unknown) {
     if (error instanceof Response) return error;

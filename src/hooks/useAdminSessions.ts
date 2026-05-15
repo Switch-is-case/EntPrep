@@ -36,7 +36,10 @@ export function useAdminSessions() {
     if (filterType) params.set("testType", filterType);
 
     try {
-      const res = await fetch(`/api/admin/sessions?${params}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/sessions?${params}`, {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
 
       if (res.ok) {
         const resData = await res.json();
@@ -87,5 +90,6 @@ export function useAdminSessions() {
     setFilterType,
     getTestTypeName,
     formatDuration,
+    refresh: fetchSessions
   };
 }

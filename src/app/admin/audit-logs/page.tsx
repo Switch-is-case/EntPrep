@@ -6,10 +6,11 @@ import { AuditAction, AuditEntityType } from "@/types/audit";
 import { Spinner } from "@/components/Spinner";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
+import { RefreshButton } from "@/components/admin/RefreshButton";
 
 export default function AuditLogsPage() {
   const { lang } = useApp();
-  const { logs, loading, page, totalPages, filters, setPage, setFilters } = useAuditLogs();
+  const { logs, loading, page, totalPages, filters, setPage, setFilters, refresh } = useAuditLogs();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const formatAction = (action: string) => {
@@ -26,7 +27,10 @@ export default function AuditLogsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">{t("admin.audit.title", lang)}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">{t("admin.audit.title", lang)}</h1>
+        <RefreshButton onRefresh={refresh} />
+      </div>
 
       {/* Filters */}
       <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-4">

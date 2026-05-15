@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { questionsService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -28,6 +29,14 @@ export async function POST(request: NextRequest) {
     }
 
     const deletedCount = await questionsService.bulkDeleteQuestions(validIds);
+
+    revalidatePath("/admin/questions");
+    revalidatePath("/practice");
+    revalidatePath("/tests");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after question bulk deletion: ${deletedCount} items`);
+    }
 
     console.log(`[Admin] Bulk deleted ${deletedCount} questions by user ${admin.email}`);
 

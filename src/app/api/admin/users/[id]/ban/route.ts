@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { usersService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -22,6 +23,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
     await usersService.banUser(admin.userId, admin.email, id, reason, ip);
     
+    revalidatePath("/admin/users");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after user ban: ${id}`);
+    }
+
     return createAdminResponse({ message: "User banned successfully" });
   } catch (error: unknown) {
     if (error instanceof Response) return error;

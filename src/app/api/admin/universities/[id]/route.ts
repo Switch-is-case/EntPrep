@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { universitiesService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -21,6 +22,14 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return createErrorResponse("Not found", 404);
     }
 
+    revalidatePath("/admin/universities");
+    revalidatePath("/universities");
+    revalidatePath(`/universities/${uniId}`);
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after university update: ${uniId}`);
+    }
+
     return createAdminResponse({ success: true, university: updated });
   } catch (error: unknown) {
     if (error instanceof Response) return error;
@@ -40,6 +49,15 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const uniId = parseInt(id);
 
     await universitiesService.deleteUniversity(uniId);
+
+    revalidatePath("/admin/universities");
+    revalidatePath("/universities");
+    revalidatePath(`/universities/${uniId}`);
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after university deletion: ${uniId}`);
+    }
+
     return createAdminResponse({ success: true });
   } catch (error: unknown) {
     if (error instanceof Response) return error;

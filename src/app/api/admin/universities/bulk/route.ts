@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { db } from "@/db";
 import { universities, universityPrograms } from "@/db/schema";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
@@ -61,6 +62,13 @@ export async function POST(request: NextRequest) {
 
     if (allProgramRows.length > 0) {
       await db.insert(universityPrograms).values(allProgramRows);
+    }
+
+    revalidatePath("/admin/universities");
+    revalidatePath("/universities");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after university bulk import: ${insertedUnis.length} items`);
     }
 
     return createAdminResponse({

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { universitiesService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -28,6 +29,13 @@ export async function POST(request: NextRequest) {
     }
 
     const deletedCount = await universitiesService.bulkDeleteUniversities(validIds);
+
+    revalidatePath("/admin/universities");
+    revalidatePath("/universities");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after university bulk deletion: ${deletedCount} items`);
+    }
 
     console.log(`[Admin] Bulk deleted ${deletedCount} universities by user ${admin.email}`);
 

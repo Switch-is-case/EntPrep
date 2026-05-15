@@ -10,6 +10,7 @@ import { useAdminQuestions } from "@/hooks/useAdminQuestions";
 import { Spinner } from "@/components/Spinner";
 import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
 import { BulkActionBar } from "@/components/admin/BulkActionBar";
+import { RefreshButton } from "@/components/admin/RefreshButton";
 
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
 
@@ -147,6 +148,7 @@ export default function AdminQuestions() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">{t("admin.questions.title", lang)}</h1>
         <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={fetchQuestions} />
           <button
             onClick={() => setShowAiModal(true)}
             className="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-4 py-2 rounded-lg font-medium hover:bg-purple-600/30 transition-colors flex items-center gap-2 text-sm"

@@ -7,6 +7,7 @@ import { t, type Lang } from "@/lib/i18n";
 import { useAdminUniversities } from "@/hooks/useAdminUniversities";
 import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
 import { BulkActionBar } from "@/components/admin/BulkActionBar";
+import { RefreshButton } from "@/components/admin/RefreshButton";
 
 export default function AdminUniversitiesPage() {
   const { lang } = useApp();
@@ -132,6 +133,7 @@ export default function AdminUniversitiesPage() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-white">{t("admin.nav.universities" as any, lang)}</h1>
         <div className="flex items-center gap-2">
+          <RefreshButton onRefresh={fetchUniversities} />
           <button
             onClick={() => {
               setShowBulkModal(true);

@@ -6,6 +6,7 @@ import { t } from "@/lib/i18n";
 
 import { useAdminSessions } from "@/hooks/useAdminSessions";
 import { Spinner } from "@/components/Spinner";
+import { RefreshButton } from "@/components/admin/RefreshButton";
 
 export default function AdminSessions() {
   const { user, lang } = useApp();
@@ -19,11 +20,15 @@ export default function AdminSessions() {
     setFilterType,
     getTestTypeName,
     formatDuration,
+    refresh
   } = useAdminSessions();
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-6">{t("admin.sessions.title", lang)}</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-white">{t("admin.sessions.title", lang)}</h1>
+        <RefreshButton onRefresh={refresh} />
+      </div>
 
       {/* Filter */}
       <div className="mb-6">

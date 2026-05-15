@@ -65,6 +65,7 @@ export function useAdminUniversities() {
     try {
       const res = await fetch(`/api/admin/universities?search=${encodeURIComponent(search)}`, {
         headers: authHeaders(),
+        cache: "no-store",
       });
       if (res.ok) {
         const resData = await res.json();

@@ -48,7 +48,10 @@ export function useAuditLogs() {
     if (filters.actorEmail) params.set("actorEmail", filters.actorEmail); // Need to handle this in API if needed
 
     try {
-      const res = await fetch(`/api/admin/audit-logs?${params}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/audit-logs?${params}`, {
+        headers: authHeaders(),
+        cache: "no-store"
+      });
       if (res.ok) {
         const resData = await res.json();
         const data = resData.data;

@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { revalidatePath } from "next/cache";
 import { usersService } from "@/lib/container";
 import { requireAdmin, createAdminResponse, createErrorResponse } from "@/lib/auth-checks";
 import { checkRateLimit } from "@/lib/ratelimit";
@@ -17,6 +18,12 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
     const updated = await usersService.setAdminStatus(admin.userId, admin.email, id, isAdmin, ip);
     
+    revalidatePath("/admin/users");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after user update: ${id}`);
+    }
+
     return createAdminResponse({ user: updated });
   } catch (error: unknown) {
     if (error instanceof Response) return error;
@@ -36,6 +43,12 @@ export async function DELETE(request: NextRequest, context: RouteContext) {
     const ip = request.headers.get("x-forwarded-for") || "unknown";
     await usersService.softDeleteUser(admin.userId, admin.email, id, ip);
     
+    revalidatePath("/admin/users");
+    
+    if (process.env.NODE_ENV === "development") {
+      console.log(`[Cache] Revalidated paths after user deletion: ${id}`);
+    }
+
     return createAdminResponse({ success: true });
   } catch (error: unknown) {
     if (error instanceof Response) return error;

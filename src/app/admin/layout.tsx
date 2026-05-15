@@ -1,4 +1,6 @@
 import { cookies } from "next/headers";
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 import { redirect } from "next/navigation";
 import { verifyJWT } from "@/lib/auth-checks";
 import { AdminLayoutClient } from "./AdminLayoutClient";

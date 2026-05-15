@@ -80,7 +80,10 @@ export function useAdminQuestions() {
     if (search) params.set("search", search);
 
     try {
-      const res = await fetch(`/api/admin/questions?${params}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/questions?${params}`, {
+        headers: authHeaders(),
+        cache: "no-store"
+      });
       if (res.ok) {
         const resData = await res.json();
         const data = resData.data;

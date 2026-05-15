@@ -67,7 +67,10 @@ export function useAdminUsers() {
     if (filters.emailVerified !== undefined) params.set("emailVerified", filters.emailVerified.toString());
 
     try {
-      const res = await fetch(`/api/admin/users?${params}`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/users?${params}`, {
+        headers: authHeaders(),
+        cache: "no-store",
+      });
       if (res.ok) {
         const resData = await res.json();
         const data = resData.data;

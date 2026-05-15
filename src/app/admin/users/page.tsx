@@ -5,6 +5,7 @@ import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
 import { useAdminUsers, User } from "@/hooks/useAdminUsers";
 import { Spinner } from "@/components/Spinner";
+import { RefreshButton } from "@/components/admin/RefreshButton";
 
 export default function AdminUsers() {
   const { lang } = useApp();
@@ -25,6 +26,7 @@ export default function AdminUsers() {
     restoreUser,
     currentUser,
     isPending,
+    refresh,
   } = useAdminUsers();
 
   const [banModalOpen, setBanModalOpen] = useState(false);
@@ -101,6 +103,7 @@ export default function AdminUsers() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-2xl font-bold text-white">{t("admin.users.title", lang)}</h1>
+        <RefreshButton onRefresh={refresh} />
       </div>
 
       {/* Filters & Search */}
