@@ -50,6 +50,9 @@ export const translations = {
   "roadmap.goToPractice": { kz: "ЖАТТЫҒУҒА ӨТУ", ru: "ПЕРЕЙТИ К ПРАКТИКЕ", en: "GO TO PRACTICE" },
   "roadmap.newMockExam": { kz: "ЖАҢА ПРОБНЫЙ ЕНТ", ru: "НОВЫЙ ПРОБНЫЙ ЕНТ", en: "NEW MOCK EXAM" },
   "roadmap.updated": { kz: "Жаңартылды", ru: "Обновлено", en: "Updated" },
+  "roadmap.points": { kz: "балл", ru: "баллов", en: "points" },
+  "roadmap.hoursDay": { kz: "сағ / күн", ru: "ч / день", en: "h / day" },
+  "roadmap.hours": { kz: "сағ", ru: "ч", en: "h" },
 
   "progress.title": { kz: "Прогресс", ru: "Прогресс", en: "Progress" },
   "progress.overall": { kz: "Жалпы прогресс", ru: "Общий прогресс", en: "Overall Progress" },
@@ -789,3 +792,57 @@ export function tSubjectCombo(combined: string | undefined | null, lang: Lang): 
     .map(part => tSubject(part, lang))
     .join(" + ");
 }
+
+export type LocalizedString = {
+  kz: string;
+  ru: string;
+  en: string;
+};
+
+/**
+ * Парсит multilingual поле и возвращает строку на нужном языке.
+ * Поддерживает 3 формата:
+ * 1. Обычная строка (старый формат): "Привет" → возвращает как есть
+ * 2. JSON-строка: '{"kz":"...","ru":"...","en":"..."}' → парсит и берёт нужный язык
+ * 3. Объект: { kz, ru, en } → берёт нужный язык
+ * Fallback: запрошенный язык → ru → en → kz → пустая строка
+ */
+export function tLocalized(
+  field: string | LocalizedString | undefined | null,
+  lang: Lang
+): string {
+  if (!field) return "";
+  
+  // Если уже объект
+  if (typeof field === "object") {
+    return field[lang] || field.ru || field.en || field.kz || "";
+  }
+  
+  // Если строка — пробуем распарсить как JSON
+  if (typeof field === "string") {
+    // Быстрая проверка: похоже ли на JSON?
+    const trimmed = field.trim();
+    if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+      try {
+        const parsed = JSON.parse(trimmed);
+        if (parsed && typeof parsed === "object" && (parsed.ru || parsed.kz || parsed.en)) {
+          return parsed[lang] || parsed.ru || parsed.en || parsed.kz || "";
+        }
+      } catch {
+        // Не валидный JSON — возвращаем как обычную строку
+      }
+    }
+    // Обычная строка (старый формат)
+    return field;
+  }
+  
+  return String(field);
+}
+
+/**
+ * Сериализует multilingual объект в JSON-строку для сохранения в БД.
+ */
+export function serializeLocalized(value: LocalizedString): string {
+  return JSON.stringify(value);
+}
+

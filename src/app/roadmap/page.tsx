@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
-import { t } from "@/lib/i18n";
+import { t, tLocalized, type LocalizedString } from "@/lib/i18n";
 
 interface RoadmapData {
   summary: {
@@ -13,20 +13,20 @@ interface RoadmapData {
   };
   weeklyPlan: Array<{
     weekIndex: number;
-    focus: string;
+    focus: LocalizedString | string;
     topics: Array<{
       id: number;
-      title: string;
-      objective: string;
+      title: LocalizedString | string;
+      objective: LocalizedString | string;
     }>;
   }>;
   priorityTopics: Array<{
     topicId: number;
-    reason: string;
+    reason: LocalizedString | string;
     estimatedHours: number;
     impactOnScore: number;
   }>;
-  motivationalMessage: string;
+  motivationalMessage: LocalizedString | string;
 }
 
 interface RoadmapResponse {
@@ -132,7 +132,7 @@ export default function RoadmapPage() {
                 {t("roadmap.scoreGain", lang)}
               </div>
               <div className="text-xl font-bold text-slate-900">
-                +{data.summary.estimatedScoreGain} баллов
+                +{data.summary.estimatedScoreGain} {t("roadmap.points", lang)}
               </div>
             </div>
             <div className="bg-white rounded-2xl p-6 border border-slate-200">
@@ -140,7 +140,7 @@ export default function RoadmapPage() {
                 {t("roadmap.load", lang)}
               </div>
               <div className="text-xl font-bold text-slate-900">
-                {data.summary.recommendedHoursPerDay}ч / день
+                {data.summary.recommendedHoursPerDay} {t("roadmap.hoursDay", lang)}
               </div>
             </div>
           </div>
@@ -166,16 +166,16 @@ export default function RoadmapPage() {
                     <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
                       {t("roadmap.week", lang)} {week.weekIndex}
                     </span>
-                    <h3 className="text-lg font-bold text-slate-800">{week.focus}</h3>
+                    <h3 className="text-lg font-bold text-slate-800">{tLocalized(week.focus, lang)}</h3>
                   </div>
                   <div className="space-y-3">
                     {week.topics?.map((topic) => (
                       <div key={topic.id} className="bg-slate-50 rounded-xl p-5 border border-slate-100 hover:bg-white hover:border-slate-200 transition-colors">
                         <h4 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
                           <span className="w-1.5 h-1.5 bg-primary rounded-full"></span>
-                          {topic.title}
+                          {tLocalized(topic.title, lang)}
                         </h4>
-                        <p className="text-sm text-slate-600 leading-relaxed">{topic.objective}</p>
+                        <p className="text-sm text-slate-600 leading-relaxed">{tLocalized(topic.objective, lang)}</p>
                       </div>
                     ))}
                   </div>
@@ -204,13 +204,13 @@ export default function RoadmapPage() {
                       {i + 1}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 mb-3 leading-snug">{topic.reason}</p>
+                      <p className="text-sm font-bold text-slate-800 mb-3 leading-snug">{tLocalized(topic.reason, lang)}</p>
                       <div className="flex flex-wrap gap-2">
                         <span className="px-2 py-1 bg-white rounded-lg text-[10px] font-bold text-slate-500 border border-slate-200 flex items-center gap-1">
-                          <Clock className="w-3 h-3" aria-hidden="true" /> {topic.estimatedHours}ч
+                          <Clock className="w-3 h-3" aria-hidden="true" /> {topic.estimatedHours} {t("roadmap.hours", lang)}
                         </span>
                         <span className="px-2 py-1 bg-emerald-50 rounded-lg text-[10px] font-bold text-emerald-700">
-                          +{topic.impactOnScore} БАЛЛОВ
+                          +{topic.impactOnScore} {t("roadmap.points", lang).toUpperCase()}
                         </span>
                       </div>
                     </div>
@@ -228,7 +228,7 @@ export default function RoadmapPage() {
                   <Trophy className="w-10 h-10 text-primary" aria-hidden="true" />
                 </div>
                 <p className="text-lg leading-relaxed font-medium text-slate-700">
-                  &quot;{data.motivationalMessage}&quot;
+                  &quot;{tLocalized(data.motivationalMessage, lang)}&quot;
                 </p>
               </div>
             </div>
