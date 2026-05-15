@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
+import { t } from "@/lib/i18n";
 import Image from "next/image";
 import { Building } from "lucide-react";
 
@@ -38,7 +39,7 @@ export default function UniversityDetailPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
       <Link href="/universities" className="text-primary font-bold mb-8 inline-block hover:underline">
-        ← {lang === "ru" ? "Назад к списку" : "Тізімге қайту"}
+        ← {t("common.backToList", lang)}
       </Link>
 
       <div className="bg-white rounded-[3rem] border border-border p-8 md:p-12 shadow-sm mb-10 overflow-hidden relative">
@@ -60,7 +61,7 @@ export default function UniversityDetailPage() {
           </div>
           <div>
             <div className="inline-block px-3 py-1 rounded-full bg-primary/8 text-primary text-xs font-black uppercase tracking-wider mb-4">
-              {uni.cityRu}, Казахстан
+              {uni.cityRu}, {t("common.kazakhstan", lang)}
             </div>
             <h1 className="text-4xl font-black text-text leading-tight mb-4">{lang === "ru" ? uni.nameRu : uni.nameKz}</h1>
             <p className="text-text-secondary text-lg max-w-2xl leading-relaxed">
@@ -71,7 +72,7 @@ export default function UniversityDetailPage() {
       </div>
 
       <h2 className="text-2xl font-black text-text mb-6 px-4">
-        {lang === "ru" ? "Образовательные программы" : "Білім беру бағдарламалары"}
+        {t("universities.educationalPrograms", lang)}
       </h2>
 
       <div className="grid grid-cols-1 gap-4">
@@ -93,16 +94,16 @@ export default function UniversityDetailPage() {
 
             <div className="flex items-center gap-8 text-center md:text-right">
               <div>
-                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Грант 2024</div>
+                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">{t("universities.grant", lang)}</div>
                 <div className="text-2xl font-black text-primary">{prog.scoreHistory?.[0]?.grantScore || "—"}</div>
               </div>
               <div>
-                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Платное</div>
+                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">{t("universities.paid", lang)}</div>
                 <div className="text-2xl font-black text-text">{prog.scoreHistory?.[0]?.paidScore || "—"}</div>
               </div>
               <div className="hidden sm:block">
-                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">Срок</div>
-                <div className="text-lg font-bold text-text">{prog.durationYears} {lang === "ru" ? "года" : "жыл"}</div>
+                <div className="text-[10px] font-bold text-text-secondary uppercase mb-1">{t("universities.duration", lang)}</div>
+                <div className="text-lg font-bold text-text">{prog.durationYears} {t("universities.years", lang)}</div>
               </div>
             </div>
           </div>

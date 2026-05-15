@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useApp, type User } from "@/components/Providers";
-import { t, type Lang } from "@/lib/i18n";
+import { t, tSubject, type Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -152,7 +152,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                 </div>
                 <h2 className="text-xl font-bold text-slate-900">{user.name}</h2>
                 <div className="mt-2 text-sm font-bold text-slate-400 uppercase tracking-widest">
-                  {lang === "ru" ? "Абитуриент" : "Абитуриент"}
+                  {t("profile.applicant", lang)}
                 </div>
              </div>
           </div>
@@ -187,12 +187,12 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
              <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <Target className="w-5 h-5 text-primary" aria-hidden="true" />
-                {lang === "ru" ? "Ваша цель" : "Сенің мақсатың"}
+                {t("goal.title", lang)}
              </h3>
              
              <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{lang === "ru" ? "Целевой балл" : "Мақсатты балл"}</span>
+                  <span className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t("goal.targetScore", lang)}</span>
                   <span className="text-3xl font-bold text-primary">{targetScore}</span>
                 </div>
                 <input
@@ -227,7 +227,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                     }`}
                   >
                     <div className="text-sm font-bold text-slate-800">
-                      {lang === "ru" ? combo.subject1.nameRu : combo.subject1.nameKz} + {lang === "ru" ? combo.subject2.nameRu : combo.subject2.nameKz}
+                      {`${tSubject(combo.subject1.nameKz, lang)} + ${tSubject(combo.subject2.nameKz, lang)}`}
                     </div>
                   </button>
                 ))}
@@ -237,13 +237,13 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
              <h3 className="font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-primary" aria-hidden="true" />
-                {lang === "ru" ? "Университет и Специальность" : "Университет пен мамандық"}
+                {t("profile.universityAndMajor", lang)}
              </h3>
              
              <div className="space-y-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">
-                    {lang === "ru" ? "Университет" : "Университет"}
+                    {t("profile.university", lang)}
                   </label>
                   <select
                     value={targetUniversityId || ""}
@@ -254,7 +254,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                     }}
                     className="w-full p-3 rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-700 outline-none focus:border-primary transition-colors"
                   >
-                    <option value="">{lang === "ru" ? "— Выберите университет —" : "— Университетті таңдаңыз —"}</option>
+                    <option value="">{t("profile.selectUniversity", lang)}</option>
                     {universitiesData.map(u => (
                       <option key={u.id} value={u.id}>{lang === "ru" ? u.nameRu : u.nameKz}</option>
                     ))}
@@ -264,7 +264,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                 {targetUniversityId && selectedUniversity && (
                   <div className="pt-4 border-t border-slate-100 mt-4">
                     <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">
-                      {lang === "ru" ? "Специальность" : "Мамандық"}
+                      {t("profile.specialty", lang)}
                     </label>
                     <div className="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                       {selectedUniversity.programs.map(p => (

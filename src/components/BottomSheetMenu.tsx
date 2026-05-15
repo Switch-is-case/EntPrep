@@ -19,19 +19,19 @@ export function BottomSheetMenu({ isOpen, onClose }: BottomSheetMenuProps) {
   const menuItems = [
     {
       href: "/universities",
-      label: lang === "ru" ? "Университеты" : lang === "kz" ? "Университеттер" : "Universities",
+      label: t("nav.universities", lang),
       icon: Building,
       color: "from-emerald-500 to-teal-600",
     },
     {
       href: "/roadmap",
-      label: lang === "ru" ? "AI План" : lang === "kz" ? "AI Жоспар" : "AI Plan",
+      label: t("nav.aiPlan", lang),
       icon: Lightbulb,
       color: "from-amber-500 to-orange-600",
     },
     {
       href: "/profile",
-      label: lang === "ru" ? "Настройки" : lang === "kz" ? "Баптаулар" : "Settings",
+      label: t("nav.settings", lang),
       icon: Settings,
       color: "from-slate-500 to-slate-700",
     },

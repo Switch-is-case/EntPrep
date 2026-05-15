@@ -98,7 +98,7 @@ export default function ProgressPage() {
         </div>
         <div className="bg-white rounded-2xl border border-border p-5">
           <div className="text-sm text-text-secondary mb-1">
-            {lang === "ru" ? "Тестов пройдено" : lang === "kz" ? "Тест тапсырылды" : "Tests Taken"}
+            {t("progress.testsTaken", lang)}
           </div>
           <div className="text-3xl font-bold text-accent">{recentSessions.length}</div>
         </div>
@@ -137,7 +137,7 @@ export default function ProgressPage() {
                     </div>
                     {/* Stats row */}
                     <div className="flex items-center justify-between text-xs text-text-secondary">
-                      <span>{sp.totalCorrect}/{sp.totalAttempted} {lang === "ru" ? "правильно" : lang === "kz" ? "дұрыс" : "correct"}</span>
+                      <span>{sp.totalCorrect}/{sp.totalAttempted} {t("progress.correct", lang)}</span>
                       <span className="font-semibold text-text">{accuracy}%</span>
                     </div>
                   </div>
@@ -162,10 +162,10 @@ export default function ProgressPage() {
                       <div>
                         <div className="text-sm font-medium">
                           {s.testType === "diagnostic"
-                            ? lang === "ru" ? "Диагностический" : lang === "kz" ? "Диагностикалық" : "Diagnostic"
+                            ? t("history.typeDiagnostic", lang)
                             : s.testType === "full"
-                            ? lang === "ru" ? "Полный ЕНТ" : lang === "kz" ? "Толық ЕНТ" : "Full ENT"
-                            : lang === "ru" ? "Практика" : lang === "kz" ? "Жаттығу" : "Practice"}
+                            ? t("history.typeFull", lang)
+                            : t("history.typePractice", lang)}
                         </div>
                         <div className="text-xs text-text-secondary">
                           {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
@@ -187,18 +187,10 @@ export default function ProgressPage() {
         <div className="bg-white rounded-2xl border border-border p-12 text-center">
           <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4"><svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg></div>
           <h3 className="text-xl font-semibold text-text mb-2">
-            {lang === "ru"
-              ? "Пока нет данных"
-              : lang === "kz"
-              ? "Әлі деректер жоқ"
-              : "No data yet"}
+            {t("progress.noData", lang)}
           </h3>
           <p className="text-text-secondary mb-6">
-            {lang === "ru"
-              ? "Пройдите тест, чтобы увидеть свой прогресс"
-              : lang === "kz"
-              ? "Прогресті көру үшін тест тапсырыңыз"
-              : "Take a test to see your progress"}
+            {t("progress.noDataDesc", lang)}
           </p>
           <button
             onClick={() => router.push("/tests")}

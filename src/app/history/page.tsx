@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
-import { t } from "@/lib/i18n";
+import { t, tSubject } from "@/lib/i18n";
 
 import { useHistory } from "@/hooks/useHistory";
 import { Spinner } from "@/components/Spinner";
@@ -48,14 +48,10 @@ export default function HistoryPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2 tracking-tight">
-            {lang === "ru" ? "История тестов" : lang === "kz" ? "Тест тарихы" : "Test History"}
+            {t("history.title", lang)}
           </h1>
           <p className="text-slate-600 font-medium">
-            {lang === "ru" 
-              ? "Здесь отображаются все пройденные вами тесты." 
-              : lang === "kz" 
-              ? "Мұнда сіз тапсырған барлық тесттер көрсетілген." 
-              : "All your completed tests are shown here."}
+            {t("history.subtitle", lang)}
           </p>
         </div>
 
@@ -66,14 +62,10 @@ export default function HistoryPage() {
               onChange={(e) => setFilterSubject(e.target.value)}
               className="w-full md:w-64 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold text-slate-700"
             >
-              <option value="all">{lang === "ru" ? "Все предметы" : "Барлық пәндер"}</option>
+              <option value="all">{t("filters.allSubjects", lang)}</option>
               {allSubjects.map((sub, idx) => (
                 <option key={`${sub.id}-${idx}`} value={sub.slug || `id-${sub.id}`}>
-                  {lang === "ru" 
-                    ? (sub.nameRu || sub.slug || "—") 
-                    : lang === "kz" 
-                    ? (sub.nameKz || sub.slug || "—") 
-                    : (sub.nameEn || sub.slug || "—")}
+                  {tSubject(sub.nameKz || sub.slug, lang) || "—"}
                 </option>
               ))}
             </select>
@@ -101,16 +93,16 @@ export default function HistoryPage() {
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-bold text-slate-900 group-hover:text-primary transition-colors truncate">
                     {s.testType === "diagnostic"
-                      ? lang === "ru" ? "Диагностический" : lang === "kz" ? "Диагностикалық" : "Diagnostic"
+                      ? t("history.typeDiagnostic", lang)
                       : s.testType === "full"
-                      ? lang === "ru" ? "Полный ЕНТ" : lang === "kz" ? "Толық ЕНТ" : "Full ENT"
-                      : lang === "ru" ? "Практика" : lang === "kz" ? "Жаттығу" : "Practice"}
+                      ? t("history.typeFull", lang)
+                      : t("history.typePractice", lang)}
                   </div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                     {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
                     {" · "}
                     {new Date(s.startedAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}
-                    {s.subjects && s.subjects.length > 0 && ` · ${s.subjects.map(sub => lang === "ru" ? (sub.nameRu || sub.slug) : lang === "kz" ? (sub.nameKz || sub.slug) : (sub.nameEn || sub.slug)).join(", ")}`}
+                    {s.subjects && s.subjects.length > 0 && ` · ${s.subjects.map(sub => tSubject(sub.nameKz || sub.slug, lang)).join(", ")}`}
                   </div>
                 </div>
 
@@ -134,13 +126,13 @@ export default function HistoryPage() {
           </div>
           <h3 className="text-xl font-bold text-slate-900 mb-2">
             {filterSubject !== "all" 
-              ? (lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады")
-              : (lang === "ru" ? "История пуста" : "Тарих бос")}
+              ? t("common.noDataFound", lang)
+              : t("history.emptyTitle", lang)}
           </h3>
           <p className="text-slate-600 font-medium mb-8 max-w-sm mx-auto">
             {filterSubject !== "all"
-              ? (lang === "ru" ? "Попробуйте выбрать другой предмет" : "Басқа пәнді таңдап көріңіз")
-              : (lang === "ru" ? "Вы еще не прошли ни одного теста." : "Сіз әлі ешқандай тест тапсырмадыңыз.")}
+              ? t("history.tryAnotherSubject", lang)
+              : t("history.emptyDesc", lang)}
           </p>
           {filterSubject === "all" && (
             <button

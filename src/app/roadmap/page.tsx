@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Spinner } from "@/components/Spinner";
+import { t } from "@/lib/i18n";
 
 interface RoadmapData {
   summary: {
@@ -79,24 +80,16 @@ export default function RoadmapPage() {
             <Target className="w-20 h-20 text-slate-300" aria-hidden="true" />
           </div>
           <h1 className="text-3xl font-bold mb-4 text-slate-900">
-            {lang === "ru" 
-              ? "У вас ещё нет плана обучения" 
-              : lang === "kz" 
-              ? "Сізде әлі оқу жоспары жоқ"
-              : "You don't have a study plan yet"}
+            {t("roadmap.emptyTitle", lang)}
           </h1>
           <p className="text-slate-600 mb-10 text-lg">
-            {lang === "ru" 
-              ? "Пройдите Пробный ЕНТ, чтобы наш AI проанализировал ваши знания и создал персональный путь к успеху."
-              : lang === "kz" 
-              ? "Біздің AI сіздің біліміңізді талдап, жетістікке жетелейтін жеке жоспар құруы үшін Пробный ЕНТ-дан өтіңіз."
-              : "Take a Mock Exam so our AI can analyze your knowledge and create a personalized path to success."}
+            {t("roadmap.emptyDesc", lang)}
           </p>
           <Link 
             href="/mock-exam" 
             className="inline-block px-10 py-5 bg-primary text-white rounded-2xl font-bold text-lg transition-colors hover:bg-primary-dark"
           >
-            {lang === "ru" ? "Начать Пробный ЕНТ" : lang === "kz" ? "Пробный ЕНТ бастау" : "Start Mock Exam"}
+            {t("roadmap.startMock", lang)}
           </Link>
         </div>
       </div>
@@ -119,20 +112,16 @@ export default function RoadmapPage() {
       <div className="bg-blue-50 rounded-3xl p-8 md:p-12 border border-primary/20 relative overflow-hidden">
         <div className="relative z-10">
           <h1 className="text-3xl md:text-5xl font-bold mb-4 tracking-tight text-slate-900">
-            {lang === "ru" ? "Твой AI-Навигатор" : lang === "kz" ? "Сіздің AI-Навигаторыңыз" : "Your AI Navigator"}
+            {t("roadmap.title", lang)}
           </h1>
           <p className="text-lg md:text-xl text-slate-600 mb-10 font-medium max-w-2xl leading-relaxed">
-            {lang === "ru" 
-              ? `Путь от ${currentScore} до ${targetScore} баллов за ${daysUntilExam} дней` 
-              : lang === "kz" 
-              ? `${daysUntilExam} күнде ${currentScore}-ден ${targetScore} баллға дейінгі жол`
-              : `The path from ${currentScore} to ${targetScore} in ${daysUntilExam} days`}
+            {t("roadmap.subtitle", lang, { currentScore, targetScore, daysUntilExam })}
           </p>
           
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="bg-white rounded-2xl p-6 border border-slate-200">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold">
-                {lang === "ru" ? "Сложность" : "Difficulty"}
+                {t("roadmap.difficulty", lang)}
               </div>
               <div className="text-xl font-bold text-slate-900">
                 {feasibilityLabels[data.summary.feasibility][lang as "ru" | "kz" | "en"]}
@@ -140,7 +129,7 @@ export default function RoadmapPage() {
             </div>
             <div className="bg-white rounded-2xl p-6 border border-slate-200">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold">
-                {lang === "ru" ? "Прогноз прироста" : "Score Gain"}
+                {t("roadmap.scoreGain", lang)}
               </div>
               <div className="text-xl font-bold text-slate-900">
                 +{data.summary.estimatedScoreGain} баллов
@@ -148,7 +137,7 @@ export default function RoadmapPage() {
             </div>
             <div className="bg-white rounded-2xl p-6 border border-slate-200">
               <div className="text-[10px] uppercase tracking-widest text-slate-500 mb-2 font-bold">
-                {lang === "ru" ? "Нагрузка" : "Load"}
+                {t("roadmap.load", lang)}
               </div>
               <div className="text-xl font-bold text-slate-900">
                 {data.summary.recommendedHoursPerDay}ч / день
@@ -167,7 +156,7 @@ export default function RoadmapPage() {
               <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
                 <Calendar className="w-6 h-6" aria-hidden="true" />
               </div>
-              {lang === "ru" ? "Пошаговый план" : "Step-by-Step Plan"}
+              {t("roadmap.stepByStepPlan", lang)}
             </h2>
             <div className="space-y-10">
               {data.weeklyPlan?.map((week) => (
@@ -175,7 +164,7 @@ export default function RoadmapPage() {
                   <div className="absolute -left-[9px] top-0 w-4 h-4 bg-white border-2 border-primary rounded-full z-10"></div>
                   <div className="flex items-center gap-3 mb-4">
                     <span className="px-3 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-bold uppercase tracking-wider">
-                      {lang === "ru" ? "Неделя" : "Week"} {week.weekIndex}
+                      {t("roadmap.week", lang)} {week.weekIndex}
                     </span>
                     <h3 className="text-lg font-bold text-slate-800">{week.focus}</h3>
                   </div>
@@ -205,7 +194,7 @@ export default function RoadmapPage() {
               <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center">
                 <TrendingUp className="w-6 h-6" aria-hidden="true" />
               </div>
-              {lang === "ru" ? "Точки роста" : "Growth Areas"}
+              {t("roadmap.growthAreas", lang)}
             </h2>
             <div className="space-y-4">
               {data.priorityTopics?.map((topic, i) => (
@@ -251,19 +240,19 @@ export default function RoadmapPage() {
               href="/practice" 
               className="px-8 py-5 bg-primary text-white rounded-2xl font-bold text-center transition-colors hover:bg-primary-dark"
             >
-              {lang === "ru" ? "ПЕРЕЙТИ К ПРАКТИКЕ" : "GO TO PRACTICE"}
+              {t("roadmap.goToPractice", lang)}
             </Link>
             <Link 
               href="/mock-exam" 
               className="px-8 py-5 bg-white border border-slate-200 text-primary rounded-2xl font-bold text-center hover:bg-slate-50 transition-colors"
             >
-              {lang === "ru" ? "НОВЫЙ ПРОБНЫЙ ЕНТ" : "NEW MOCK EXAM"}
+              {t("roadmap.newMockExam", lang)}
             </Link>
           </div>
 
           <div className="text-center">
              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-                <Calendar className="w-3 h-3" aria-hidden="true" /> {lang === "ru" ? "Обновлено" : "Updated"}: {new Date(response.generatedAt).toLocaleDateString()}
+                <Calendar className="w-3 h-3" aria-hidden="true" /> {t("roadmap.updated", lang)}: {new Date(response.generatedAt).toLocaleDateString()}
              </div>
           </div>
         </div>

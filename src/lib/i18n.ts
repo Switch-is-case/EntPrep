@@ -1,7 +1,71 @@
 export type Lang = "kz" | "ru" | "en";
 
 export const translations = {
+  subjects: {
+    // === Базовые предметы ===
+    "Математика": { kz: "Математика", ru: "Математика", en: "Mathematics" },
+    "Физика": { kz: "Физика", ru: "Физика", en: "Physics" },
+    "Информатика": { kz: "Информатика", ru: "Информатика", en: "Computer Science" },
+    "Биология": { kz: "Биология", ru: "Биология", en: "Biology" },
+    "Химия": { kz: "Химия", ru: "Химия", en: "Chemistry" },
+    "География": { kz: "География", ru: "География", en: "Geography" },
+    
+    // === Языки и литература ===
+    "Әдебиет": { kz: "Әдебиет", ru: "Литература", en: "Literature" },
+    "Литература": { kz: "Әдебиет", ru: "Литература", en: "Literature" },
+    "Ағылшын тілі": { kz: "Ағылшын тілі", ru: "Английский язык", en: "English Language" },
+    "Английский язык": { kz: "Ағылшын тілі", ru: "Английский язык", en: "English Language" },
+    "Қазақ тілі": { kz: "Қазақ тілі", ru: "Казахский язык", en: "Kazakh Language" },
+    "Орыс тілі": { kz: "Орыс тілі", ru: "Русский язык", en: "Russian Language" },
+    
+    // === История ===
+    "Дүниежүзі тарихы": { kz: "Дүниежүзі тарихы", ru: "Всемирная история", en: "World History" },
+    "Всемирная история": { kz: "Дүниежүзі тарихы", ru: "Всемирная история", en: "World History" },
+    "Қазақстан тарихы": { kz: "Қазақстан тарихы", ru: "История Казахстана", en: "History of Kazakhstan" },
+    "История Казахстана": { kz: "Қазақстан тарихы", ru: "История Казахстана", en: "History of Kazakhstan" },
+    
+    // === Грамотность (для UNT/ЕНТ) ===
+    "Математикалық сауаттылық": { kz: "Математикалық сауаттылық", ru: "Математическая грамотность", en: "Math Literacy" },
+    "Математическая грамотность": { kz: "Математикалық сауаттылық", ru: "Математическая грамотность", en: "Math Literacy" },
+    "Оқу сауаттылығы": { kz: "Оқу сауаттылығы", ru: "Грамотность чтения", en: "Reading Literacy" },
+    "Грамотность чтения": { kz: "Оқу сауаттылығы", ru: "Грамотность чтения", en: "Reading Literacy" },
+    
+    // === Дополнительные предметы ===
+    "Право": { kz: "Құқық негіздері", ru: "Право", en: "Law" },
+    "Құқық негіздері": { kz: "Құқық негіздері", ru: "Право", en: "Law" },
+  },
+
+  // Roadmap
+  "roadmap.emptyTitle": { kz: "Сізде әлі оқу жоспары жоқ", ru: "У вас ещё нет плана обучения", en: "You don't have a study plan yet" },
+  "roadmap.emptyDesc": { kz: "Біздің AI сіздің біліміңізді талдап, жетістікке жетелейтін жеке жоспар құруы үшін Пробный ЕНТ-дан өтіңіз.", ru: "Пройдите Пробный ЕНТ, чтобы наш AI проанализировал ваши знания и создал персональный путь к успеху.", en: "Take a Mock Exam so our AI can analyze your knowledge and create a personalized path to success." },
+  "roadmap.startMock": { kz: "Пробный ЕНТ бастау", ru: "Начать Пробный ЕНТ", en: "Start Mock Exam" },
+  "roadmap.title": { kz: "Сіздің AI-Навигаторыңыз", ru: "Твой AI-Навигатор", en: "Your AI Navigator" },
+  "roadmap.subtitle": { kz: "{daysUntilExam} күнде {currentScore}-ден {targetScore} баллға дейінгі жол", ru: "Путь от {currentScore} до {targetScore} баллов за {daysUntilExam} дней", en: "The path from {currentScore} to {targetScore} in {daysUntilExam} days" },
+  "roadmap.difficulty": { kz: "Қиындық", ru: "Сложность", en: "Difficulty" },
+  "roadmap.scoreGain": { kz: "Өсім болжамы", ru: "Прогноз прироста", en: "Score Gain" },
+  "roadmap.load": { kz: "Жүктеме", ru: "Нагрузка", en: "Load" },
+  "roadmap.stepByStepPlan": { kz: "Қадамдық жоспар", ru: "Пошаговый план", en: "Step-by-Step Plan" },
+  "roadmap.week": { kz: "Апта", ru: "Неделя", en: "Week" },
+  "roadmap.growthAreas": { kz: "Өсу нүктелері", ru: "Точки роста", en: "Growth Areas" },
+  "roadmap.goToPractice": { kz: "ЖАТТЫҒУҒА ӨТУ", ru: "ПЕРЕЙТИ К ПРАКТИКЕ", en: "GO TO PRACTICE" },
+  "roadmap.newMockExam": { kz: "ЖАҢА ПРОБНЫЙ ЕНТ", ru: "НОВЫЙ ПРОБНЫЙ ЕНТ", en: "NEW MOCK EXAM" },
+  "roadmap.updated": { kz: "Жаңартылды", ru: "Обновлено", en: "Updated" },
+
+  "progress.title": { kz: "Прогресс", ru: "Прогресс", en: "Progress" },
+  "progress.overall": { kz: "Жалпы прогресс", ru: "Общий прогресс", en: "Overall Progress" },
+  "progress.accuracy": { kz: "Дұрыстық", ru: "Точность", en: "Accuracy" },
+  "progress.attempted": { kz: "Барлығы", ru: "Всего", en: "Attempted" },
+  "progress.bySubject": { kz: "Пәндер бойынша", ru: "По предметам", en: "By Subject" },
+  "progress.history": { kz: "Тарих", ru: "История", en: "History" },
+  "progress.testsTaken": { kz: "Тест тапсырылды", ru: "Тестов пройдено", en: "Tests Taken" },
+  "progress.correct": { kz: "дұрыс", ru: "правильно", en: "correct" },
+  "progress.noData": { kz: "Әлі деректер жоқ", ru: "Пока нет данных", en: "No data yet" },
+  "progress.noDataDesc": { kz: "Прогресті көру үшін тест тапсырыңыз", ru: "Пройдите тест, чтобы увидеть свой прогресс", en: "Take a test to see your progress" },
+
   // Navigation
+
+  "nav.aiPlan": { kz: "AI Жоспар", ru: "AI План", en: "AI Plan" },
+  "nav.settings": { kz: "Баптаулар", ru: "Настройки", en: "Settings" },
   "nav.home": { kz: "Басты бет", ru: "Главная", en: "Home" },
   "nav.tests": { kz: "Тесттер", ru: "Тесты", en: "Tests" },
   "nav.practice": { kz: "Жаттығу", ru: "Практика", en: "Practice" },
@@ -310,6 +374,13 @@ export const translations = {
   "profile.language": { kz: "Тіл", ru: "Язык", en: "Language" },
   "profile.save": { kz: "Сақтау", ru: "Сохранить", en: "Save" },
   "profile.saved": { kz: "Сақталды!", ru: "Сохранено!", en: "Saved!" },
+  "profile.applicant": { kz: "Абитуриент", ru: "Абитуриент", en: "Applicant" },
+  "profile.universityAndMajor": { kz: "Университет пен мамандық", ru: "Университет и Специальность", en: "University & Major" },
+  "profile.university": { kz: "Университет", ru: "Университет", en: "University" },
+  "profile.selectUniversity": { kz: "— Университетті таңдаңыз —", ru: "— Выберите университет —", en: "— Select University —" },
+  "profile.specialty": { kz: "Мамандық", ru: "Специальность", en: "Major" },
+  "goal.title": { kz: "Сенің мақсатың", ru: "Ваша цель", en: "Your Goal" },
+  "goal.targetScore": { kz: "Мақсатты балл", ru: "Целевой балл", en: "Target Score" },
 
   // Subjects
   "subject.math_literacy": {
@@ -404,9 +475,45 @@ export const translations = {
     ru: "Оставшееся время",
     en: "Time Left",
   },
+  "tests.subtitle": { kz: "Біліміңізді тексеру үшін тест түрін таңдаңыз.", ru: "Выберите режим тестирования для оценки своих знаний.", en: "Select a test mode to assess your knowledge." },
+  "tests.notSelected": { kz: "Таңдалмаған", ru: "Не выбрано", en: "Not Selected" },
 
   // Practice
   "practice.title": { kz: "Жаттығу", ru: "Практика", en: "Practice" },
+  "practice.subtitle": { kz: "Жауаптарды жедел тексерумен нақты пәндер бойынша жаттығу.", ru: "Выборочная тренировка по конкретным предметам с моментальной проверкой ответов.", en: "Selective training on specific subjects with instant answer checking." },
+  "practice.mandatorySubjects": { kz: "Міндетті пәндер", ru: "Обязательные предметы", en: "Mandatory Subjects" },
+  "exam.simulatorTitle": { kz: "ҰБТ Симуляторы", ru: "Симулятор ЕНТ", en: "ENT Simulator" },
+  "exam.selectGoalFirst": { kz: "Алдымен мақсатты таңдаңыз", ru: "Сначала выберите цель", en: "Select your goal first" },
+  "exam.simulatorDesc": { kz: "Нағыз емтиханның толық симуляциясы. Нағыз тестілеу алдында өз күшіңді сынап көр.", ru: "Полноценная имитация реального экзамена. Проверь свои силы перед настоящим тестированием.", en: "Full simulation of the real exam. Test your knowledge before the actual testing." },
+  "exam.selectGoalDesc": { kz: "Емтихан нұсқасын дұрыс жасау үшін бізге сіздің профильдік пәндеріңізді білу керек.", ru: "Чтобы составить точный вариант экзамена, нам нужно знать ваши профильные предметы.", en: "To generate an accurate exam, we need to know your profile subjects." },
+  "exam.questionsCount": { kz: "Сұрақтар", ru: "Вопросов", en: "Questions" },
+  "exam.time": { kz: "Уақыт", ru: "Время", en: "Time" },
+  "exam.minutes": { kz: "мин", ru: "мин", en: "min" },
+  "exam.maxScore": { kz: "Макс. балл", ru: "Макс. балл", en: "Max Score" },
+  "exam.rulesTitle": { kz: "Симуляция ережелері:", ru: "Правила симуляции:", en: "Simulation Rules:" },
+  "exam.rule1": { kz: "Шыққан кезде таймер тоқтамайды", ru: "Таймер не останавливается при выходе", en: "The timer does not stop when you exit" },
+  "exam.rule2": { kz: "Пәндер арасында ауысуға болады", ru: "Можно переключаться между предметами", en: "You can switch between subjects" },
+  "exam.rule3": { kz: "Нәтиже аяқталғаннан кейін бірден қолжетімді болады", ru: "Результат будет доступен сразу после завершения", en: "Results will be available immediately after completion" },
+  "exam.rule4": { kz: "ИИ қателер негізінде дайындық жоспарын құрады", ru: "AI построит план подготовки на основе ошибок", en: "AI will create a preparation plan based on your mistakes" },
+  "exam.start": { kz: "Емтиханды бастау 🚀", ru: "Начать экзамен 🚀", en: "Start Exam 🚀" },
+  "exam.selectCareerDesc": { kz: "Мансап шеберінен оқу бағыты мен ҰБТ пәндерін таңдаңыз.", ru: "Пожалуйста, выберите направление обучения и предметы ЕНТ в мастере карьеры.", en: "Please select your study direction and ENT subjects in the career wizard." },
+  "exam.goToSelection": { kz: "Таңдауға өту →", ru: "Перейти к выбору →", en: "Go to selection →" },
+  "exam.confirmFinish": { kz: "Аяқтағыңыз келе ме?", ru: "Вы уверены, что хотите завершить?", en: "Are you sure you want to finish?" },
+  "exam.finish": { kz: "Аяқтау", ru: "Завершить", en: "Finish" },
+  "exam.question": { kz: "Сұрақ", ru: "Вопрос", en: "Question" },
+  "exam.chooseAnswer": { kz: "Жауапты таңдаңыз", ru: "Выберите ответ", en: "Choose answer" },
+  "exam.aiExplanation": { kz: "ЖИ түсіндірмесі", ru: "Объяснение ИИ", en: "AI Explanation" },
+  "exam.aiAnalyzing": { kz: "ЖИ талдауда...", ru: "ИИ анализирует...", en: "AI is analyzing..." },
+  "exam.aiExplanationComingSoon": { kz: "Түсіндірме жақында пайда болады.", ru: "Объяснение скоро появится.", en: "Explanation will appear soon." },
+  "exam.aiGenerated": { kz: "ЖИ негізінде", ru: "Сгенерировано ИИ", en: "AI Generated" },
+  "exam.diagnostic": { kz: "Диагностика", ru: "Диагностика", en: "Diagnostic" },
+  "exam.mockExam": { kz: "Сынақ ҰБТ", ru: "Пробный ЕНТ", en: "Mock ENT" },
+  "exam.yourResult": { kz: "Сенің нәтижең", ru: "Ваш результат", en: "Your Result" },
+  "exam.outOf": { kz: "{total}-ТАН", ru: "ИЗ {total}", en: "OUT OF {total}" },
+  "exam.whatNext": { kz: "Әрі қарай не болады?", ru: "Что дальше?", en: "What's Next?" },
+  "exam.aiAnalyzeErrors": { kz: "Біздің ИИ сенің қателеріңді талдап, жеке оқу жоспарын құруға дайын.", ru: "Наш ИИ готов проанализировать твои ошибки и составить персональный план обучения.", en: "Our AI is ready to analyze your mistakes and create a personalized study plan." },
+  "exam.createRoadmap": { kz: "AI Roadmap жасау", ru: "Создать AI Roadmap", en: "Create AI Roadmap" },
+  "exam.backToHome": { kz: "Басты бетке оралу", ru: "Вернуться на главную", en: "Back to Home" },
   "practice.selectSubject": {
     kz: "Пәнді таңдаңыз",
     ru: "Выберите предмет",
@@ -428,33 +535,6 @@ export const translations = {
     en: "Explanation",
   },
 
-  // Progress
-  "progress.title": { kz: "Прогресс", ru: "Прогресс", en: "Progress" },
-  "progress.overall": {
-    kz: "Жалпы прогресс",
-    ru: "Общий прогресс",
-    en: "Overall Progress",
-  },
-  "progress.bySubject": {
-    kz: "Пәндер бойынша",
-    ru: "По предметам",
-    en: "By Subject",
-  },
-  "progress.history": {
-    kz: "Тест тарихы",
-    ru: "История тестов",
-    en: "Test History",
-  },
-  "progress.accuracy": {
-    kz: "Дәлдік",
-    ru: "Точность",
-    en: "Accuracy",
-  },
-  "progress.attempted": {
-    kz: "Тапсырылды",
-    ru: "Пройдено",
-    en: "Attempted",
-  },
 
   // Common
   "common.loading": { kz: "Жүктелуде...", ru: "Загрузка...", en: "Loading..." },
@@ -472,6 +552,27 @@ export const translations = {
   "nav.about": { kz: "Платформа туралы", ru: "О платформе", en: "About" },
   "nav.help": { kz: "Көмек", ru: "Помощь", en: "Help" },
   "nav.contact": { kz: "Контактілер", ru: "Контакты", en: "Contacts" },
+  "common.search": { kz: "Іздеу...", ru: "Поиск...", en: "Search..." },
+  "common.noDataFound": { kz: "Ештеңе табылмады", ru: "Ничего не найдено", en: "Nothing found" },
+  "common.tryChangingSearch": { kz: "Іздеу параметрлерін өзгертіп көріңіз", ru: "Попробуйте изменить параметры поиска", en: "Try changing the search parameters" },
+  "common.moreDetails": { kz: "Толығырақ", ru: "Подробнее", en: "More details" },
+  "common.loadingError": { kz: "Жүктеу қатесі", ru: "Ошибка загрузки", en: "Loading error" },
+  "common.goBack": { kz: "Артқа қайту", ru: "Вернуться назад", en: "Go back" },
+
+  "common.next": { kz: "Келесі", ru: "Далее", en: "Next" },
+  "common.backToList": { kz: "Тізімге қайту", ru: "Назад к списку", en: "Back to list" },
+  "common.kazakhstan": { kz: "Қазақстан", ru: "Казахстан", en: "Kazakhstan" },
+  "filters.allCities": { kz: "Барлық қалалар", ru: "Все города", en: "All Cities" },
+  "filters.allSubjects": { kz: "Барлық пәндер", ru: "Все предметы", en: "All Subjects" },
+  "universities.title": { kz: "Қазақстан университеттері", ru: "Университеты Казахстана", en: "Universities of Kazakhstan" },
+  "universities.subtitle": { kz: "Өзіңе лайықты ЖОО тауып, өту балдарын біл", ru: "Найди свой идеальный ВУЗ и узнай проходные баллы", en: "Find your ideal university and discover passing scores" },
+  "universities.programsCount": { kz: "бағдарлама", ru: "программы", en: "programs" },
+  "universities.coursesCount": { kz: "курс", ru: "курсов", en: "courses" },
+  "universities.educationalPrograms": { kz: "Білім беру бағдарламалары", ru: "Образовательные программы", en: "Educational Programs" },
+  "universities.grant": { kz: "Грант 2024", ru: "Грант 2024", en: "Grant 2024" },
+  "universities.paid": { kz: "Ақылы", ru: "Платное", en: "Paid" },
+  "universities.duration": { kz: "Мерзімі", ru: "Срок", en: "Duration" },
+  "universities.years": { kz: "жыл", ru: "года", en: "years" },
 
   // PWA Install
   "nav.download": { kz: "Жүктеу", ru: "Скачать", en: "Download" },
@@ -565,14 +666,61 @@ export const translations = {
   "verifyEmail.banner.message": { kz: "Толық қолжетімділік алу үшін email-ді растаңыз", ru: "Подтверди email чтобы получить полный доступ", en: "Verify your email for full access" },
   "verifyEmail.banner.button": { kz: "Растау →", ru: "Подтвердить →", en: "Verify →" },
   "verifyEmail.required.testBlocked": { kz: "Тестті бастау үшін email-ді растаңыз", ru: "Подтверди email чтобы начать тест", en: "Verify email to start the test" },
+
+  // History Review
+  "history.typeDiagnostic": { kz: "Диагностикалық", ru: "Диагностический", en: "Diagnostic" },
+  "history.typeFull": { kz: "Толық ЕНТ", ru: "Полный ЕНТ", en: "Full ENT" },
+  "history.typePractice": { kz: "Жаттығу", ru: "Практика", en: "Practice" },
+  "history.emptyTitle": { kz: "Тарих бос", ru: "История пуста", en: "History is empty" },
+  "history.tryAnotherSubject": { kz: "Басқа пәнді таңдап көріңіз", ru: "Попробуйте выбрать другой предмет", en: "Try selecting another subject" },
+  "history.emptyDesc": { kz: "Сіз әлі ешқандай тест тапсырмадыңыз.", ru: "Вы еще не прошли ни одного теста.", en: "You haven't taken any tests yet." },
+  "history.backToHistory": { kz: "← Тарихқа", ru: "← К истории", en: "← To History" },
+  "history.testReview": { kz: "Тестті шолу", ru: "Обзор теста", en: "Test Review" },
+  "history.correct": { kz: "Дұрыс", ru: "Правильно", en: "Correct" },
+  "history.incorrect": { kz: "Қате", ru: "Неправильно", en: "Incorrect" },
+  "history.skipped": { kz: "Өткізілді", ru: "Пропущено", en: "Skipped" },
+  "history.backToHistoryLong": { kz: "← Тарихқа оралу", ru: "← Вернуться к истории", en: "← Back to History" },
+  "history.answeredDontKnow": { kz: "Сіздің жауабыңыз: «Білмеймін»", ru: "Вы ответили: «Не знаю»", en: "You answered: 'I don't know'" },
+
+  // History Page
+  "history.title": { kz: "Тарих", ru: "История", en: "History" },
+  "history.subtitle": { kz: "Сіздің тест тарихыңыз", ru: "Ваша история тестов", en: "Your test history" },
+
+  // Home Page
+  "home.stats.questions": { kz: "ЕНТ-дегі сұрақтар", ru: "Вопросов в ЕНТ", en: "Questions in ENT" },
+  "home.stats.subjects": { kz: "Пәндер", ru: "Предметов", en: "Subjects" },
+  "home.stats.languages": { kz: "Тіл", ru: "Языка", en: "Languages" },
+  "home.stats.recommendations": { kz: "Ұсыныстар", ru: "Рекомендации", en: "Recommendations" },
+  "home.hero.badge": { kz: "ЕНТ-ге дайындық платформасы", ru: "Платформа подготовки к ЕНТ", en: "ENT Preparation Platform" },
+  "home.features.title": { kz: "Платформа мүмкіндіктері", ru: "Возможности платформы", en: "Platform Features" },
+  "home.features.subtitle": { kz: "ЕНТ-ге сәтті дайындалу үшін барлық қажетті", ru: "Всё необходимое для успешной подготовки к ЕНТ", en: "Everything you need for successful ENT preparation" },
+  "home.format.title": { kz: "ЕНТ форматы", ru: "Формат ЕНТ", en: "ENT Format" },
+  "home.format.mandatory": { kz: "Міндетті пәндер", ru: "Обязательные предметы", en: "Mandatory Subjects" },
+  "home.format.mathLiteracy": { kz: "Математикалық сауаттылық", ru: "Математическая грамотность", en: "Math Literacy" },
+  "home.format.readingLiteracy": { kz: "Оқу сауаттылығы", ru: "Грамотность чтения", en: "Reading Literacy" },
+  "home.format.historyKz": { kz: "Қазақстан тарихы", ru: "История Казахстана", en: "History of KZ" },
+  "home.format.questionsCount": { kz: "сұрақ", ru: "вопросов", en: "questions" },
+  "home.format.profileSubjects": { kz: "Профильдік пәндер (2-уін таңдайсыз)", ru: "Профильные предметы (выбираете 2)", en: "Profile Subjects (choose 2)" },
+  "home.format.profile1": { kz: "Профильдік пән 1", ru: "Профильный предмет 1", en: "Profile Subject 1" },
+  "home.format.profile2": { kz: "Профильдік пән 2", ru: "Профильный предмет 2", en: "Profile Subject 2" },
+  "home.format.totalQuestions": { kz: "Барлығы: 140 сұрақ", ru: "Итого: 140 вопросов", en: "Total: 140 questions" },
+  "home.footer.desc": { kz: "AI қолданатын ЕНТ-ге дайындық платформасы", ru: "Платформа подготовки к ЕНТ с использованием AI", en: "ENT Preparation Platform powered by AI" },
 } as const;
 
 export type TranslationKey = keyof typeof translations;
 
-export function t(key: TranslationKey, lang: Lang): string {
-  const entry = translations[key];
+export function t(key: TranslationKey, lang: Lang, params?: Record<string, string | number>): string {
+  const entry = translations[key] as any;
   if (!entry) return key;
-  return entry[lang] || entry["en"] || key;
+  let text: string = entry[lang] || entry["en"] || key;
+
+  if (params) {
+    for (const [k, v] of Object.entries(params)) {
+      text = text.replace(new RegExp(`\\{${k}\\}`, "g"), String(v));
+    }
+  }
+
+  return text;
 }
 
 
@@ -590,3 +738,38 @@ export const SUBJECT_COLORS: Record<string, string> = {
   informatics: "#14b8a6",
   literature: "#a855f7",
 };
+
+/**
+ * Переводит название одного предмета.
+ * Принимает название на любом языке (kz, ru) и возвращает на нужном.
+ * Если перевода нет — возвращает оригинал и пишет warning в консоль.
+ */
+export function tSubject(name: string | undefined | null, lang: Lang): string {
+  if (!name) return "";
+  
+  const trimmed = name.trim();
+  const entry = translations.subjects[trimmed as keyof typeof translations.subjects];
+  
+  if (!entry) {
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+      console.warn(`[i18n] Missing subject translation for: "${trimmed}"`);
+    }
+    return trimmed;
+  }
+  
+  return entry[lang] || trimmed;
+}
+
+/**
+ * Переводит композитное название предметов вида "Математика + Физика".
+ * Автоматически разбивает по " + " и переводит каждую часть.
+ * Поддерживает любое количество предметов.
+ */
+export function tSubjectCombo(combined: string | undefined | null, lang: Lang): string {
+  if (!combined) return "";
+  
+  return combined
+    .split(/\s*\+\s*/)
+    .map(part => tSubject(part, lang))
+    .join(" + ");
+}

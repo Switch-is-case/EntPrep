@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/components/Providers";
-import { t } from "@/lib/i18n";
+import { t, tSubject } from "@/lib/i18n";
 import { useHistoryReview } from "@/hooks/useHistoryReview";
 import { Spinner } from "@/components/Spinner";
 import { QuestionNavigator } from "@/components/exam/QuestionNavigator";
@@ -73,7 +73,7 @@ export default function HistoryReviewPage() {
     
     return session.subjects.map((s: any) => ({
       id: s.id,
-      name: lang === "ru" ? (s.nameRu || s.slug) : lang === "kz" ? (s.nameKz || s.slug) : (s.nameEn || s.nameRu || s.slug || "—"),
+      name: tSubject(s.nameKz || s.nameRu || s.slug || "—", lang),
       questions: map.get(s.id) || []
     })).filter(s => s.questions.length > 0);
   }, [questions, session, lang]);
@@ -137,7 +137,7 @@ export default function HistoryReviewPage() {
           onClick={() => router.push("/history")}
           className="px-5 py-2 bg-primary/10 text-primary rounded-xl font-bold text-sm hover:bg-primary/20 transition-colors"
         >
-          {lang === "ru" ? "← К истории" : lang === "kz" ? "← Тарихқа" : "← To History"}
+          {t("history.backToHistory", lang)}
         </button>
       </header>
 
@@ -148,7 +148,7 @@ export default function HistoryReviewPage() {
           <div className="p-5 border-b border-border">
             <div className="flex items-center justify-between pb-3">
               <h2 className="text-base font-bold text-text">
-                {lang === "ru" ? "Обзор теста" : lang === "kz" ? "Тестті шолу" : "Test Review"}
+                {t("history.testReview", lang)}
               </h2>
               <div className={`px-2.5 py-1 rounded-lg text-xs font-bold text-white ${
                 session.score >= 80 ? "bg-emerald-500" : session.score >= 60 ? "bg-primary" : session.score >= 40 ? "bg-amber-500" : "bg-rose-500"
@@ -161,15 +161,15 @@ export default function HistoryReviewPage() {
             <div className="flex flex-col gap-2 mt-2">
               <div className="flex items-center gap-2 text-xs text-text-secondary font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" />
-                {lang === "ru" ? "Правильно" : lang === "kz" ? "Дұрыс" : "Correct"}
+                {t("history.correct", lang)}
               </div>
               <div className="flex items-center gap-2 text-xs text-text-secondary font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0" />
-                {lang === "ru" ? "Неправильно" : lang === "kz" ? "Қате" : "Incorrect"}
+                {t("history.incorrect", lang)}
               </div>
               <div className="flex items-center gap-2 text-xs text-text-secondary font-medium">
                 <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shrink-0" />
-                {lang === "ru" ? "Пропущено" : lang === "kz" ? "Өткізілді" : "Skipped"}
+                {t("history.skipped", lang)}
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ export default function HistoryReviewPage() {
                 onClick={() => router.push("/history")}
                 className="w-full px-5 py-3 border border-border text-text-secondary rounded-xl font-bold text-sm hover:bg-slate-50 transition-colors"
               >
-                {lang === "ru" ? "← Вернуться к истории" : lang === "kz" ? "← Тарихқа оралу" : "← Back to History"}
+                {t("history.backToHistoryLong", lang)}
               </button>
             </div>
           </div>
@@ -228,7 +228,7 @@ export default function HistoryReviewPage() {
               </div>
               {currentQ.isSkipped && (
                 <div className="px-3 py-1 bg-amber-50 text-amber-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-amber-200">
-                  {lang === "ru" ? "Пропущено" : lang === "kz" ? "Өткізілді" : "Skipped"}
+                  {t("history.skipped", lang)}
                 </div>
               )}
             </div>
@@ -243,7 +243,7 @@ export default function HistoryReviewPage() {
 
             {currentQ.isSkipped && (
                <div className="mt-8 p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-700 text-sm font-bold text-center">
-                  {lang === "ru" ? "Вы ответили: «Не знаю»" : lang === "kz" ? "Сіздің жауабыңыз: «Білмеймін»" : "You answered: 'I don't know'"}
+                  {t("history.answeredDontKnow", lang)}
                </div>
             )}
 

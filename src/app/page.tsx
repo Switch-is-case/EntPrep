@@ -37,10 +37,10 @@ export default function HomePage() {
   ];
 
   const stats = [
-    { value: "140", label: lang === "ru" ? "Вопросов в ЕНТ" : lang === "kz" ? "ЕНТ-дегі сұрақтар" : "Questions in ENT" },
-    { value: "5", label: lang === "ru" ? "Предметов" : lang === "kz" ? "Пәндер" : "Subjects" },
-    { value: "3", label: lang === "ru" ? "Языка" : lang === "kz" ? "Тіл" : "Languages" },
-    { value: "AI", label: lang === "ru" ? "Рекомендации" : lang === "kz" ? "Ұсыныстар" : "Recommendations" },
+    { value: "140", label: t("home.stats.questions", lang) },
+    { value: "5", label: t("home.stats.subjects", lang) },
+    { value: "3", label: t("home.stats.languages", lang) },
+    { value: "AI", label: t("home.stats.recommendations", lang) },
   ];
 
   return (
@@ -51,11 +51,7 @@ export default function HomePage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 bg-slate-100 text-slate-600 px-4 py-2 rounded-full text-sm font-semibold mb-6">
               <span className="w-2 h-2 bg-emerald-500 rounded-full" />
-              {lang === "ru"
-                ? "Платформа подготовки к ЕНТ"
-                : lang === "kz"
-                ? "ЕНТ-ге дайындық платформасы"
-                : "ENT Preparation Platform"}
+              {t("home.hero.badge", lang)}
             </div>
 
             <h1 className="text-4xl md:text-6xl font-bold text-slate-900 leading-tight mb-6 tracking-tight">
@@ -131,18 +127,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 bg-slate-50/50">
         <div className="text-center mb-12">
           <h2 className="text-3xl font-bold text-slate-900 mb-3">
-            {lang === "ru"
-              ? "Возможности платформы"
-              : lang === "kz"
-              ? "Платформа мүмкіндіктері"
-              : "Platform Features"}
+            {t("home.features.title", lang)}
           </h2>
           <p className="text-slate-600 max-w-xl mx-auto font-medium">
-            {lang === "ru"
-              ? "Всё необходимое для успешной подготовки к ЕНТ"
-              : lang === "kz"
-              ? "ЕНТ-ге сәтті дайындалу үшін барлық қажетті"
-              : "Everything you need for successful ENT preparation"}
+            {t("home.features.subtitle", lang)}
           </p>
         </div>
 
@@ -171,33 +159,25 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900 mb-3 tracking-tight">
-              {lang === "ru"
-                ? "Формат ЕНТ"
-                : lang === "kz"
-                ? "ЕНТ форматы"
-                : "ENT Format"}
+              {t("home.format.title", lang)}
             </h2>
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="space-y-4">
               <h3 className="font-bold text-lg text-primary">
-                {lang === "ru"
-                  ? "Обязательные предметы"
-                  : lang === "kz"
-                  ? "Міндетті пәндер"
-                  : "Mandatory Subjects"}
+                {t("home.format.mandatory", lang)}
               </h3>
               <div className="space-y-3">
                 {[
-                  { name: lang === "ru" ? "Математическая грамотность" : lang === "kz" ? "Математикалық сауаттылық" : "Math Literacy", q: 10 },
-                  { name: lang === "ru" ? "Грамотность чтения" : lang === "kz" ? "Оқу сауаттылығы" : "Reading Literacy", q: 10 },
-                  { name: lang === "ru" ? "История Казахстана" : lang === "kz" ? "Қазақстан тарихы" : "History of KZ", q: 20 },
+                  { name: t("home.format.mathLiteracy", lang), q: 10 },
+                  { name: t("home.format.readingLiteracy", lang), q: 10 },
+                  { name: t("home.format.historyKz", lang), q: 20 },
                 ].map((s, i) => (
                   <div key={i} className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-4">
                     <span className="text-sm font-bold text-slate-700">{s.name}</span>
                     <span className="text-xs font-bold bg-white border border-slate-200 text-primary px-3 py-1 rounded-lg">
-                      {s.q} {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
+                      {s.q} {t("home.format.questionsCount", lang)}
                     </span>
                   </div>
                 ))}
@@ -206,37 +186,29 @@ export default function HomePage() {
 
             <div className="space-y-4">
               <h3 className="font-bold text-lg text-slate-800">
-                {lang === "ru"
-                  ? "Профильные предметы (выбираете 2)"
-                  : lang === "kz"
-                  ? "Профильдік пәндер (2-уін таңдайсыз)"
-                  : "Profile Subjects (choose 2)"}
+                {t("home.format.profileSubjects", lang)}
               </h3>
               <div className="space-y-3">
                 <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-4">
                   <span className="text-sm font-bold text-slate-700">
-                    {lang === "ru" ? "Профильный предмет 1" : lang === "kz" ? "Профильдік пән 1" : "Profile Subject 1"}
+                    {t("home.format.profile1", lang)}
                   </span>
                   <span className="text-xs font-bold bg-white border border-slate-200 text-primary px-3 py-1 rounded-lg">
-                    40 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
+                    40 {t("home.format.questionsCount", lang)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between bg-slate-50 border border-slate-100 rounded-xl p-4">
                   <span className="text-sm font-bold text-slate-700">
-                    {lang === "ru" ? "Профильный предмет 2" : lang === "kz" ? "Профильдік пән 2" : "Profile Subject 2"}
+                    {t("home.format.profile2", lang)}
                   </span>
                   <span className="text-xs font-bold bg-white border border-slate-200 text-primary px-3 py-1 rounded-lg">
-                    40 {lang === "ru" ? "вопросов" : lang === "kz" ? "сұрақ" : "questions"}
+                    40 {t("home.format.questionsCount", lang)}
                   </span>
                 </div>
               </div>
               <div className="mt-4 p-4 bg-slate-900 rounded-xl">
                 <p className="text-sm font-bold text-center text-white">
-                  {lang === "ru"
-                    ? "Итого: 140 вопросов"
-                    : lang === "kz"
-                    ? "Барлығы: 140 сұрақ"
-                    : "Total: 140 questions"}
+                  {t("home.format.totalQuestions", lang)}
                 </p>
               </div>
             </div>
@@ -256,11 +228,7 @@ export default function HomePage() {
             </span>
           </div>
           <p className="text-slate-400 text-sm font-medium">
-            {lang === "ru"
-              ? "Платформа подготовки к ЕНТ с использованием AI"
-              : lang === "kz"
-              ? "AI қолданатын ЕНТ-ге дайындық платформасы"
-              : "ENT Preparation Platform powered by AI"}
+            {t("home.footer.desc", lang)}
           </p>
           <p className="text-slate-500 text-xs mt-6 font-bold uppercase tracking-widest">© 2025 ENT Prep AI</p>
         </div>

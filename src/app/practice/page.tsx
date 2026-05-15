@@ -60,9 +60,7 @@ export default function PracticePage() {
           {t("practice.title", lang)}
         </h1>
         <p className="text-slate-600 font-medium leading-relaxed max-w-2xl">
-          {lang === "ru" 
-            ? "Выборочная тренировка по конкретным предметам с моментальной проверкой ответов."
-            : "Жауаптарды жедел тексерумен нақты пәндер бойынша жаттығу."}
+          {t("practice.subtitle", lang)}
         </p>
       </div>
 
@@ -76,7 +74,7 @@ export default function PracticePage() {
           <div className="space-y-8">
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">
-                {lang === "ru" ? "Обязательные предметы" : "Міндетті пәндер"}
+                {t("practice.mandatorySubjects", lang)}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {MANDATORY_SUBJECTS.map((s) => (
@@ -97,7 +95,7 @@ export default function PracticePage() {
 
             <div>
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 px-1">
-                {lang === "ru" ? "Профильные предметы" : "Профильдік пәндер"}
+                {t("profile.subjects", lang)}
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {PROFILE_SUBJECTS.map((s) => (

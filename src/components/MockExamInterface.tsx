@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useApp } from "./Providers";
 import { Spinner } from "./Spinner";
 import { LatexText } from "./LatexText";
+import { t, tSubject } from "@/lib/i18n";
 
 interface MockExamInterfaceProps {
   sessionId: string;
@@ -47,7 +48,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
   const showFeedback = isDiagnostic || isPractice;
 
   const handleFinish = useCallback(async () => {
-    if (!confirm(lang === "ru" ? "Вы уверены, что хотите завершить?" : "Аяқтағыңыз келе ме?")) return;
+    if (!confirm(t("exam.confirmFinish", lang))) return;
     setLoading(true);
     try {
       const res = await fetch(`/api/test/submit`, {
@@ -204,10 +205,10 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       <div className="max-w-xl mx-auto p-12 text-center">
         <div className="text-5xl mb-6">⚠️</div>
         <h2 className="text-2xl font-bold text-text mb-4">
-          {lang === "ru" ? "Ошибка загрузки" : "Жүктеу қатесі"}
+          {t("common.loadingError", lang)}
         </h2>
         <button onClick={() => window.location.href = "/tests"} className="bg-primary text-white px-8 py-3 rounded-xl font-bold">
-          {lang === "ru" ? "Вернуться назад" : "Артқа қайту"}
+          {t("common.goBack", lang)}
         </button>
       </div>
     );
@@ -230,7 +231,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           </div>
           <div className="h-6 w-px bg-slate-200 hidden md:block" />
           <div className="text-[10px] md:text-sm font-bold text-slate-500 hidden sm:block uppercase tracking-widest truncate">
-            {lang === "ru" ? currentSubject.nameRu : currentSubject.nameKz}
+            {tSubject(currentSubject.nameKz || currentSubject.nameRu || "—", lang)}
           </div>
         </div>
 
@@ -251,7 +252,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
             onClick={handleFinish}
             className={`px-4 md:px-6 py-1.5 md:py-2 ${accentBg} text-white rounded-xl font-bold text-xs md:text-sm transition-colors hover:bg-opacity-90`}
           >
-            {lang === "ru" ? "Завершить" : "Аяқтау"}
+            {t("exam.finish", lang)}
           </button>
         </div>
       </header>
@@ -271,7 +272,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                   currentSubjectIdx === idx ? "bg-primary text-white" : "bg-slate-100 text-slate-500"
                 }`}
               >
-                {lang === "ru" ? sub.nameRu : sub.nameKz}
+                {tSubject(sub.nameKz || sub.nameRu || "—", lang)}
               </button>
             ))}
           </div>
@@ -323,7 +324,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                   currentSubjectIdx === idx ? "bg-primary text-white" : "text-slate-500 hover:bg-slate-50"
                 }`}
               >
-                {lang === "ru" ? sub.nameRu : sub.nameKz}
+                {tSubject(sub.nameKz || sub.nameRu || "—", lang)}
               </button>
             ))}
           </div>
@@ -343,7 +344,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           <div className="max-w-3xl mx-auto">
             <div className="mb-8 flex items-center justify-between">
               <div className="text-sm font-bold text-slate-500 uppercase tracking-widest">
-                {lang === "ru" ? "Вопрос" : "Сұрақ"} {currentQuestionIdx + 1} / {currentSubject.questions.length}
+                {t("exam.question", lang)} {currentQuestionIdx + 1} / {currentSubject.questions.length}
               </div>
               {saving && <div className="text-[10px] font-bold text-primary uppercase tracking-wider">Сохранение...</div>}
             </div>
@@ -368,12 +369,12 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                 onClick={() => setCurrentQuestionIdx(prev => prev - 1)}
                 className="px-8 py-3 rounded-xl font-bold text-sm border border-slate-200 bg-white hover:bg-slate-50 transition-colors disabled:opacity-30"
               >
-                ← {lang === "ru" ? "Назад" : "Артқа"}
+                ← {t("common.back", lang)}
               </button>
               
               {showFeedback && currentQuestion.selectedAnswer === null ? (
                  <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                    {lang === "ru" ? "Выберите ответ" : "Жауапты таңдаңыз"}
+                    {t("exam.chooseAnswer", lang)}
                  </div>
               ) : (
                 <button
@@ -381,7 +382,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                   onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
                   className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm transition-colors hover:bg-opacity-90 disabled:opacity-30`}
                 >
-                  {lang === "ru" ? "Далее" : "Келесі"} →
+                  {t("common.next", lang)} →
                 </button>
               )}
             </div>

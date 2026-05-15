@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Spinner } from "../Spinner";
 import { LatexText } from "../LatexText";
-import { type Lang } from "@/lib/i18n";
+import { type Lang, t } from "@/lib/i18n";
 import { Lightbulb } from "lucide-react";
 
 interface AiExplanationBlockProps {
@@ -25,7 +25,7 @@ export function AiExplanationBlock({
         className="mt-8 w-full flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border border-dashed border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 transition-colors text-sm font-bold"
       >
         <Lightbulb className="w-5 h-5" aria-hidden="true" />
-        {lang === "ru" ? "Объяснение ИИ" : lang === "kz" ? "ЖИ түсіндірмесі" : "AI Explanation"}
+        {t("exam.aiExplanation", lang)}
       </button>
     );
   }
@@ -35,7 +35,7 @@ export function AiExplanationBlock({
       <div className="flex items-center gap-2 mb-3">
         <Lightbulb className="w-5 h-5 text-primary" aria-hidden="true" />
         <h3 className="text-base font-bold text-primary tracking-tight">
-          {lang === "ru" ? "Объяснение ИИ" : "ЖИ түсіндірмесі"}
+          {t("exam.aiExplanation", lang)}
         </h3>
       </div>
       
@@ -43,12 +43,12 @@ export function AiExplanationBlock({
         <div className="flex items-center gap-3 text-slate-500">
           <Spinner size="sm" />
           <span className="text-xs font-bold uppercase tracking-widest">
-            {lang === "ru" ? "ИИ анализирует..." : "ЖИ талдауда..."}
+            {t("exam.aiAnalyzing", lang)}
           </span>
         </div>
       ) : (
         <div className="text-slate-700 leading-relaxed text-sm md:text-base font-medium">
-          <LatexText text={explanation || (lang === "ru" ? "Объяснение скоро появится." : "Түсіндірме жақында пайда болады.")} />
+          <LatexText text={explanation || t("exam.aiExplanationComingSoon", lang)} />
         </div>
       )}
       
@@ -57,7 +57,7 @@ export function AiExplanationBlock({
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          {lang === "ru" ? "Сгенерировано ИИ" : "ЖИ негізінде"}
+          {t("exam.aiGenerated", lang)}
         </div>
       )}
     </div>

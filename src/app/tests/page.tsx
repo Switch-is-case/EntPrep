@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useApp, type User } from "@/components/Providers";
 import { useRequireAuth } from "@/hooks/useRequireAuth";
-import { t, type Lang } from "@/lib/i18n";
+import { t, tSubject, type Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -136,9 +137,7 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
           {t("nav.tests", lang)}
         </h1>
         <p className="text-slate-600 font-medium leading-relaxed max-w-2xl">
-          {lang === "ru" 
-            ? "Выберите режим тестирования для оценки своих знаний."
-            : "Біліміңізді тексеру үшін тест түрін таңдаңыз."}
+          {t("tests.subtitle", lang)}
         </p>
       </div>
 
@@ -148,7 +147,7 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
           <div className="p-5 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h2 className="font-bold text-slate-900 uppercase tracking-wider text-xs">
-                {lang === "ru" ? "Профильные предметы" : "Профильдік пәндер"}
+                {t("profile.subjects", lang)}
               </h2>
             </div>
             
@@ -158,10 +157,10 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
             >
               {currentCombo ? (
                 <span>
-                  {lang === "ru" ? currentCombo.subject1.nameRu : currentCombo.subject1.nameKz} + {lang === "ru" ? currentCombo.subject2.nameRu : currentCombo.subject2.nameKz}
+                  {`${tSubject(currentCombo.subject1.nameKz, lang)} + ${tSubject(currentCombo.subject2.nameKz, lang)}`}
                 </span>
               ) : (
-                <span className="text-red-500">{lang === "ru" ? "Не выбрано" : "Таңдалмаған"}</span>
+                <span className="text-red-500">{t("tests.notSelected", lang)}</span>
               )}
               <span className={`text-[10px] transition-transform ${showComboPicker ? "rotate-180" : ""}`}>▼</span>
             </button>
@@ -180,7 +179,7 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
                   }`}
                 >
                   <div className="text-sm font-bold text-slate-800">
-                    {lang === "ru" ? combo.subject1.nameRu : combo.subject1.nameKz} + {lang === "ru" ? combo.subject2.nameRu : combo.subject2.nameKz}
+                    {`${tSubject(combo.subject1.nameKz, lang)} + ${tSubject(combo.subject2.nameKz, lang)}`}
                   </div>
                 </button>
               ))}
@@ -222,7 +221,7 @@ function TestsForm({ user, lang, combinations, authHeaders }: {
             >
               {loading === opt.id ? <Spinner size="sm" /> : (
                 <>
-                  <span>{lang === "ru" ? "Начать тест" : "Тестті бастау"}</span>
+                  <span>{t("test.start", lang)}</span>
                   <span className="text-xl">→</span>
                 </>
               )}

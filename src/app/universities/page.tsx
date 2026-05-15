@@ -53,10 +53,10 @@ export default function UniversitiesPage() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
-            {lang === "ru" ? "Университеты Казахстана" : lang === "kz" ? "Қазақстан университеттері" : "Universities of Kazakhstan"}
+            {t("universities.title", lang)}
           </h1>
           <p className="text-slate-500 font-medium mt-2 max-w-md">
-            {lang === "ru" ? "Найди свой идеальный ВУЗ и узнай проходные баллы" : "Өзіңе лайықты ЖОО тауып, өту балдарын біл"}
+            {t("universities.subtitle", lang)}
           </p>
         </div>
 
@@ -64,7 +64,7 @@ export default function UniversitiesPage() {
           <div className="relative">
             <input
               type="text"
-              placeholder={lang === "ru" ? "Поиск..." : "Іздеу..."}
+              placeholder={t("common.search", lang)}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full sm:w-64 px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold"
@@ -75,7 +75,7 @@ export default function UniversitiesPage() {
             onChange={(e) => setCity(e.target.value)}
             className="px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold text-slate-700"
           >
-            <option value="">{lang === "ru" ? "Все города" : "Барлық қалалар"}</option>
+            <option value="">{t("filters.allCities", lang)}</option>
             {cities.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
@@ -88,8 +88,8 @@ export default function UniversitiesPage() {
           <div className="flex justify-center mb-4">
             <Search className="w-16 h-16 text-slate-300" aria-hidden="true" />
           </div>
-          <div className="text-lg font-bold text-slate-900">{lang === "ru" ? "Ничего не найдено" : "Ештеңе табылмады"}</div>
-          <div className="text-sm font-medium text-slate-500 mt-1">{lang === "ru" ? "Попробуйте изменить параметры поиска" : "Іздеу параметрлерін өзгертіп көріңіз"}</div>
+          <div className="text-lg font-bold text-slate-900">{t("common.noDataFound", lang)}</div>
+          <div className="text-sm font-medium text-slate-500 mt-1">{t("common.tryChangingSearch", lang)}</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -134,7 +134,7 @@ export default function UniversitiesPage() {
                   
                   {uni.programs.length > 2 && (
                     <div className="text-center text-[10px] font-bold text-slate-400 py-1 uppercase tracking-widest">
-                      + {uni.programs.length - 2} {lang === "ru" ? "программы" : "бағдарлама"}
+                      + {uni.programs.length - 2} {t("universities.programsCount", lang)}
                     </div>
                   )}
                 </div>
@@ -142,13 +142,13 @@ export default function UniversitiesPage() {
               
               <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-100 flex justify-between items-center">
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                  {uni.programs.length} {lang === "ru" ? "курсов" : "курс"}
+                  {uni.programs.length} {t("universities.coursesCount", lang)}
                 </span>
                 <Link 
                   href={`/universities/${uni.id}`}
                   className="text-xs font-bold text-primary hover:underline flex items-center gap-1"
                 >
-                  {lang === "ru" ? "Подробнее" : "Толығырақ"} →
+                  {t("common.moreDetails", lang)} →
                 </Link>
               </div>
             </div>
