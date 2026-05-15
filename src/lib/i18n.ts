@@ -173,6 +173,10 @@ export const translations = {
   "admin.common.search": { kz: "Іздеу...", ru: "Поиск...", en: "Search..." },
   "admin.common.all": { kz: "Барлығы", ru: "Все", en: "All" },
   "admin.common.add": { kz: "Қосу", ru: "Добавить", en: "Add" },
+  "admin.common.prev": { kz: "← Алдыңғы", ru: "← Пред.", en: "← Prev" },
+  "admin.common.next": { kz: "Келесі →", ru: "След. →", en: "Next →" },
+  "admin.common.page": { kz: "Бет", ru: "Страница", en: "Page" },
+  "admin.common.of": { kz: "-дан", ru: "из", en: "of" },
 
   // Admin Panel - Statuses
   "admin.status.admin": { kz: "Әкімші", ru: "Админ", en: "Admin" },

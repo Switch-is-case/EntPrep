@@ -245,10 +245,10 @@ export default function AdminUniversitiesPage() {
                 onClick={() => setPage(p => Math.max(1, p - 1))}
                 className="px-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors"
               >
-                ← {t("admin.common.prev" as any, lang) || "Previous"}
+                {t("admin.common.prev", lang)}
               </button>
               <div className="text-slate-400 text-sm">
-                {t("admin.common.page" as any, lang) || "Page"} {page} {t("admin.common.of" as any, lang) || "of"} {Math.ceil(total / pageSize)}
+                {t("admin.common.page", lang)} {page} {t("admin.common.of", lang)} {Math.ceil(total / pageSize)}
                 <span className="ml-2 text-slate-500">({total} total)</span>
               </div>
               <button
@@ -256,7 +256,7 @@ export default function AdminUniversitiesPage() {
                 onClick={() => setPage(p => p + 1)}
                 className="px-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors"
               >
-                {t("admin.common.next" as any, lang) || "Next"} →
+                {t("admin.common.next", lang)}
               </button>
             </div>
           )}
