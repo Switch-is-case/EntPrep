@@ -35,7 +35,7 @@ function UniversityLogo({ uni, lang }: { uni: University; lang: string }) {
           height={64}
           className="object-contain"
           onError={() => setImageError(true)}
-          unoptimized={uni.logoUrl.toLowerCase().endsWith(".svg")}
+          unoptimized={true}
         />
       ) : (
         <span className="text-2xl font-semibold text-slate-400">

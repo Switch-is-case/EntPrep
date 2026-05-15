@@ -3,15 +3,10 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "*.supabase.co" },
-      { protocol: "https", hostname: "www.gov.kz" },
-      { protocol: "https", hostname: "gov.kz" },
-      { protocol: "https", hostname: "**.kz" },
-      { protocol: "https", hostname: "**.edu.kz" },
-      { protocol: "https", hostname: "images.unsplash.com" },
-      { protocol: "https", hostname: "res.cloudinary.com" },
-      { protocol: "https", hostname: "**.googleusercontent.com" },
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
     ],
+    minimumCacheTTL: 86400,
     formats: ["image/avif", "image/webp"],
   },
   async headers() {
