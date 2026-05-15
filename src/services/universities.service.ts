@@ -11,13 +11,9 @@ export class UniversitiesService {
    * Возвращает все университеты с кэшированием на 1 час (3600 сек).
    * Кэш инвалидируется тегом 'universities' при создании/обновлении/удалении.
    */
-  async getAllUniversities(search?: string): Promise<University[]> {
-    const cachedFetch = unstable_cache(
-      () => this.universitiesRepository.findAll(search),
-      ["universities", search ?? "all"],
-      { revalidate: 3600, tags: ["universities"] }
-    );
-    return cachedFetch();
+  async getAllUniversities(page: number = 1, pageSize: number = 100, search?: string): Promise<{ universities: University[]; total: number }> {
+    // For admin panel we skip cache to avoid staleness issues
+    return this.universitiesRepository.findAll(page, pageSize, search);
   }
 
   async getUniversityById(id: number): Promise<University | null> {

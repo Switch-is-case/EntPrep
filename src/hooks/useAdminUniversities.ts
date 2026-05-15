@@ -32,6 +32,9 @@ export function useAdminUniversities() {
   const [universities, setUniversities] = useState<University[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(50); // Default to 50 as requested
+  const [total, setTotal] = useState(0);
 
   // Modal State
   const [showModal, setShowModal] = useState(false);
@@ -63,7 +66,7 @@ export function useAdminUniversities() {
     if (!token) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/universities?search=${encodeURIComponent(search)}`, {
+      const res = await fetch(`/api/admin/universities?search=${encodeURIComponent(search)}&page=${page}&pageSize=${pageSize}`, {
         headers: authHeaders(),
         cache: "no-store",
       });
@@ -71,16 +74,16 @@ export function useAdminUniversities() {
         const resData = await res.json();
         const data = resData.data;
         setUniversities(data.universities || []);
+        setTotal(data.pagination?.total || 0);
       }
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  }, [token, search, authHeaders]);
+  }, [token, search, page, pageSize, authHeaders]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchUniversities();
   }, [fetchUniversities]);
 
@@ -282,6 +285,11 @@ export function useAdminUniversities() {
     handleBulkJsonChange,
     handleBulkFileUpload,
     handleBulkImport,
-    fetchUniversities
+    fetchUniversities,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    total
   };
 }

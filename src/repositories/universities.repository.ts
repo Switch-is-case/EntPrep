@@ -1,27 +1,38 @@
 import { db } from "@/db";
 import { universities, universityPrograms } from "@/db/schema";
-import { eq, desc, ilike, or, inArray, type InferSelectModel } from "drizzle-orm";
+import { eq, desc, ilike, or, inArray, sql, type InferSelectModel } from "drizzle-orm";
 import { University, CreateUniversityDTO, UpdateUniversityDTO } from "@/domain/universities/types";
 
 type UniversityRow = InferSelectModel<typeof universities>;
 type ProgramRow = InferSelectModel<typeof universityPrograms>;
 
 export class UniversitiesRepository {
-  async findAll(search?: string): Promise<University[]> {
-    let query = db.select().from(universities);
+  async findAll(page: number = 1, pageSize: number = 100, search?: string): Promise<{ universities: University[]; total: number }> {
+    let whereClause: any = undefined;
 
     if (search) {
-      query = query.where(
-        or(
-          ilike(universities.nameRu, `%${search}%`),
-          ilike(universities.nameKz, `%${search}%`),
-          ilike(universities.nameEn, `%${search}%`),
-          ilike(universities.cityRu, `%${search}%`)
-        )
-      ) as any; // Drizzle query builder type narrowing is complex
+      whereClause = or(
+        ilike(universities.nameRu, `%${search}%`),
+        ilike(universities.nameKz, `%${search}%`),
+        ilike(universities.nameEn, `%${search}%`),
+        ilike(universities.cityRu, `%${search}%`)
+      );
     }
 
-    const results = await query.orderBy(desc(universities.createdAt));
+    const offset = (page - 1) * pageSize;
+
+    const results = await db
+      .select()
+      .from(universities)
+      .where(whereClause)
+      .orderBy(desc(universities.createdAt))
+      .limit(pageSize)
+      .offset(offset);
+
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(universities)
+      .where(whereClause);
 
     const allUniversities = await Promise.all(
       results.map(async (uni: UniversityRow) => {
@@ -33,7 +44,10 @@ export class UniversitiesRepository {
       })
     );
 
-    return allUniversities as University[];
+    return { 
+      universities: allUniversities as University[],
+      total: Number(count)
+    };
   }
 
   async findById(id: number): Promise<University | null> {

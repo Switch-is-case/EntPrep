@@ -13,9 +13,20 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const search = searchParams.get("search") || undefined;
+    const page = parseInt(searchParams.get("page") || "1");
+    const pageSize = parseInt(searchParams.get("pageSize") || "100");
 
-    const allUniversities = await universitiesService.getAllUniversities(search);
-    return createAdminResponse({ universities: allUniversities });
+    const { universities: allUniversities, total } = await universitiesService.getAllUniversities(page, pageSize, search);
+    
+    return createAdminResponse({ 
+      universities: allUniversities,
+      pagination: {
+        total,
+        page,
+        pageSize,
+        hasMore: total > page * pageSize
+      }
+    });
   } catch (error: unknown) {
     if (error instanceof Response) return error;
     console.error("Admin universities GET error:", error);
