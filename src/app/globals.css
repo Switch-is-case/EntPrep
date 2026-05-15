@@ -3,19 +3,40 @@
 @import "tailwindcss";
 
 @theme {
+  /* Colors */
   --color-primary: #2563eb;
   --color-primary-light: #3b82f6;
   --color-primary-dark: #1d4ed8;
   --color-accent: #8b5cf6;
   --color-accent-light: #a78bfa;
+  
+  /* Semantic Colors */
   --color-success: #10b981;
+  --color-success-foreground: #ecfdf5;
+  --color-success-border: rgba(16, 185, 129, 0.2);
+  
   --color-warning: #f59e0b;
+  --color-warning-foreground: #fffbeb;
+  --color-warning-border: rgba(245, 158, 11, 0.2);
+  
   --color-danger: #ef4444;
-  --color-bg: #f4f6fb;
-  --color-surface: #ffffff;
-  --color-text: #0f172a;
-  --color-text-secondary: #64748b;
-  --color-border: #e2e8f0;
+  --color-danger-foreground: #fef2f2;
+  --color-danger-border: rgba(239, 68, 68, 0.2);
+  
+  --color-info: #3b82f6;
+  --color-info-foreground: #eff6ff;
+  --color-info-border: rgba(59, 130, 246, 0.2);
+
+  /* Surface Colors */
+  --color-bg: #0f172a;
+  --color-surface-base: #1e293b;
+  --color-surface-raised: #334155;
+  --color-surface-overlay: #475569;
+  
+  --color-border: #334155;
+  --color-text: #f8fafc;
+  --color-text-secondary: #94a3b8;
+  
   --font-display: 'Manrope', sans-serif;
 }
 
