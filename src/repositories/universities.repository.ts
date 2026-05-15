@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { universities, universityPrograms } from "@/db/schema";
-import { eq, desc, ilike, or, type InferSelectModel } from "drizzle-orm";
+import { eq, desc, ilike, or, inArray, type InferSelectModel } from "drizzle-orm";
 import { University, CreateUniversityDTO, UpdateUniversityDTO } from "@/domain/universities/types";
 
 type UniversityRow = InferSelectModel<typeof universities>;
@@ -138,6 +138,15 @@ export class UniversitiesRepository {
       .returning({ id: universities.id });
     
     return !!deleted;
+  }
+
+  async bulkDelete(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const deleted = await db
+      .delete(universities)
+      .where(inArray(universities.id, ids))
+      .returning({ id: universities.id });
+    return deleted.length;
   }
 }
 

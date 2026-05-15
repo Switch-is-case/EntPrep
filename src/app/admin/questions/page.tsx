@@ -8,6 +8,8 @@ import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 
 import { useAdminQuestions } from "@/hooks/useAdminQuestions";
 import { Spinner } from "@/components/Spinner";
+import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
+import { BulkActionBar } from "@/components/admin/BulkActionBar";
 
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
 
@@ -63,8 +65,82 @@ export default function AdminQuestions() {
     handleBulkJsonChange,
     handleBulkFileUpload,
     handleBulkImport,
-    handleAiGenerate
+    handleAiGenerate,
+    fetchQuestions
   } = useAdminQuestions();
+
+  const { authHeaders } = useApp();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const toggleOne = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === questions.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(questions.map(q => q.id)));
+    }
+  };
+
+  const cancelSelection = () => setSelectedIds(new Set());
+
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${count} question${count > 1 ? "s" : ""}? This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setIsDeletingBulk(true);
+    try {
+      const res = await fetch("/api/admin/questions/bulk-delete", {
+        method: "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete");
+      }
+
+      const result = await res.json();
+      setSelectedIds(new Set());
+      await fetchQuestions();
+      alert(`Successfully deleted ${result.data.deletedCount} question(s)`);
+    } catch (error: any) {
+      console.error("Bulk delete failed:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        cancelSelection();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        toggleAll();
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds.size, questions.length]);
 
   return (
     <div>
@@ -128,8 +204,14 @@ export default function AdminQuestions() {
         />
       </div>
 
-      {/* Table */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onDelete={handleBulkDelete}
+        onCancel={cancelSelection}
+        isDeleting={isDeletingBulk}
+      />
+       {/* Table */}
+       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-48">
             <Spinner size="md" />
@@ -139,6 +221,13 @@ export default function AdminQuestions() {
             <table className="w-full text-sm">
               <thead className="bg-slate-700/50">
                 <tr className="text-left text-slate-300">
+                  <th className="px-4 py-3 font-medium w-12">
+                    <SelectAllCheckbox
+                      totalCount={questions.length}
+                      selectedCount={selectedIds.size}
+                      onToggleAll={toggleAll}
+                    />
+                  </th>
                   <th className="px-4 py-3 font-medium">ID</th>
                   <th className="px-4 py-3 font-medium">{t("admin.questions.form.subject", lang).replace(" *", "")}</th>
                   <th className="px-4 py-3 font-medium">{t("admin.questions.table.question", lang)}</th>
@@ -149,7 +238,18 @@ export default function AdminQuestions() {
               </thead>
               <tbody className="divide-y divide-slate-700">
                 {questions.map((q) => (
-                  <tr key={q.id} className="hover:bg-slate-700/30">
+                  <tr 
+                    key={q.id} 
+                    className={`hover:bg-slate-700/30 transition-colors ${selectedIds.has(q.id) ? "bg-blue-600/10" : ""}`}
+                  >
+                    <td className="px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(q.id)}
+                        onChange={() => toggleOne(q.id)}
+                        className="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer bg-slate-700"
+                      />
+                    </td>
                     <td className="px-4 py-3 text-slate-400">{q.id}</td>
                     <td className="px-4 py-3">
                       <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
@@ -196,7 +296,7 @@ export default function AdminQuestions() {
                 {questions.length === 0 && (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={7}
                       className="px-4 py-8 text-center text-slate-400"
                     >
                       {t("admin.common.noData", lang)}

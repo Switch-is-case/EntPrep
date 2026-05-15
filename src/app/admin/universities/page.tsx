@@ -5,6 +5,8 @@ import { useApp } from "@/components/Providers";
 import { t, type Lang } from "@/lib/i18n";
 
 import { useAdminUniversities } from "@/hooks/useAdminUniversities";
+import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
+import { BulkActionBar } from "@/components/admin/BulkActionBar";
 
 export default function AdminUniversitiesPage() {
   const { lang } = useApp();
@@ -48,8 +50,82 @@ export default function AdminUniversitiesPage() {
     setBulkErrors,
     handleBulkJsonChange,
     handleBulkFileUpload,
-    handleBulkImport
+    handleBulkImport,
+    fetchUniversities
   } = useAdminUniversities();
+
+  const { authHeaders } = useApp();
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const toggleOne = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    if (selectedIds.size === universities.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(universities.map(u => u.id)));
+    }
+  };
+
+  const cancelSelection = () => setSelectedIds(new Set());
+
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (count === 0) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${count} university/universities? This will also delete all associated programs. This action cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setIsDeletingBulk(true);
+    try {
+      const res = await fetch("/api/admin/universities/bulk-delete", {
+        method: "POST",
+        headers: { ...authHeaders(), "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds) })
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.error || "Failed to delete");
+      }
+
+      const result = await res.json();
+      setSelectedIds(new Set());
+      await fetchUniversities();
+      alert(`Successfully deleted ${result.data.deletedCount} university/universities`);
+    } catch (error: any) {
+      console.error("Bulk delete failed:", error);
+      alert(`Error: ${error.message}`);
+    } finally {
+      setIsDeletingBulk(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        cancelSelection();
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === "a") {
+        if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        toggleAll();
+      }
+    };
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds.size, universities.length]);
 
   return (
     <div>
@@ -78,23 +154,50 @@ export default function AdminUniversitiesPage() {
         </div>
       </div>
 
-      <div className="mb-6">
+      <div className="flex items-center gap-4 mb-6">
         <input
           type="text"
           placeholder={t("admin.universities.searchPlaceholder", lang)}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="w-full max-w-md bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm"
+          className="flex-1 max-w-md bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm"
         />
+        <button
+          onClick={toggleAll}
+          className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-700 transition-colors"
+        >
+          {selectedIds.size === universities.length ? "Deselect all" : "Select all"}
+        </button>
       </div>
+
+      <BulkActionBar
+        selectedCount={selectedIds.size}
+        onDelete={handleBulkDelete}
+        onCancel={cancelSelection}
+        isDeleting={isDeletingBulk}
+      />
 
       {loading ? (
         <div className="text-slate-400">{t("common.loading", lang)}</div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {universities.map((uni) => (
-            <div key={uni.id} className="bg-slate-800 border border-slate-700 rounded-xl p-5">
-              <div className="flex items-start justify-between mb-4">
+            <div 
+              key={uni.id} 
+              className={`bg-slate-800 border rounded-xl p-5 relative transition-all ${
+                selectedIds.has(uni.id) ? "border-blue-500 ring-1 ring-blue-500/50 shadow-lg shadow-blue-900/10" : "border-slate-700"
+              }`}
+            >
+              <div className="absolute top-4 left-4 z-10">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.has(uni.id)}
+                  onChange={() => toggleOne(uni.id)}
+                  className="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer bg-slate-900"
+                />
+              </div>
+              
+              <div className="flex items-start justify-between mb-4 pl-8">
                 <div className="flex items-center gap-3">
                   {uni.logoUrl ? (
                     <img src={uni.logoUrl} alt="logo" className="w-12 h-12 rounded bg-white object-contain p-1" />

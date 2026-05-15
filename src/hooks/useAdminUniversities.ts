@@ -280,6 +280,7 @@ export function useAdminUniversities() {
     setBulkErrors,
     handleBulkJsonChange,
     handleBulkFileUpload,
-    handleBulkImport
+    handleBulkImport,
+    fetchUniversities
   };
 }

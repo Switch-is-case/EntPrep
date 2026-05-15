@@ -43,5 +43,11 @@ export class UniversitiesService {
     revalidateTag("universities", "page");
     return result;
   }
+
+  async bulkDeleteUniversities(ids: number[]): Promise<number> {
+    const result = await this.universitiesRepository.bulkDelete(ids);
+    revalidateTag("universities", "page");
+    return result;
+  }
 }
 

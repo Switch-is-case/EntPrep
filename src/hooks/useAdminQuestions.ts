@@ -430,6 +430,7 @@ export function useAdminQuestions() {
     handleBulkJsonChange,
     handleBulkFileUpload,
     handleBulkImport,
-    handleAiGenerate
+    handleAiGenerate,
+    fetchQuestions
   };
 }

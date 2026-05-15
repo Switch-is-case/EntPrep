@@ -1,6 +1,6 @@
 import { db } from "@/db";
 import { questions } from "@/db/schema";
-import { eq, desc, ilike, or, sql } from "drizzle-orm";
+import { eq, desc, ilike, or, sql, inArray } from "drizzle-orm";
 import {
   Question,
   CreateQuestionDTO,
@@ -104,6 +104,15 @@ export class QuestionsRepository {
       .returning({ id: questions.id });
       
     return !!deleted;
+  }
+
+  async bulkDelete(ids: number[]): Promise<number> {
+    if (ids.length === 0) return 0;
+    const deleted = await db
+      .delete(questions)
+      .where(inArray(questions.id, ids))
+      .returning({ id: questions.id });
+    return deleted.length;
   }
 
   async bulkCreate(dataArray: CreateQuestionDTO[]): Promise<number> {

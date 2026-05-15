@@ -38,6 +38,10 @@ export class QuestionsService {
     return this.questionsRepository.delete(id);
   }
 
+  async bulkDeleteQuestions(ids: number[]): Promise<number> {
+    return this.questionsRepository.bulkDelete(ids);
+  }
+
   async bulkImport(dataArray: any[]): Promise<{ imported: number; message: string }> {
     if (!Array.isArray(dataArray) || dataArray.length === 0) {
       throw new ValidationError("Expected a non-empty array of questions");
