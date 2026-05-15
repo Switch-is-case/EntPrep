@@ -451,15 +451,15 @@ export default function AdminQuestions() {
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-4xl my-8">
-            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-auto">
+          <div className="bg-surface-base rounded-2xl border border-border w-full max-w-4xl my-8 shadow-2xl">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-text">
                 {editingQuestion ? t("admin.questions.modal.edit", lang) : t("admin.questions.modal.new", lang)}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-white text-xl"
+                className="text-text-secondary hover:text-text text-xl"
               >
                 ✕
               </button>
@@ -469,7 +469,7 @@ export default function AdminQuestions() {
               {/* Subject & Difficulty */}
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.form.subject", lang)}
                   </label>
                   <select
@@ -477,7 +477,7 @@ export default function AdminQuestions() {
                     onChange={(e) =>
                       setForm({ ...form, subject: e.target.value })
                     }
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     {allSubjects.map((s) => (
                       <option key={s} value={s}>
@@ -487,7 +487,7 @@ export default function AdminQuestions() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.table.difficulty", lang)}
                   </label>
                   <select
@@ -495,7 +495,7 @@ export default function AdminQuestions() {
                     onChange={(e) =>
                       setForm({ ...form, difficulty: e.target.value })
                     }
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     <option value="easy">{t("admin.questions.difficulty.easy", lang)}</option>
                     <option value="medium">{t("admin.questions.difficulty.medium", lang)}</option>
@@ -503,14 +503,14 @@ export default function AdminQuestions() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.form.topic", lang)}
                   </label>
                   <input
                     type="text"
                     value={form.topic}
                     onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                     placeholder={t("admin.questions.form.topicPlaceholder", lang)}
                   />
                 </div>
@@ -519,7 +519,7 @@ export default function AdminQuestions() {
               {/* Questions in 3 languages */}
               <div className="grid md:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.form.questionRu", lang)}
                   </label>
                   <textarea
@@ -528,11 +528,11 @@ export default function AdminQuestions() {
                       setForm({ ...form, questionTextRu: e.target.value })
                     }
                     rows={3}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.form.questionKz", lang)}
                   </label>
                   <textarea
@@ -541,11 +541,11 @@ export default function AdminQuestions() {
                       setForm({ ...form, questionTextKz: e.target.value })
                     }
                     rows={3}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary/20"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.form.questionEn", lang)}
                   </label>
                   <textarea
@@ -554,18 +554,18 @@ export default function AdminQuestions() {
                       setForm({ ...form, questionTextEn: e.target.value })
                     }
                     rows={3}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm resize-none"
+                    className="w-full bg-surface-raised border border-border rounded-lg px-3 py-2 text-text text-sm resize-none focus:outline-none focus:ring-1 focus:ring-primary/20"
                   />
                 </div>
               </div>
 
               {/* Image Upload */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-text-secondary mb-2">
                   {t("admin.questions.form.imageLabel", lang)}
                 </label>
                 <div className="flex items-start gap-4">
-                  <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageUploading ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-400" : "border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"}`}>
+                  <label className={`flex items-center gap-2 cursor-pointer px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${imageUploading ? "opacity-50 cursor-not-allowed border-border text-text-secondary" : "border-border text-text-secondary hover:bg-surface-raised hover:text-text"}`}>
                     {imageUploading ? t("common.loading", lang) : t("admin.questions.bulk.uploadJson", lang).replace(".json ", "")}
                     <input
                       type="file"
@@ -580,51 +580,51 @@ export default function AdminQuestions() {
                       <img
                         src={form.imageUrl}
                         alt="Preview"
-                        className="h-16 w-16 object-cover rounded-lg border border-slate-600"
+                        className="h-16 w-16 object-cover rounded-lg border border-border bg-surface-raised"
                       />
                       <button
                         type="button"
                         onClick={() => setForm((f) => ({ ...f, imageUrl: "" }))}
-                        className="text-xs text-danger hover:text-red-400"
+                        className="text-xs text-danger hover:text-danger/80"
                       >
                         {t("admin.users.actions.delete", lang)}
                       </button>
                     </div>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-text-secondary/60 mt-1">
                   {t("admin.questions.form.imageHint", lang)}
                 </p>
               </div>
 
               {/* Options */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-3">
+                <label className="block text-sm font-medium text-text-secondary mb-3">
                   {t("admin.questions.form.optionsLabel", lang)}
                 </label>
                 <div className="space-y-4">
                   {[0, 1, 2, 3].map((i) => (
                     <div
                       key={i}
-                      className={`p-3 rounded-lg border ${
+                      className={`p-4 rounded-xl border transition-all ${
                         form.correctAnswer === i
-                          ? "border-success bg-success/10"
-                          : "border-slate-600 bg-slate-700/50"
+                          ? "border-success bg-success/5 shadow-sm"
+                          : "border-border bg-surface-raised/30"
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <button
                           type="button"
                           onClick={() => setForm({ ...form, correctAnswer: i })}
-                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${
+                          className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold transition-all ${
                             form.correctAnswer === i
-                              ? "border-success bg-success text-white"
-                              : "border-slate-500 text-slate-400"
+                              ? "border-success bg-success text-white shadow-lg shadow-success/20"
+                              : "border-text-secondary/30 text-text-secondary"
                           }`}
                         >
                           {String.fromCharCode(65 + i)}
                         </button>
-                        <span className="text-xs text-slate-400">
+                        <span className="text-xs text-text-secondary">
                           {form.correctAnswer === i
                             ? t("admin.questions.form.correctAnswer", lang)
                             : t("admin.questions.form.selectCorrect", lang)}
@@ -636,26 +636,26 @@ export default function AdminQuestions() {
                           value={form.optionsRu[i]}
                           onChange={(e) => updateOption("Ru", i, e.target.value)}
                           placeholder={`${t("admin.questions.form.option", lang)} ${String.fromCharCode(65 + i)} (RU)`}
-                          className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-white text-sm"
+                          className="w-full bg-surface-raised border border-border rounded px-2 py-1.5 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                         />
                         <input
                           type="text"
                           value={form.optionsKz[i]}
                           onChange={(e) => updateOption("Kz", i, e.target.value)}
                           placeholder={`Нұсқа ${String.fromCharCode(65 + i)} (KZ)`}
-                          className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-white text-sm"
+                          className="w-full bg-surface-raised border border-border rounded px-2 py-1.5 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                         />
                         <input
                           type="text"
                           value={form.optionsEn[i]}
                           onChange={(e) => updateOption("En", i, e.target.value)}
                           placeholder={`Option ${String.fromCharCode(65 + i)} (EN)`}
-                          className="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1.5 text-white text-sm"
+                          className="w-full bg-surface-raised border border-border rounded px-2 py-1.5 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                         />
                       </div>
                       {/* Option image upload */}
                       <div className="mt-2 flex items-center gap-3">
-                        <label className={`flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded border text-xs font-medium transition-colors ${optionImageUploading[i] ? "opacity-50 cursor-not-allowed border-slate-600 text-slate-500" : "border-slate-600 text-slate-400 hover:bg-slate-700 hover:text-white"}`}>
+                        <label className={`flex items-center gap-1.5 cursor-pointer px-3 py-1 rounded border text-xs font-medium transition-colors ${optionImageUploading[i] ? "opacity-50 cursor-not-allowed border-border text-text-secondary" : "border-border text-text-secondary hover:bg-surface-overlay hover:text-text"}`}>
                           {optionImageUploading[i] ? t("common.loading", lang) : t("admin.questions.form.optionImage", lang)}
                           <input
                             type="file"
@@ -670,12 +670,12 @@ export default function AdminQuestions() {
                             <img
                               src={form.optionImages[i]!}
                               alt={`Option ${String.fromCharCode(65 + i)}`}
-                              className="h-10 w-10 object-cover rounded border border-slate-600"
+                              className="h-10 w-10 object-cover rounded border border-border"
                             />
                             <button
                               type="button"
                               onClick={() => removeOptionImage(i)}
-                              className="text-xs text-danger hover:text-red-400"
+                              className="text-xs text-danger hover:text-danger/80"
                             >
                               Удалить
                             </button>
@@ -688,17 +688,17 @@ export default function AdminQuestions() {
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-700 flex justify-end gap-3">
+            <div className="p-4 border-t border-border flex justify-end gap-3">
               <button
                 onClick={() => setShowModal(false)}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl text-text-secondary hover:bg-surface-raised transition-colors"
               >
                 {t("admin.common.cancel", lang)}
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.questionTextRu || !form.optionsRu[0]}
-                className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                className="px-8 py-2 rounded-xl bg-primary text-white font-semibold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50 active:scale-95"
               >
                 {saving ? t("admin.questions.form.saving", lang) : t("admin.common.save", lang)}
               </button>
@@ -709,13 +709,13 @@ export default function AdminQuestions() {
 
       {/* Bulk Import Modal */}
       {showBulkModal && (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-2xl my-8">
-            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white">{t("admin.questions.bulk.title", lang)}</h2>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-auto">
+          <div className="bg-surface-base rounded-2xl border border-border w-full max-w-2xl my-8 shadow-2xl">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-text">{t("admin.questions.bulk.title", lang)}</h2>
               <button
                 onClick={() => setShowBulkModal(false)}
-                className="text-slate-400 hover:text-white text-xl"
+                className="text-text-secondary hover:text-text text-xl"
               >
                 ✕
               </button>
@@ -723,27 +723,17 @@ export default function AdminQuestions() {
 
             <div className="p-6 space-y-4">
               {/* Format hint */}
-              <div className="bg-slate-700/50 rounded-lg p-4 text-xs text-slate-300 font-mono leading-relaxed">
-                <p className="text-slate-400 mb-2 font-sans font-medium text-sm">{t("admin.questions.bulk.formatHint", lang)}</p>
-                {`[
-  {
-    "subject": "math_literacy",
-    "questionTextRu": "Вопрос на русском",
-    "questionTextKz": "Сұрақ қазақша",
-    "questionTextEn": "Question in English",
-    "optionsRu": ["Вариант A", "Вариант B", "Вариант C", "Вариант D"],
-    "optionsKz": ["A нұсқа", "B нұсқа", "C нұсқа", "D нұсқа"],
-    "optionsEn": ["Option A", "Option B", "Option C", "Option D"],
-    "correctAnswer": 0,
-    "difficulty": "medium",
-    "topic": "Алгебра"
-  }
-]`}
+              <div className="bg-surface-raised/50 rounded-xl p-4 text-xs text-text-secondary font-mono leading-relaxed border border-border">
+                <p className="text-text-secondary mb-2 font-sans font-medium text-sm">{t("admin.questions.bulk.formatHint", lang)}</p>
+                {`[...]`}
               </div>
 
               {/* File upload */}
               <div>
-                <label className="flex items-center gap-2 cursor-pointer border border-dashed border-slate-600 rounded-lg p-4 text-slate-400 hover:border-primary hover:text-white transition-colors text-sm">
+                <label className="flex items-center gap-2 cursor-pointer border border-dashed border-border rounded-xl p-6 text-text-secondary hover:border-primary hover:text-primary transition-all text-sm group">
+                  <div className="w-10 h-10 rounded-full bg-surface-raised flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Upload className="w-5 h-5" />
+                  </div>
                   {t("admin.questions.bulk.uploadJson", lang)}
                   <input
                     type="file"
@@ -756,35 +746,33 @@ export default function AdminQuestions() {
 
               {/* Textarea */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   {t("admin.questions.bulk.manualLabel", lang)}
                 </label>
                 <textarea
                   value={bulkJson}
                   onChange={(e) => handleBulkJsonChange(e.target.value)}
                   rows={8}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-xs font-mono resize-none"
+                  className="w-full bg-surface-raised border border-border rounded-xl px-3 py-2 text-text text-xs font-mono resize-none focus:outline-none focus:ring-1 focus:ring-primary/20"
                   placeholder='[{"subject": "math_literacy", "questionTextRu": "...", ...}]'
                 />
               </div>
 
-              {/* Parse error */}
+              {/* Status messages */}
               {bulkParseError && (
-                <div className="bg-danger/10 text-danger text-sm rounded-lg p-3 border border-danger/20">
+                <div className="bg-danger/5 text-danger text-sm rounded-xl p-3 border border-danger/20">
                   {bulkParseError}
                 </div>
               )}
 
-              {/* Preview count */}
               {bulkParsed && !bulkParseError && (
-                <div className="bg-success/10 text-success text-sm rounded-lg p-3 border border-success/20">
+                <div className="bg-success/5 text-success text-sm rounded-xl p-3 border border-success/20">
                   {t("admin.questions.bulk.ready", lang).replace("{count}", String(bulkParsed.length))}
                 </div>
               )}
 
-              {/* Import errors */}
               {bulkErrors.length > 0 && (
-                <div className="bg-danger/10 border border-danger/20 rounded-lg p-3 max-h-40 overflow-y-auto">
+                <div className="bg-danger/5 border border-danger/20 rounded-xl p-3 max-h-40 overflow-y-auto">
                   <p className="text-danger text-sm font-medium mb-1">{t("admin.questions.bulk.validationErrors", lang)}</p>
                   {bulkErrors.map((e, i) => (
                     <p key={i} className="text-danger/80 text-xs">{e}</p>
@@ -792,25 +780,24 @@ export default function AdminQuestions() {
                 </div>
               )}
 
-              {/* Success result */}
               {bulkResult && (
-                <div className="bg-success/10 text-success text-sm rounded-lg p-3 border border-success/20 font-medium">
+                <div className="bg-success/5 text-success text-sm rounded-xl p-3 border border-success/20 font-medium">
                   ✓ {bulkResult.message}
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-700 flex justify-end gap-3">
+            <div className="p-4 border-t border-border flex justify-end gap-3">
               <button
                 onClick={() => setShowBulkModal(false)}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl text-text-secondary hover:bg-surface-raised transition-colors"
               >
                 {t("admin.common.cancel", lang)}
               </button>
               <button
                 onClick={handleBulkImport}
                 disabled={!bulkParsed || bulkImporting || !!bulkParseError}
-                className="px-6 py-2 rounded-lg bg-primary text-white font-medium hover:bg-primary-dark transition-colors disabled:opacity-50"
+                className="px-8 py-2 rounded-xl bg-primary text-white font-semibold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
               >
                 {bulkImporting ? t("admin.questions.bulk.importing", lang) : t("admin.questions.bulkImport", lang)}
               </button>
@@ -821,33 +808,34 @@ export default function AdminQuestions() {
 
       {/* AI Generator Modal */}
       {showAiModal && (
-        <div className="fixed inset-0 bg-slate-900/60 z-50 flex items-start justify-center p-4 overflow-auto">
-          <div className="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-xl my-8">
-            <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-auto">
+          <div className="bg-surface-base rounded-2xl border border-border w-full max-w-xl my-8 shadow-2xl">
+            <div className="p-4 border-b border-border flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-text flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-purple-500" />
                 {t("admin.questions.ai.title", lang)}
               </h2>
               <button
                 onClick={() => setShowAiModal(false)}
-                className="text-slate-400 hover:text-white text-xl"
+                className="text-text-secondary hover:text-text text-xl"
               >
                 ✕
               </button>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-purple-500/10 text-purple-300 text-sm rounded-lg p-3 border border-purple-500/20 leading-relaxed">
+              <div className="bg-purple-500/5 text-purple-400 text-sm rounded-xl p-4 border border-purple-500/20 leading-relaxed">
                 {t("admin.questions.ai.hint", lang)}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   {t("admin.questions.form.subject", lang)}
                 </label>
                 <select
                   value={aiForm.subject}
                   onChange={(e) => setAiForm({ ...aiForm, subject: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                  className="w-full bg-surface-raised border border-border rounded-xl px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                 >
                   {allSubjects.map((s) => (
                     <option key={s} value={s}>
@@ -858,27 +846,27 @@ export default function AdminQuestions() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-text-secondary mb-1">
                   {t("admin.questions.ai.promptLabel", lang)}
                 </label>
                 <input
                   type="text"
                   value={aiForm.topic}
                   onChange={(e) => setAiForm({ ...aiForm, topic: e.target.value })}
-                  className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm placeholder-slate-400"
+                  className="w-full bg-surface-raised border border-border rounded-xl px-3 py-2 text-text text-sm placeholder-text-secondary/50 focus:outline-none focus:ring-1 focus:ring-primary/20"
                   placeholder={t("admin.questions.ai.promptPlaceholder", lang)}
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.table.difficulty", lang)}
                   </label>
                   <select
                     value={aiForm.difficulty}
                     onChange={(e) => setAiForm({ ...aiForm, difficulty: e.target.value })}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-surface-raised border border-border rounded-xl px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   >
                     <option value="easy">{t("admin.questions.difficulty.easy", lang)}</option>
                     <option value="medium">{t("admin.questions.difficulty.medium", lang)}</option>
@@ -886,7 +874,7 @@ export default function AdminQuestions() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-1">
+                  <label className="block text-sm font-medium text-text-secondary mb-1">
                     {t("admin.questions.ai.count", lang)}
                   </label>
                   <input
@@ -895,22 +883,22 @@ export default function AdminQuestions() {
                     max="20"
                     value={aiForm.count}
                     onChange={(e) => setAiForm({ ...aiForm, count: Number(e.target.value) })}
-                    className="w-full bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-white text-sm"
+                    className="w-full bg-surface-raised border border-border rounded-xl px-3 py-2 text-text text-sm focus:outline-none focus:ring-1 focus:ring-primary/20"
                   />
                 </div>
               </div>
 
               {aiError && (
-                <div className="bg-danger/10 text-danger text-sm rounded-lg p-3 border border-danger/20">
+                <div className="bg-danger/5 text-danger text-sm rounded-xl p-3 border border-danger/20">
                   {aiError}
                 </div>
               )}
             </div>
 
-            <div className="p-4 border-t border-slate-700 flex justify-end gap-3">
+            <div className="p-4 border-t border-border flex justify-end gap-3">
               <button
                 onClick={() => setShowAiModal(false)}
-                className="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 rounded-xl text-text-secondary hover:bg-surface-raised transition-colors"
                 disabled={aiGenerating}
               >
                 {t("admin.common.cancel", lang)}
@@ -918,7 +906,7 @@ export default function AdminQuestions() {
               <button
                 onClick={handleAiGenerate}
                 disabled={aiGenerating || !aiForm.topic}
-                className="px-6 py-2 rounded-lg bg-purple-600 text-white font-medium hover:bg-purple-700 transition-colors disabled:opacity-50 flex items-center gap-2"
+                className="px-8 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold hover:shadow-lg hover:shadow-purple-500/30 transition-all disabled:opacity-50 flex items-center gap-2 active:scale-95"
               >
                 {aiGenerating ? (
                   <>
@@ -926,7 +914,7 @@ export default function AdminQuestions() {
                     {t("admin.questions.ai.generating", lang)}
                   </>
                 ) : (
-                  t("admin.questions.generateAi", lang).replace(t("admin.questions.title", lang), "").trim() || t("admin.questions.ai.title", lang)
+                  t("admin.questions.generateAi", lang)
                 )}
               </button>
             </div>

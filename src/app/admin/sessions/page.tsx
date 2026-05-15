@@ -1,15 +1,25 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React from "react";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
-
 import { useAdminSessions } from "@/hooks/useAdminSessions";
-import { Spinner } from "@/components/Spinner";
-import { RefreshButton } from "@/components/admin/RefreshButton";
+import { cn } from "@/lib/utils";
+import { 
+  RefreshCw, 
+  Clock, 
+  Trophy, 
+  Users, 
+  CheckCircle2, 
+  XCircle, 
+  HelpCircle,
+  BarChart3,
+  ChevronDown
+} from "lucide-react";
+import { IconButton, DataTable, Pagination, SearchToolbar, Badge } from "@/components/admin/ui";
 
 export default function AdminSessions() {
-  const { user, lang } = useApp();
+  const { lang } = useApp();
   const {
     sessions,
     loading,
@@ -23,179 +33,155 @@ export default function AdminSessions() {
     refresh
   } = useAdminSessions();
 
+  const columns = [
+    { key: "user", label: t("admin.users.table.user", lang), width: 220 },
+    { key: "type", label: t("admin.common.status", lang).replace("Status", "Type"), width: 150 },
+    { key: "score", label: t("admin.sessions.table.result", lang), width: 100 },
+    { key: "details", label: t("admin.sessions.table.details", lang), width: 180 },
+    { key: "status", label: t("admin.common.status", lang), width: 120 },
+    { key: "duration", label: t("admin.sessions.table.time", lang), width: 120 },
+    { key: "date", label: t("admin.common.date", lang), flex: 1 },
+  ];
+
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return "text-success";
+    if (score >= 60) return "text-info";
+    if (score >= 40) return "text-warning";
+    return "text-danger";
+  };
+
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">{t("admin.sessions.title", lang)}</h1>
-        <RefreshButton onRefresh={refresh} />
-      </div>
-
-      {/* Filter */}
-      <div className="mb-6">
-        <select
-          value={filterType}
-          onChange={(e) => {
-            setFilterType(e.target.value);
-            setPage(1);
-          }}
-          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
-        >
-          <option value="">{t("admin.questions.filter.allSubjects", lang).replace(t("admin.questions.form.subject", lang).replace(" *", ""), t("admin.common.status", lang).toLowerCase()).replace("Предметы", "типы").replace("пәндер", "түрлер").replace("Subjects", "Types")}</option>
-          <option value="diagnostic">{t("admin.testType.diagnostic", lang)}</option>
-          <option value="full">{t("admin.testType.mock", lang)}</option>
-          <option value="practice">{t("admin.testType.practice", lang)}</option>
-        </select>
-      </div>
-
-      {/* Table */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <Spinner size="md" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-700/50">
-                <tr className="text-left text-slate-300">
-                  <th className="px-4 py-3 font-medium">{t("admin.users.table.user", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.common.status", lang).replace("Статус", "Тип").replace("Мәртебе", "Түрі").replace("Status", "Type")}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.result", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.details", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.common.status", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.sessions.table.time", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.common.date", lang)}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {sessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-slate-700/30">
-                    <td className="px-4 py-3">
-                      {session.user ? (
-                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
-                            {session.user.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="text-white text-sm font-medium">
-                              {session.user.name}
-                            </div>
-                            <div className="text-xs text-slate-400">
-                              {session.user.email}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          session.testType === "diagnostic"
-                            ? "bg-primary/20 text-primary"
-                            : session.testType === "full"
-                            ? "bg-accent/20 text-accent"
-                            : "bg-slate-700 text-slate-300"
-                        }`}
-                      >
-                        {getTestTypeName(session.testType)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-lg font-bold ${
-                          session.score >= 80
-                            ? "text-success"
-                            : session.score >= 60
-                            ? "text-primary"
-                            : session.score >= 40
-                            ? "text-warning"
-                            : "text-danger"
-                        }`}
-                      >
-                        {session.score}%
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-300">
-                      <div className="flex items-center gap-3">
-                        <span className="text-success">
-                          ✓{session.correctAnswers}
-                        </span>
-                        <span className="text-danger">
-                          ✗{session.wrongAnswers}
-                        </span>
-                        <span className="text-warning">
-                          ?{session.skippedAnswers}
-                        </span>
-                        <span className="text-slate-500">
-                          /{session.totalQuestions}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      {session.completed ? (
-                        <span className="text-success text-xs">
-                          {t("admin.status.completed", lang)}
-                        </span>
-                      ) : (
-                        <span className="text-warning text-xs">
-                          {t("admin.status.inProgress", lang)}
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
-                      {formatDuration(session.startedAt, session.completedAt)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
-                      {new Date(session.startedAt).toLocaleString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
-                        day: "2-digit",
-                        month: "2-digit",
-                        year: "2-digit",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </td>
-                  </tr>
-                ))}
-                {sessions.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-slate-400"
-                    >
-                      {t("admin.sessions.notFound", lang)}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
-          >
-            ←
-          </button>
-          <span className="text-slate-300 text-sm">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
-          >
-            →
-          </button>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-text mb-1">{t("admin.sessions.title", lang)}</h1>
+          <p className="text-text-secondary text-sm">Analyze student performance and test activity</p>
         </div>
-      )}
+        <IconButton 
+          icon={<RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />} 
+          tooltip={t("common.refresh", lang)} 
+          onClick={refresh} 
+        />
+      </div>
+
+      <SearchToolbar
+        search=""
+        onSearchChange={() => {}}
+        placeholder={t("admin.common.search", lang)}
+        hideSearch
+      >
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <select
+              value={filterType}
+              onChange={(e) => {
+                setFilterType(e.target.value);
+                setPage(1);
+              }}
+              className="appearance-none bg-surface-base border border-border rounded-xl px-4 py-2 pr-10 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer hover:bg-surface-raised"
+            >
+              <option value="">{t("admin.common.all", lang)} Types</option>
+              <option value="diagnostic">{t("admin.testType.diagnostic", lang)}</option>
+              <option value="full">{t("admin.testType.mock", lang)}</option>
+              <option value="practice">{t("admin.testType.practice", lang)}</option>
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
+          </div>
+
+          <div className="flex items-center gap-1.5 px-3 py-2 bg-surface-raised/50 rounded-xl border border-border">
+            <BarChart3 className="w-4 h-4 text-primary" />
+            <span className="text-xs font-medium text-text-secondary">
+              Total: {sessions.length} sessions
+            </span>
+          </div>
+        </div>
+      </SearchToolbar>
+
+      <DataTable
+        columns={columns}
+        rows={sessions}
+        isLoading={loading}
+        renderRow={(session) => (
+          <tr key={session.id} className="border-b border-border hover:bg-surface-raised/50 transition-colors group">
+            <td className="px-6 py-4">
+              {session.user ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-primary font-bold border border-primary/10">
+                    {session.user.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-text text-sm font-semibold truncate max-w-[150px]">{session.user.name}</span>
+                    <span className="text-[10px] text-text-secondary truncate max-w-[150px]">{session.user.email}</span>
+                  </div>
+                </div>
+              ) : (
+                <span className="text-text-secondary text-xs italic opacity-50">Anonymous</span>
+              )}
+            </td>
+            <td className="px-6 py-4">
+              <Badge 
+                variant={session.testType === "diagnostic" ? "info" : session.testType === "full" ? "success" : "outline"}
+                className="capitalize"
+              >
+                {getTestTypeName(session.testType)}
+              </Badge>
+            </td>
+            <td className="px-6 py-4">
+              <div className={cn("text-lg font-black flex items-center gap-1", getScoreColor(session.score))}>
+                <Trophy className="w-4 h-4 opacity-50" />
+                {session.score}%
+              </div>
+            </td>
+            <td className="px-6 py-4">
+              <div className="flex items-center gap-3 text-[10px] font-bold">
+                <div className="flex items-center gap-1 text-success" title="Correct">
+                  <CheckCircle2 className="w-3 h-3" />
+                  {session.correctAnswers}
+                </div>
+                <div className="flex items-center gap-1 text-danger" title="Wrong">
+                  <XCircle className="w-3 h-3" />
+                  {session.wrongAnswers}
+                </div>
+                <div className="flex items-center gap-1 text-warning" title="Skipped">
+                  <HelpCircle className="w-3 h-3" />
+                  {session.skippedAnswers}
+                </div>
+                <div className="text-text-secondary/50 font-medium">
+                  / {session.totalQuestions}
+                </div>
+              </div>
+            </td>
+            <td className="px-6 py-4">
+              <Badge variant={session.completed ? "success" : "warning"} className="text-[10px]">
+                {session.completed ? t("admin.status.completed", lang) : t("admin.status.inProgress", lang)}
+              </Badge>
+            </td>
+            <td className="px-6 py-4">
+              <div className="flex items-center gap-1.5 text-text-secondary text-xs">
+                <Clock className="w-3 h-3 opacity-50" />
+                {formatDuration(session.startedAt, session.completedAt)}
+              </div>
+            </td>
+            <td className="px-6 py-4">
+              <span className="text-text-secondary text-xs font-medium">
+                {new Date(session.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
+                  day: "2-digit",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </span>
+            </td>
+          </tr>
+        )}
+      />
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        lang={lang}
+      />
     </div>
   );
 }

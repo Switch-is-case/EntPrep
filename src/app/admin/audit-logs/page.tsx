@@ -3,10 +3,21 @@
 import React, { useState } from "react";
 import { useAuditLogs, AuditLog } from "@/hooks/useAuditLogs";
 import { AuditAction, AuditEntityType } from "@/types/audit";
-import { Spinner } from "@/components/Spinner";
 import { useApp } from "@/components/Providers";
 import { t } from "@/lib/i18n";
-import { RefreshButton } from "@/components/admin/RefreshButton";
+import { cn } from "@/lib/utils";
+import { 
+  RefreshCw, 
+  ChevronDown, 
+  Calendar, 
+  User, 
+  Shield, 
+  Search,
+  ArrowRight,
+  Info
+} from "lucide-react";
+import { IconButton, DataTable, Pagination, SearchToolbar, Badge } from "@/components/admin/ui";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function AuditLogsPage() {
   const { lang } = useApp();
@@ -17,191 +28,217 @@ export default function AuditLogsPage() {
     return action.replace(/_/g, " ").toLowerCase().replace(/^\w/, (c) => c.toUpperCase());
   };
 
-  const getActionColor = (action: string) => {
-    if (action.includes("BANNED") || action.includes("DELETED")) return "text-red-400 bg-red-400/10 border-red-400/20";
-    if (action.includes("UNBANNED") || action.includes("RESTORED") || action.includes("GRANTED")) return "text-green-400 bg-green-400/10 border-green-400/20";
-    if (action.includes("CREATED")) return "text-blue-400 bg-blue-400/10 border-blue-400/20";
-    if (action.includes("UPDATED")) return "text-yellow-400 bg-yellow-400/10 border-yellow-400/20";
-    return "text-slate-400 bg-slate-400/10 border-slate-400/20";
+  const getActionVariant = (action: string): "danger" | "success" | "info" | "warning" | "outline" => {
+    if (action.includes("BANNED") || action.includes("DELETED") || action.includes("ERROR")) return "danger";
+    if (action.includes("UNBANNED") || action.includes("RESTORED") || action.includes("GRANTED") || action.includes("LOGIN_SUCCESS")) return "success";
+    if (action.includes("CREATED")) return "info";
+    if (action.includes("UPDATED")) return "warning";
+    return "outline";
   };
 
+  const columns = [
+    { key: "date", label: t("admin.common.date", lang), width: 140 },
+    { key: "actor", label: t("admin.audit.table.admin", lang), width: 220 },
+    { key: "action", label: t("admin.audit.filter.action", lang), width: 150 },
+    { key: "entity", label: t("admin.audit.table.entity", lang), width: 180 },
+    { key: "description", label: t("admin.audit.table.description", lang), flex: 1 },
+    { key: "expand", label: "", width: 50 },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">{t("admin.audit.title", lang)}</h1>
-        <RefreshButton onRefresh={refresh} />
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-text mb-1">{t("admin.audit.title", lang)}</h1>
+          <p className="text-text-secondary text-sm">Track system changes and administrative actions</p>
+        </div>
+        <IconButton 
+          icon={<RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />} 
+          tooltip={t("common.refresh", lang)} 
+          onClick={refresh} 
+        />
       </div>
 
-      {/* Filters */}
-      <div className="bg-slate-800/50 p-4 rounded-xl border border-slate-700 grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">{t("admin.audit.filter.action", lang)}</label>
-          <select
-            value={filters.action || ""}
-            onChange={(e) => { setFilters({ ...filters, action: e.target.value as AuditAction || undefined }); setPage(1); }}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-          >
-            <option value="">{t("admin.questions.filter.allSubjects", lang).replace(t("admin.questions.form.subject", lang).replace(" *", ""), t("admin.audit.filter.action", lang).toLowerCase()).replace("Предметы", "действия").replace("пәндер", "іс-әрекеттер").replace("Subjects", "Actions")}</option>
-            {Object.values(AuditAction).map((a) => (
-              <option key={a} value={a}>{formatAction(a)}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">{t("admin.audit.filter.entity", lang)}</label>
-          <select
-            value={filters.entityType || ""}
-            onChange={(e) => { setFilters({ ...filters, entityType: e.target.value as AuditEntityType || undefined }); setPage(1); }}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-          >
-            <option value="">{t("admin.questions.filter.allSubjects", lang).replace(t("admin.questions.form.subject", lang).replace(" *", ""), t("admin.audit.filter.entity", lang).toLowerCase()).replace("Предметы", "типы").replace("пәндер", "түрлер").replace("Subjects", "Types")}</option>
-            {Object.values(AuditEntityType).map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">{t("admin.audit.filter.from", lang)}</label>
-          <input
-            type="date"
-            value={filters.from || ""}
-            onChange={(e) => { setFilters({ ...filters, from: e.target.value || undefined }); setPage(1); }}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1 uppercase">{t("admin.audit.filter.to", lang)}</label>
-          <input
-            type="date"
-            value={filters.to || ""}
-            onChange={(e) => { setFilters({ ...filters, to: e.target.value || undefined }); setPage(1); }}
-            className="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
-        </div>
-      </div>
-
-      {/* Table */}
-      <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden shadow-xl">
-        {loading ? (
-          <div className="flex items-center justify-center h-64">
-            <Spinner size="md" />
+      <SearchToolbar
+        search={filters.actorEmail || ""}
+        onSearchChange={(val) => {
+          setFilters({ ...filters, actorEmail: val || undefined });
+          setPage(1);
+        }}
+        placeholder={t("admin.audit.table.admin", lang)}
+      >
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <select
+              value={filters.action || ""}
+              onChange={(e) => { 
+                setFilters({ ...filters, action: e.target.value as AuditAction || undefined }); 
+                setPage(1); 
+              }}
+              className="appearance-none bg-surface-base border border-border rounded-xl px-4 py-2 pr-10 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer hover:bg-surface-raised"
+            >
+              <option value="">{t("admin.audit.filter.action", lang)}</option>
+              {Object.values(AuditAction).map((a) => (
+                <option key={a} value={a}>{formatAction(a)}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
           </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-left">
-              <thead className="bg-slate-900/50 border-b border-slate-700 text-slate-400">
+
+          <div className="relative">
+            <select
+              value={filters.entityType || ""}
+              onChange={(e) => { 
+                setFilters({ ...filters, entityType: e.target.value as AuditEntityType || undefined }); 
+                setPage(1); 
+              }}
+              className="appearance-none bg-surface-base border border-border rounded-xl px-4 py-2 pr-10 text-sm text-text focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all cursor-pointer hover:bg-surface-raised"
+            >
+              <option value="">{t("admin.audit.filter.entity", lang)}</option>
+              {Object.values(AuditEntityType).map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-secondary pointer-events-none" />
+          </div>
+
+          <div className="flex items-center gap-2 bg-surface-base border border-border rounded-xl px-3 py-2">
+            <Calendar className="w-4 h-4 text-text-secondary" />
+            <input
+              type="date"
+              value={filters.from || ""}
+              onChange={(e) => { setFilters({ ...filters, from: e.target.value || undefined }); setPage(1); }}
+              className="bg-transparent text-xs text-text focus:outline-none w-[110px]"
+            />
+            <span className="text-text-secondary">/</span>
+            <input
+              type="date"
+              value={filters.to || ""}
+              onChange={(e) => { setFilters({ ...filters, to: e.target.value || undefined }); setPage(1); }}
+              className="bg-transparent text-xs text-text focus:outline-none w-[110px]"
+            />
+          </div>
+        </div>
+      </SearchToolbar>
+
+      <DataTable
+        columns={columns}
+        rows={logs}
+        isLoading={loading}
+        renderRow={(log) => (
+          <React.Fragment key={log.id}>
+            <tr 
+              className={cn(
+                "border-b border-border hover:bg-surface-raised/50 transition-colors group cursor-pointer",
+                expandedId === log.id && "bg-surface-raised"
+              )}
+              onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}
+            >
+              <td className="px-6 py-4">
+                <div className="flex flex-col">
+                  <span className="text-text text-xs font-medium">
+                    {new Date(log.createdAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
+                      month: 'short',
+                      day: 'numeric'
+                    })}
+                  </span>
+                  <span className="text-text-secondary text-[10px]">
+                    {new Date(log.createdAt).toLocaleTimeString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-surface-raised flex items-center justify-center text-text-secondary border border-border">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div className="flex flex-col max-w-[150px]">
+                    <span className="text-text text-sm font-medium truncate" title={log.actorEmail}>{log.actorEmail}</span>
+                    <span className="text-[10px] text-text-secondary font-mono">{log.ip}</span>
+                  </div>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <Badge variant={getActionVariant(log.action)} className="uppercase text-[9px] px-1.5 py-0.5">
+                  {formatAction(log.action)}
+                </Badge>
+              </td>
+              <td className="px-6 py-4">
+                <div className="flex flex-col">
+                  <span className="text-text text-xs font-bold flex items-center gap-1">
+                    <Shield className="w-3 h-3 text-primary" />
+                    {log.entityType}
+                  </span>
+                  <span className="text-[9px] text-text-secondary font-mono truncate max-w-[100px]">{log.entityId}</span>
+                </div>
+              </td>
+              <td className="px-6 py-4">
+                <p className="text-text-secondary text-xs line-clamp-2">{log.description}</p>
+              </td>
+              <td className="px-6 py-4 text-right">
+                <ChevronDown className={cn("w-4 h-4 text-text-secondary transition-transform duration-300", expandedId === log.id && "rotate-180")} />
+              </td>
+            </tr>
+            <AnimatePresence>
+              {expandedId === log.id && (
                 <tr>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">{t("admin.common.date", lang)}</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">{t("admin.audit.table.admin", lang)}</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">{t("admin.audit.filter.action", lang)}</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">{t("admin.audit.table.entity", lang)}</th>
-                  <th className="px-6 py-4 font-semibold uppercase tracking-wider">{t("admin.audit.table.description", lang)}</th>
-                  <th className="px-6 py-4"></th>
+                  <td colSpan={6} className="p-0 border-b border-border bg-surface-raised/30">
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.3, ease: "easeInOut" }}
+                      className="overflow-hidden"
+                    >
+                      <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-text-secondary uppercase tracking-widest flex items-center gap-2">
+                            <ArrowRight className="w-3 h-3 rotate-180" />
+                            {t("admin.audit.details.oldValue", lang)}
+                          </h4>
+                          <div className="bg-surface-base p-4 rounded-xl border border-border shadow-inner">
+                            <pre className="text-xs text-text-secondary font-mono overflow-x-auto max-h-[300px] scrollbar-thin scrollbar-thumb-border">
+                              {log.oldValue ? JSON.stringify(log.oldValue, null, 2) : t("admin.audit.details.noData", lang)}
+                            </pre>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          <h4 className="text-[10px] font-bold text-success uppercase tracking-widest flex items-center gap-2">
+                            <ArrowRight className="w-3 h-3" />
+                            {t("admin.audit.details.newValue", lang)}
+                          </h4>
+                          <div className="bg-surface-base p-4 rounded-xl border border-border shadow-inner">
+                            <pre className="text-xs text-success/80 font-mono overflow-x-auto max-h-[300px] scrollbar-thin scrollbar-thumb-border">
+                              {log.newValue ? JSON.stringify(log.newValue, null, 2) : t("admin.audit.details.noData", lang)}
+                            </pre>
+                          </div>
+                        </div>
+                        <div className="md:col-span-2 flex items-center justify-between pt-4 border-t border-border mt-2">
+                          <div className="flex gap-4 text-[10px] text-text-secondary font-mono">
+                            <span className="flex items-center gap-1"><Info className="w-3 h-3" /> ID: {log.id}</span>
+                            <span className="truncate max-w-[300px]" title={log.userAgent || ""}>UA: {log.userAgent}</span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px]">{log.ip}</Badge>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {logs.map((log) => (
-                  <React.Fragment key={log.id}>
-                    <tr className="hover:bg-slate-700/30 transition-colors cursor-pointer" onClick={() => setExpandedId(expandedId === log.id ? null : log.id)}>
-                      <td className="px-6 py-4 text-slate-400 whitespace-nowrap">
-                        {new Date(log.createdAt).toLocaleString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US", {
-                          month: 'short',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-white font-medium">{log.actorEmail}</span>
-                          <span className="text-[10px] text-slate-500 font-mono">{log.ip}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold border ${getActionColor(log.action)} uppercase`}>
-                          {formatAction(log.action)}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col">
-                          <span className="text-slate-300 text-xs font-bold">{log.entityType}</span>
-                          <span className="text-[10px] text-slate-500 font-mono truncate max-w-[100px]">{log.entityId}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-300">
-                        {log.description}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          className={`h-4 w-4 text-slate-500 transition-transform ${expandedId === log.id ? "rotate-180" : ""}`} 
-                          fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </td>
-                    </tr>
-                    {expandedId === log.id && (
-                      <tr className="bg-slate-900/50">
-                        <td colSpan={6} className="px-6 py-4">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t("admin.audit.details.oldValue", lang)}</h4>
-                              <pre className="bg-slate-950 p-3 rounded-lg text-xs text-slate-400 overflow-x-auto max-h-[200px] border border-slate-800">
-                                {log.oldValue ? JSON.stringify(log.oldValue, null, 2) : t("admin.audit.details.noData", lang)}
-                              </pre>
-                            </div>
-                            <div className="space-y-2">
-                              <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{t("admin.audit.details.newValue", lang)}</h4>
-                              <pre className="bg-slate-950 p-3 rounded-lg text-xs text-green-400/80 overflow-x-auto max-h-[200px] border border-slate-800">
-                                {log.newValue ? JSON.stringify(log.newValue, null, 2) : t("admin.audit.details.noData", lang)}
-                              </pre>
-                            </div>
-                          </div>
-                          <div className="mt-4 flex gap-4 text-[10px] text-slate-600">
-                            <span>ID: {log.id}</span>
-                            <span>UA: {log.userAgent}</span>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))}
-                {logs.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">
-                      {t("admin.audit.notFound", lang)}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )}
+            </AnimatePresence>
+          </React.Fragment>
         )}
-      </div>
+      />
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm disabled:opacity-50 hover:bg-slate-700 transition-all"
-          >
-            {t("admin.users.pagination.prev", lang)}
-          </button>
-          <span className="text-slate-400 text-sm">
-            {t("admin.users.pagination.page", lang)} {page} {t("admin.users.pagination.of", lang)} {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-white text-sm disabled:opacity-50 hover:bg-slate-700 transition-all"
-          >
-            {t("admin.users.pagination.next", lang)}
-          </button>
-        </div>
-      )}
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        lang={lang}
+      />
     </div>
   );
 }

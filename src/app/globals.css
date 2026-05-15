@@ -27,7 +27,20 @@
   --color-info-foreground: #eff6ff;
   --color-info-border: rgba(59, 130, 246, 0.2);
 
-  /* Surface Colors */
+  /* Surface Colors (Light Mode Defaults) */
+  --color-bg: #f8fafc;
+  --color-surface-base: #ffffff;
+  --color-surface-raised: #f1f5f9;
+  --color-surface-overlay: #e2e8f0;
+  
+  --color-border: #e2e8f0;
+  --color-text: #0f172a;
+  --color-text-secondary: #64748b;
+  
+  --font-display: 'Manrope', sans-serif;
+}
+
+@utility admin-theme {
   --color-bg: #0f172a;
   --color-surface-base: #1e293b;
   --color-surface-raised: #334155;
@@ -36,8 +49,9 @@
   --color-border: #334155;
   --color-text: #f8fafc;
   --color-text-secondary: #94a3b8;
-  
-  --font-display: 'Manrope', sans-serif;
+
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 body {

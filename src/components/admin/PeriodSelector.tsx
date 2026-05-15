@@ -19,7 +19,7 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
   ];
 
   return (
-    <div className="flex bg-slate-700 p-1 rounded-lg">
+    <div className="flex bg-surface-raised p-1 rounded-lg">
       {periods.map((p) => (
         <button
           key={p.value}
@@ -27,7 +27,7 @@ export function PeriodSelector({ value, onChange }: PeriodSelectorProps) {
           className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
             value === p.value
               ? "bg-primary text-white shadow-sm"
-              : "text-slate-400 hover:text-slate-200"
+              : "text-text-secondary hover:text-text"
           }`}
         >
           {t(p.labelKey as any, lang)}

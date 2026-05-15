@@ -37,21 +37,21 @@ export function StatCard({
 
   if (loading) {
     return (
-      <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm animate-pulse">
+      <div className="bg-surface-base border border-border rounded-xl p-5 shadow-sm animate-pulse">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-12 h-12 rounded-lg bg-slate-700" />
+          <div className="w-12 h-12 rounded-lg bg-surface-raised" />
           <div className="flex-1">
-            <div className="h-4 bg-slate-700 rounded w-1/2 mb-2" />
-            <div className="h-6 bg-slate-700 rounded w-3/4" />
+            <div className="h-4 bg-surface-raised rounded w-1/2 mb-2" />
+            <div className="h-6 bg-surface-raised rounded w-3/4" />
           </div>
         </div>
-        <div className="h-3 bg-slate-700 rounded w-full" />
+        <div className="h-3 bg-surface-raised rounded w-full" />
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
+    <div className="bg-surface-base border border-border rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow">
       <div className="flex items-center gap-4 mb-3">
         {icon && (
           <div className={`w-12 h-12 rounded-xl ${styles.icon} flex items-center justify-center shrink-0`}>
@@ -59,8 +59,8 @@ export function StatCard({
           </div>
         )}
         <div className="min-w-0">
-          <p className="text-sm font-medium text-slate-400 truncate">{title}</p>
-          <h3 className="text-2xl font-bold text-white mt-0.5">{value}</h3>
+          <p className="text-sm font-medium text-text-secondary truncate">{title}</p>
+          <h3 className="text-2xl font-bold text-text mt-0.5">{value}</h3>
         </div>
       </div>
       
@@ -74,7 +74,7 @@ export function StatCard({
             </span>
           )}
           {subtitle && (
-            <span className="text-xs text-slate-500 truncate">{subtitle}</span>
+            <span className="text-xs text-text-secondary/60 truncate">{subtitle}</span>
           )}
         </div>
       )}

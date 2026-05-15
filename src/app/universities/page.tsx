@@ -21,6 +21,31 @@ interface University {
   programs: any[];
 }
 
+function UniversityLogo({ uni, lang }: { uni: University; lang: string }) {
+  const [imageError, setImageError] = useState(false);
+  const fallbackLetter = (lang === "ru" ? uni.nameRu : uni.nameKz)[0]?.toUpperCase();
+
+  return (
+    <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+      {uni.logoUrl && !imageError ? (
+        <Image 
+          src={uni.logoUrl}
+          alt={lang === "ru" ? uni.nameRu : uni.nameKz}
+          width={64}
+          height={64}
+          className="object-contain"
+          onError={() => setImageError(true)}
+          unoptimized={uni.logoUrl.toLowerCase().endsWith(".svg")}
+        />
+      ) : (
+        <span className="text-2xl font-semibold text-slate-400">
+          {fallbackLetter}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function UniversitiesPage() {
   const { lang, user } = useApp();
   const [unis, setUnis] = useState<University[]>([]);
@@ -102,19 +127,7 @@ export default function UniversitiesPage() {
             <div key={uni.id} className="bg-white rounded-2xl border border-slate-200 flex flex-col transition-colors hover:border-primary/40 overflow-hidden">
               <div className="p-6 flex-1">
                 <div className="flex items-start justify-between mb-6">
-                  <div className="w-16 h-16 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                    {uni.logoUrl ? (
-                      <Image 
-                        src={uni.logoUrl} 
-                        alt={lang === "ru" ? uni.nameRu : uni.nameKz} 
-                        width={64} 
-                        height={64} 
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <Building className="w-8 h-8 text-slate-300" aria-hidden="true" />
-                    )}
-                  </div>
+                  <UniversityLogo uni={uni} lang={lang} />
                   <div className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest">
                     {tCity(uni, lang)}
                   </div>

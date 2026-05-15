@@ -66,7 +66,7 @@ export function AdminLayoutClient({
 
   if (isAdmin === null) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-bg">
         <Spinner size="md" color="white" />
       </div>
     );
@@ -74,7 +74,7 @@ export function AdminLayoutClient({
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+      <div className="min-h-screen flex items-center justify-center bg-bg">
         <div className="bg-white rounded-2xl p-8 max-w-md text-center">
           <div className="w-16 h-16 rounded-full bg-danger/10 flex items-center justify-center mx-auto mb-4">
             <svg className="w-8 h-8 text-danger" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
@@ -95,14 +95,14 @@ export function AdminLayoutClient({
   }
 
   return (
-    <div className="min-h-screen bg-slate-900 flex">
+    <div className="admin-theme min-h-screen flex">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-slate-800 transform transition-transform md:relative md:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface-base transform transition-transform md:relative md:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-4 border-b border-slate-700">
+        <div className="p-4 border-b border-border">
           <Link href="/admin" className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
               <span className="text-white font-bold text-sm">A</span>
@@ -122,19 +122,19 @@ export function AdminLayoutClient({
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 pathname === item.href
                   ? "bg-primary text-white"
-                  : "text-slate-300 hover:bg-slate-700 hover:text-white"
+                  : "text-text-secondary hover:bg-surface-raised hover:text-text"
               }`}
             >
-              <span className="text-xs font-bold w-5 h-5 rounded bg-slate-600 flex items-center justify-center">{item.icon}</span>
+              <span className="text-xs font-bold w-5 h-5 rounded bg-surface-raised flex items-center justify-center">{item.icon}</span>
               {t(item.labelKey as any, lang)}
             </Link>
           ))}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-slate-700">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
           <Link
             href="/"
-            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-700 hover:text-white transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary hover:bg-surface-raised hover:text-text transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
             {t("admin.nav.backToSite" as any, lang)}
@@ -145,10 +145,10 @@ export function AdminLayoutClient({
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">
         {/* Top bar */}
-        <header className="bg-slate-800 border-b border-slate-700 px-4 py-3 flex items-center justify-between md:justify-end">
+        <header className="bg-surface-base border-b border-border px-4 py-3 flex items-center justify-between md:justify-end">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="md:hidden p-2 rounded-lg text-slate-300 hover:bg-slate-700"
+            className="md:hidden p-2 rounded-lg text-text-secondary hover:bg-surface-raised"
           >
             <svg
               className="w-6 h-6"
@@ -166,15 +166,15 @@ export function AdminLayoutClient({
           </button>
           <div className="flex items-center gap-4">
             {/* Language switcher */}
-            <div className="flex bg-slate-700 rounded-lg p-0.5">
+            <div className="flex bg-surface-raised rounded-lg p-0.5">
               {(["kz", "ru", "en"] as Lang[]).map((l) => (
                 <button
                   key={l}
                   onClick={() => setLang(l)}
                   className={`px-2 py-1 rounded-md text-xs font-medium transition-all ${
                     lang === l
-                      ? "bg-slate-800 text-primary shadow-sm"
-                      : "text-slate-400 hover:text-slate-200"
+                      ? "bg-surface-base text-primary shadow-sm"
+                      : "text-text-secondary hover:text-text"
                   }`}
                 >
                   {langLabels[l]}
@@ -183,7 +183,7 @@ export function AdminLayoutClient({
             </div>
 
             <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-300">{user?.name}</span>
+              <span className="text-sm text-text-secondary">{user?.name}</span>
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-sm font-bold">
                 {user?.name?.charAt(0).toUpperCase()}
               </div>
