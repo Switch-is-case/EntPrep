@@ -8,6 +8,7 @@ import { useAdminUniversities } from "@/hooks/useAdminUniversities";
 import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
 import { BulkActionBar } from "@/components/admin/BulkActionBar";
 import { RefreshButton } from "@/components/admin/RefreshButton";
+import { UniversityCard, UniversityCardSkeleton } from "@/components/admin/UniversityCard";
 
 export default function AdminUniversitiesPage() {
   const { lang } = useApp();
@@ -184,61 +185,27 @@ export default function AdminUniversitiesPage() {
         isDeleting={isDeletingBulk}
       />
 
+
+
       {loading ? (
-        <div className="text-slate-400">{t("common.loading", lang)}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 auto-rows-fr">
+          {[...Array(6)].map((_, i) => (
+            <UniversityCardSkeleton key={i} />
+          ))}
+        </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 auto-rows-fr">
             {universities.map((uni) => (
-              <div 
-                key={uni.id} 
-                className={`bg-slate-800 border rounded-xl p-5 relative transition-all ${
-                  selectedIds.has(uni.id) ? "border-blue-500 ring-1 ring-blue-500/50 shadow-lg shadow-blue-900/10" : "border-slate-700"
-                }`}
-              >
-                <div className="absolute top-4 left-4 z-10">
-                  <input
-                    type="checkbox"
-                    checked={selectedIds.has(uni.id)}
-                    onChange={() => toggleOne(uni.id)}
-                    className="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer bg-slate-900"
-                  />
-                </div>
-                
-                <div className="flex items-start justify-between mb-4 pl-8">
-                  <div className="flex items-center gap-3">
-                    {uni.logoUrl ? (
-                      <img src={uni.logoUrl} alt="logo" className="w-12 h-12 rounded bg-white object-contain p-1" />
-                    ) : (
-                      <div className="w-12 h-12 rounded bg-slate-700 flex items-center justify-center text-slate-400 font-bold text-lg">
-                        {uni.nameRu.charAt(0)}
-                      </div>
-                    )}
-                    <div>
-                      <h3 className="text-lg font-bold text-white">{lang === "kz" ? uni.nameKz : lang === "en" ? uni.nameEn : uni.nameRu}</h3>
-                      <p className="text-sm text-slate-400">{lang === "kz" ? uni.cityKz : lang === "en" ? uni.cityEn : uni.cityRu}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs font-medium">
-                    <button onClick={() => openModal(uni)} className="text-slate-400 hover:text-white transition-colors">{t("admin.common.edit", lang)}</button>
-                    <button onClick={() => deleteUniversity(uni.id)} className="text-danger hover:text-red-400 transition-colors">{t("admin.users.actions.delete", lang)}</button>
-                  </div>
-                </div>
-                
-                <div className="mt-4 pt-4 border-t border-slate-700">
-                  <h4 className="text-sm font-semibold text-slate-300 mb-2">{t("admin.universities.programs", lang)} ({uni.programs.length})</h4>
-                  <div className="flex flex-wrap gap-2">
-                    {uni.programs.slice(0, 3).map((p, idx) => (
-                      <span key={idx} className="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded">
-                        {lang === "kz" ? p.nameKz : lang === "en" ? p.nameEn : p.nameRu} <span className="text-success ml-1">{p.passingScore}</span>
-                      </span>
-                    ))}
-                    {uni.programs.length > 3 && (
-                      <span className="text-xs text-slate-500">{t("admin.universities.more", lang).replace("{count}", String(uni.programs.length - 3))}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
+              <UniversityCard
+                key={uni.id}
+                university={uni}
+                lang={lang}
+                isSelected={selectedIds.has(uni.id)}
+                onToggle={toggleOne}
+                onEdit={openModal}
+                onDelete={deleteUniversity}
+              />
             ))}
           </div>
 
