@@ -177,6 +177,16 @@ export const translations = {
   "admin.common.next": { kz: "Келесі →", ru: "След. →", en: "Next →" },
   "admin.common.page": { kz: "Бет", ru: "Страница", en: "Page" },
   "admin.common.of": { kz: "-дан", ru: "из", en: "of" },
+  "admin.search.placeholder": { kz: "Атауы немесе қала бойынша іздеу...", ru: "Поиск по названию или городу...", en: "Search by name or city..." },
+  "admin.bulk.selected": { kz: "Таңдалды: {count}", ru: "Выбрано: {count}", en: "{count} selected" },
+  "admin.bulk.export": { kz: "Экспорт", ru: "Экспорт", en: "Export" },
+  "admin.bulk.edit": { kz: "Өңдеу", ru: "Изменить", en: "Edit" },
+  "admin.bulk.delete": { kz: "Жою", ru: "Удалить", en: "Delete" },
+  "admin.bulk.clear": { kz: "Таңдауды алып тастау", ru: "Снять выделение", en: "Clear selection" },
+  "admin.confirm.delete.title": { kz: "Таңдалған элементтерді жою керек пе?", ru: "Удалить выбранные элементы?", en: "Delete selected items?" },
+  "admin.confirm.delete.description": { kz: "{count} университет және барлық байланысты бағдарламалар жойылады.", ru: "Будет удалено {count} университетов и все связанные программы.", en: "{count} universities and all related programs will be deleted." },
+  "admin.confirm.delete.warning": { kz: "Бұл әрекетті болдырмау мүмкін емес.", ru: "Это действие нельзя отменить.", en: "This action cannot be undone." },
+  "admin.confirm.delete.confirm": { kz: "Иә, жою", ru: "Да, удалить", en: "Yes, delete" },
 
   // Admin Panel - Statuses
   "admin.status.admin": { kz: "Әкімші", ru: "Админ", en: "Admin" },

@@ -5,10 +5,11 @@ import { useApp } from "@/components/Providers";
 import { t, type Lang } from "@/lib/i18n";
 
 import { useAdminUniversities } from "@/hooks/useAdminUniversities";
-import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
-import { BulkActionBar } from "@/components/admin/BulkActionBar";
 import { RefreshButton } from "@/components/admin/RefreshButton";
 import { UniversityCard, UniversityCardSkeleton } from "@/components/admin/UniversityCard";
+import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
+import { SearchToolbar } from "@/components/admin/SearchToolbar";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function AdminUniversitiesPage() {
   const { lang } = useApp();
@@ -64,6 +65,8 @@ export default function AdminUniversitiesPage() {
   const { authHeaders } = useApp();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const toggleOne = (id: number) => {
     setSelectedIds(prev => {
@@ -85,14 +88,6 @@ export default function AdminUniversitiesPage() {
   const cancelSelection = () => setSelectedIds(new Set());
 
   const handleBulkDelete = async () => {
-    const count = selectedIds.size;
-    if (count === 0) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${count} university/universities? This will also delete all associated programs. This action cannot be undone.`
-    );
-    if (!confirmed) return;
-
     setIsDeletingBulk(true);
     try {
       const res = await fetch("/api/admin/universities/bulk-delete", {
@@ -108,8 +103,8 @@ export default function AdminUniversitiesPage() {
 
       const result = await res.json();
       setSelectedIds(new Set());
+      setIsConfirmOpen(false);
       await fetchUniversities();
-      alert(`Successfully deleted ${result.data.deletedCount} university/universities`);
     } catch (error: any) {
       console.error("Bulk delete failed:", error);
       alert(`Error: ${error.message}`);
@@ -118,10 +113,48 @@ export default function AdminUniversitiesPage() {
     }
   };
 
+  const handleExport = (format: "csv" | "json") => {
+    const selectedData = universities.filter(u => selectedIds.has(u.id));
+    if (selectedData.length === 0) return;
+
+    let content = "";
+    let mimeType = "";
+    let fileName = `universities-export-${new Date().toISOString().split("T")[0]}`;
+
+    if (format === "json") {
+      content = JSON.stringify(selectedData, null, 2);
+      mimeType = "application/json";
+      fileName += ".json";
+    } else {
+      // CSV
+      const headers = ["ID", "Name (RU)", "City (RU)", "Programs Count"];
+      const rows = selectedData.map(u => [
+        u.id,
+        u.nameRu,
+        u.cityRu,
+        u.programs.length
+      ]);
+      content = [headers, ...rows].map(r => r.join(",")).join("\n");
+      mimeType = "text/csv";
+      fileName += ".csv";
+    }
+
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedIds.size > 0) {
         cancelSelection();
+      }
+      if (e.key === "Delete" && selectedIds.size > 0) {
+        setIsConfirmOpen(true);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === "a") {
         if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
@@ -162,27 +195,32 @@ export default function AdminUniversitiesPage() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-6">
-        <input
-          type="text"
-          placeholder={t("admin.universities.searchPlaceholder", lang)}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 max-w-md bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-white text-sm"
-        />
-        <button
-          onClick={toggleAll}
-          className="px-4 py-2 bg-slate-800 border border-slate-700 text-slate-300 rounded-lg text-sm font-semibold hover:bg-slate-700 transition-colors"
-        >
-          {selectedIds.size === universities.length ? "Deselect all" : "Select all"}
-        </button>
-      </div>
+      <SearchToolbar
+        search={search}
+        setSearch={setSearch}
+        lang={lang}
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+      />
 
-      <BulkActionBar
+      <BulkActionsBar
         selectedCount={selectedIds.size}
-        onDelete={handleBulkDelete}
-        onCancel={cancelSelection}
-        isDeleting={isDeletingBulk}
+        lang={lang}
+        onClear={cancelSelection}
+        onEdit={() => alert("Bulk edit coming soon")}
+        onDelete={() => setIsConfirmOpen(true)}
+        onExport={handleExport}
+      />
+
+      <ConfirmDialog
+        isOpen={isConfirmOpen}
+        onClose={() => setIsConfirmOpen(false)}
+        onConfirm={handleBulkDelete}
+        title={t("admin.confirm.delete.title", lang)}
+        description={t("admin.confirm.delete.description", lang, { count: selectedIds.size })}
+        warning={t("admin.confirm.delete.warning", lang)}
+        lang={lang}
+        isLoading={isDeletingBulk}
       />
 
 
