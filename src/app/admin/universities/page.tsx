@@ -52,7 +52,12 @@ export default function AdminUniversitiesPage() {
     handleBulkJsonChange,
     handleBulkFileUpload,
     handleBulkImport,
-    fetchUniversities
+    fetchUniversities,
+    page,
+    setPage,
+    pageSize,
+    setPageSize,
+    total
   } = useAdminUniversities();
 
   const { authHeaders } = useApp();
