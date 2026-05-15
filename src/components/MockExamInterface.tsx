@@ -13,7 +13,7 @@ interface MockExamInterfaceProps {
 
 import { QuestionNavigator } from "./exam/QuestionNavigator";
 import { QuestionCard } from "./exam/QuestionCard";
-import { AiExplanationBlock } from "./exam/AiExplanationBlock";
+import { IDontKnowButton } from "./IDontKnowButton";
 
 interface MockExamInterfaceProps {
   sessionId: string;
@@ -40,15 +40,14 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [remainingMs, setRemainingMs] = useState(0);
   const [saving, setSaving] = useState(false);
-  const [explanations, setExplanations] = useState<Record<number, string>>({});
-  const [loadingExplanations, setLoadingExplanations] = useState<Record<number, boolean>>({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   const isDiagnostic = data?.session?.testType === "diagnostic";
   const isPractice = data?.session?.testType === "practice";
-  const showFeedback = isDiagnostic || isPractice;
+  // We no longer show feedback (correct/wrong colors or AI explanations) during the active test mode.
+  const showFeedback = false;
 
-  const handleFinish = useCallback(async () => {
-    if (!confirm(t("exam.confirmFinish", lang))) return;
+  const submitTest = async () => {
     setLoading(true);
     try {
       const res = await fetch(`/api/test/submit`, {
@@ -64,7 +63,34 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     } finally {
       setLoading(false);
     }
-  }, [lang, sessionId, authHeaders]);
+  };
+
+  const handleFinishClick = useCallback(() => {
+    if (!data) return;
+    let skippedCount = 0;
+    let unansweredCount = 0;
+
+    data.subjects.forEach(sub => {
+      sub.questions.forEach(q => {
+        const ans = q.selectedAnswer !== undefined ? q.selectedAnswer : q.userAnswer;
+        if (q.isSkipped) {
+          skippedCount++;
+        } else if (ans === null || ans === undefined) {
+          unansweredCount++;
+        }
+      });
+    });
+
+    if (skippedCount > 0 || unansweredCount > 0) {
+      setShowConfirmModal(true);
+    } else {
+      submitTest();
+    }
+  }, [data, sessionId, authHeaders]);
+
+  const handleFinish = useCallback(() => {
+    submitTest();
+  }, [sessionId, authHeaders]);
 
   useEffect(() => {
     async function fetchSession() {
@@ -112,42 +138,12 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
     return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   };
 
-  const fetchExplanation = async (question: any) => {
-    if (explanations[question.id] || loadingExplanations[question.id]) return;
-    
-    setLoadingExplanations(prev => ({ ...prev, [question.id]: true }));
-    try {
-      const res = await fetch("/api/test/explain", {
-        method: "POST",
-        headers: authHeaders(),
-        body: JSON.stringify({
-          questionId: question.id,
-          questionText: lang === "ru" ? question.questionTextRu : question.questionTextKz,
-          options: lang === "ru" ? question.optionsRu : question.optionsKz,
-          correctAnswer: question.correctAnswer,
-          userAnswer: question.selectedAnswer,
-          subject: question.subject,
-          lang
-        }),
-      });
-      if (res.ok) {
-        const result = await res.json();
-        setExplanations(prev => ({ ...prev, [question.id]: result.explanation }));
-      }
-    } catch (err) {
-      console.error("Failed to fetch explanation:", err);
-    } finally {
-      setLoadingExplanations(prev => ({ ...prev, [question.id]: false }));
-    }
-  };
-
   const handleSelectAnswer = async (answerId: number, optionIdx: number) => {
     if (!data) return;
     const currentSubject = data.subjects[currentSubjectIdx];
     const question = currentSubject.questions[currentQuestionIdx];
     
-    if (showFeedback && question.selectedAnswer !== null) return;
-
+    // Allow re-selection since showFeedback is false
     const newData = { ...data };
     newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].selectedAnswer = optionIdx;
     newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].isSkipped = false;
@@ -158,18 +154,43 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
       await fetch(`/api/test/answer`, {
         method: "PUT",
         headers: authHeaders(),
-        body: JSON.stringify({ answerId, selectedAnswer: optionIdx }),
+        body: JSON.stringify({ answerId, selectedAnswer: optionIdx, isSkipped: false }),
       });
-      
-      if (showFeedback) {
-        fetchExplanation(newData.subjects[currentSubjectIdx].questions[currentQuestionIdx]);
-      }
     } catch (err) {
       console.error("Save error:", err);
     } finally {
       setSaving(false);
     }
   };
+
+  const handleSkipQuestion = async (answerId: number) => {
+    if (!data) return;
+    const currentSubject = data.subjects[currentSubjectIdx];
+    const question = currentSubject.questions[currentQuestionIdx];
+    
+    const isCurrentlySkipped = question.isSkipped;
+    const newSkippedState = !isCurrentlySkipped;
+
+    const newData = { ...data };
+    newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].selectedAnswer = null;
+    newData.subjects[currentSubjectIdx].questions[currentQuestionIdx].isSkipped = newSkippedState;
+    setData(newData);
+
+    setSaving(true);
+    try {
+      await fetch(`/api/test/answer`, {
+        method: "PUT",
+        headers: authHeaders(),
+        body: JSON.stringify({ answerId, selectedAnswer: null, isSkipped: newSkippedState }),
+      });
+    } catch (err) {
+      console.error("Save error:", err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+
 
   const stripRef = useRef<HTMLDivElement>(null);
   const subjectStripRef = useRef<HTMLDivElement>(null);
@@ -249,7 +270,7 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
           )}
 
           <button 
-            onClick={handleFinish}
+            onClick={handleFinishClick}
             className={`px-4 md:px-6 py-1.5 md:py-2 ${accentBg} text-white rounded-xl font-bold text-xs md:text-sm transition-colors hover:bg-opacity-90`}
           >
             {t("exam.finish", lang)}
@@ -288,14 +309,12 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
             const hasAnswered = userAnswer !== null && userAnswer !== undefined;
             
             let btnClass = "";
-            if (showFeedback) {
-              if (q.isSkipped) btnClass = "bg-amber-400 text-white";
-              else {
-                const isCorrect = q.isCorrect !== undefined ? q.isCorrect : (userAnswer === q.correctAnswer);
-                btnClass = isCorrect ? "bg-emerald-500 text-white" : "bg-red-500 text-white";
-              }
+            if (q.isSkipped) {
+              btnClass = "bg-amber-50 text-amber-600 border border-amber-400";
+            } else if (hasAnswered) {
+              btnClass = "bg-primary text-white";
             } else {
-              btnClass = hasAnswered ? "bg-primary text-white" : "bg-slate-100 text-slate-500";
+              btnClass = "bg-slate-100 text-slate-500";
             }
 
             return (
@@ -353,14 +372,14 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
               question={currentQuestion}
               lang={lang}
               onSelectAnswer={(oIdx) => handleSelectAnswer(currentQuestion.answerId!, oIdx)}
-              showFeedback={showFeedback}
-              isReadOnly={showFeedback && currentQuestion.selectedAnswer !== null}
+              showFeedback={false}
+              isReadOnly={false}
             />
 
-            <AiExplanationBlock
+            <IDontKnowButton
+              isSkipped={!!currentQuestion.isSkipped}
+              onToggle={() => handleSkipQuestion(currentQuestion.answerId!)}
               lang={lang}
-              explanation={explanations[currentQuestion.id]}
-              loading={loadingExplanations[currentQuestion.id] || false}
             />
 
             <div className="flex justify-between mt-12 pt-8 border-t border-slate-200">
@@ -372,23 +391,67 @@ export function MockExamInterface({ sessionId }: MockExamInterfaceProps) {
                 ← {t("common.back", lang)}
               </button>
               
-              {showFeedback && currentQuestion.selectedAnswer === null ? (
-                 <div className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center">
-                    {t("exam.chooseAnswer", lang)}
-                 </div>
-              ) : (
-                <button
-                  disabled={currentQuestionIdx === currentSubject.questions.length - 1}
-                  onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-                  className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm transition-colors hover:bg-opacity-90 disabled:opacity-30`}
-                >
-                  {t("common.next", lang)} →
-                </button>
-              )}
+              <button
+                disabled={currentQuestionIdx === currentSubject.questions.length - 1}
+                onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
+                className={`px-8 py-3 ${accentBg} text-white rounded-xl font-bold text-sm transition-colors hover:bg-opacity-90 disabled:opacity-30`}
+              >
+                {t("common.next", lang)} →
+              </button>
             </div>
           </div>
         </main>
       </div>
+
+      <AnimatePresence>
+        {showConfirmModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              onClick={() => setShowConfirmModal(false)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="bg-white rounded-3xl p-6 md:p-8 max-w-md w-full relative z-10 shadow-xl"
+            >
+              <div className="w-16 h-16 bg-amber-100 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 text-center mb-2">
+                {t("exam.submitConfirm.title", lang)}
+              </h3>
+              <p className="text-slate-600 text-center mb-8">
+                {t("exam.submitConfirm.message", lang).replace("{count}", String(
+                  data.subjects.reduce((sum, sub) => sum + sub.questions.filter(q => q.isSkipped || (q.selectedAnswer === null && q.userAnswer === null)).length, 0)
+                ))}
+              </p>
+              
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  className="flex-1 px-6 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
+                >
+                  {t("exam.submitConfirm.cancel", lang)}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    submitTest();
+                  }}
+                  className="flex-1 px-6 py-3 rounded-xl font-bold text-white bg-primary hover:bg-primary-dark transition-colors"
+                >
+                  {t("exam.submitConfirm.confirm", lang)}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

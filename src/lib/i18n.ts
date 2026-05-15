@@ -438,6 +438,22 @@ export const translations = {
     ru: "Я не знаю",
     en: "I don't know",
   },
+  "exam.iDontKnow": { 
+    kz: "Білмеймін", 
+    ru: "Не знаю", 
+    en: "I don't know" 
+  },
+  "exam.questionStatus.answered": { kz: "Жауап берілді", ru: "Отвечено", en: "Answered" },
+  "exam.questionStatus.skipped": { kz: "Өткізілді", ru: "Пропущено", en: "Skipped" },
+  "exam.questionStatus.unanswered": { kz: "Жауап берілмеген", ru: "Без ответа", en: "Unanswered" },
+  "exam.submitConfirm.title": { kz: "Тестті аяқтау", ru: "Завершить тест", en: "Submit Test" },
+  "exam.submitConfirm.message": {
+    kz: "Сізде {count} жауап берілмеген сұрақ бар. Жалғастырғыңыз келе ме?",
+    ru: "У вас {count} вопросов без ответа. Завершить тест?",
+    en: "You have {count} unanswered questions. Submit anyway?"
+  },
+  "exam.submitConfirm.confirm": { kz: "Иә, аяқтау", ru: "Да, завершить", en: "Yes, submit" },
+  "exam.submitConfirm.cancel": { kz: "Қайту", ru: "Вернуться", en: "Go back" },
   "test.next": { kz: "Келесі", ru: "Далее", en: "Next" },
   "test.prev": { kz: "Алдыңғы", ru: "Назад", en: "Previous" },
   "test.finish": {

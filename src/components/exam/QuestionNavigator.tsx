@@ -40,10 +40,12 @@ export function QuestionNavigator({
           }
         } else {
           // ACTIVE TEST MODE
-          if (hasAnswered) {
+          if (isSkipped) {
+            btnClass = "bg-amber-50 text-amber-600 border-amber-400";
+          } else if (hasAnswered) {
             btnClass = "bg-primary text-white border-transparent";
           } else {
-            btnClass = "bg-slate-100 text-slate-600 border-slate-200";
+            btnClass = "bg-white text-slate-400 border-slate-200";
           }
         }
 

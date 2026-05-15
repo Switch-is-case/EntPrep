@@ -5,7 +5,7 @@ import { eq } from "drizzle-orm";
 
 export async function PUT(req: Request) {
   try {
-    const { answerId, selectedAnswer } = await req.json();
+    const { answerId, selectedAnswer, isSkipped } = await req.json();
 
     const answerRecord = await db.query.testAnswers.findFirst({
       where: eq(testAnswers.id, answerId),
@@ -16,13 +16,13 @@ export async function PUT(req: Request) {
 
     if (!answerRecord) return NextResponse.json({ error: "Answer not found" }, { status: 404 });
 
-    const isCorrect = answerRecord.question.correctAnswer === selectedAnswer;
+    const isCorrect = isSkipped || selectedAnswer === null ? false : answerRecord.question.correctAnswer === selectedAnswer;
 
     await db.update(testAnswers)
       .set({
         selectedAnswer,
         isCorrect,
-        isSkipped: false,
+        isSkipped: !!isSkipped,
         timeSpent: 0, // Placeholder
       })
       .where(eq(testAnswers.id, answerId));
