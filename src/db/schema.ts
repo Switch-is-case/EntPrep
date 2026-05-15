@@ -10,6 +10,7 @@ import {
   serial,
   primaryKey,
   index,
+  unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
@@ -74,7 +75,7 @@ export const topics = pgTable("topics", {
 
 export const universities = pgTable("universities", {
   id: serial("id").primaryKey(),
-  nameRu: varchar("name_ru", { length: 255 }).notNull(),
+  nameRu: varchar("name_ru", { length: 255 }).notNull().unique(),
   nameKz: varchar("name_kz", { length: 255 }).notNull(),
   nameEn: varchar("name_en", { length: 255 }).notNull(),
   cityRu: varchar("city_ru", { length: 100 }).notNull(),
@@ -104,7 +105,9 @@ export const universityPrograms = pgTable("university_programs", {
   descriptionEn: text("description_en"),
   passingScore: integer("passing_score"), // nullable legacy
   createdAt: timestamp("created_at").defaultNow().notNull(),
-});
+}, (t) => ({
+  uniNameIdx: unique("uni_program_name_idx").on(t.universityId, t.nameRu),
+}));
 
 export const programScoreHistory = pgTable("program_score_history", {
   id: serial("id").primaryKey(),

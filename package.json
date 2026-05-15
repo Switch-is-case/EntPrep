@@ -6,7 +6,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:universities": "npx tsx scripts/seed-universities.ts"
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",

@@ -7,3 +7,4 @@ node_modules
 *.sql
 backups/
 artifacts/
+seed-universities.ts
