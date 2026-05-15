@@ -5,11 +5,16 @@ import { useApp } from "@/components/Providers";
 import { t, type Lang } from "@/lib/i18n";
 
 import { useAdminUniversities } from "@/hooks/useAdminUniversities";
-import { RefreshButton } from "@/components/admin/RefreshButton";
+import { SearchToolbar } from "@/components/admin/ui/SearchToolbar";
+import { DataTable, type Column } from "@/components/admin/ui/DataTable";
+import { BulkActionsBar, type BulkAction } from "@/components/admin/ui/BulkActionsBar";
+import { ConfirmDialog } from "@/components/admin/ui/ConfirmDialog";
+import { Badge } from "@/components/admin/ui/Badge";
+import { IconButton } from "@/components/admin/ui/IconButton";
+import { Pagination } from "@/components/admin/ui/Pagination";
+import { RefreshCw, Plus, Upload, Eye, Pencil, Trash2, Download, Edit, LayoutGrid, List } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { UniversityCard, UniversityCardSkeleton } from "@/components/admin/UniversityCard";
-import { BulkActionsBar } from "@/components/admin/BulkActionsBar";
-import { SearchToolbar } from "@/components/admin/SearchToolbar";
-import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 
 export default function AdminUniversitiesPage() {
   const { lang } = useApp();
@@ -148,6 +153,45 @@ export default function AdminUniversitiesPage() {
     URL.revokeObjectURL(url);
   };
 
+  const columns: Column<any>[] = [
+    { key: "select", width: 48, label: (
+      <input 
+        type="checkbox" 
+        checked={selectedIds.size === universities.length && universities.length > 0} 
+        onChange={toggleAll}
+        className="w-4 h-4 rounded border-border bg-surface-raised text-primary focus:ring-primary/20"
+      />
+    )},
+    { key: "id", label: "ID", width: 80 },
+    { key: "logo", label: "", width: 60 },
+    { key: "name", label: t("admin.common.name", lang), flex: 1 },
+    { key: "city", label: t("admin.common.status", lang), width: 140 }, // Using as City for now or status
+    { key: "programs", label: "Programs", width: 100 },
+    { key: "actions", width: 120, label: "" },
+  ];
+
+  const bulkActions: BulkAction[] = [
+    { 
+      key: "export-csv", 
+      icon: <Download className="w-4 h-4" />, 
+      label: "Export CSV", 
+      onClick: () => handleExport("csv") 
+    },
+    { 
+      key: "export-json", 
+      icon: <Download className="w-4 h-4" />, 
+      label: "Export JSON", 
+      onClick: () => handleExport("json") 
+    },
+    { 
+      key: "delete", 
+      icon: <Trash2 className="w-4 h-4" />, 
+      label: t("admin.bulk.delete", lang), 
+      variant: "danger", 
+      onClick: () => setIsConfirmOpen(true) 
+    },
+  ];
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedIds.size > 0) {
@@ -168,110 +212,155 @@ export default function AdminUniversitiesPage() {
   }, [selectedIds.size, universities.length]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">{t("admin.nav.universities" as any, lang)}</h1>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-text mb-1">{t("admin.nav.universities" as any, lang)}</h1>
+          <p className="text-text-secondary text-sm">Manage educational institutions and their programs</p>
+        </div>
         <div className="flex items-center gap-2">
-          <RefreshButton onRefresh={fetchUniversities} />
-          <button
-            onClick={() => {
-              setShowBulkModal(true);
-              setBulkJson("");
-              setBulkParsed(null);
-              setBulkParseError("");
-              setBulkResult(null);
-              setBulkErrors([]);
-            }}
-            className="bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-slate-600 transition-colors"
+          <IconButton 
+            icon={<RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />} 
+            tooltip={t("common.refresh", lang)} 
+            onClick={fetchUniversities} 
+          />
+          
+          <button 
+            onClick={() => setShowBulkModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-base hover:bg-surface-raised border border-border text-text text-sm font-semibold rounded-xl transition-all active:scale-95"
           >
+            <Upload className="w-4 h-4" />
             {t("admin.questions.bulkImport", lang)}
           </button>
-          <button
+          
+          <button 
             onClick={() => openModal()}
-            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary-dark transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
-            + {t("admin.universities.add", lang)}
+            <Plus className="w-4 h-4" />
+            {t("admin.universities.add", lang)}
           </button>
         </div>
       </div>
 
       <SearchToolbar
         search={search}
-        setSearch={setSearch}
+        onSearchChange={setSearch}
+        placeholder={t("admin.search.placeholder", lang)}
+      >
+        <div className="flex items-center gap-1 bg-surface-base border border-border rounded-xl p-1 mr-2">
+          <IconButton 
+            icon={<LayoutGrid className="w-4 h-4" />} 
+            tooltip="Grid view" 
+            variant={viewMode === "grid" ? "secondary" : "ghost"} 
+            size="sm"
+            onClick={() => setViewMode("grid")}
+          />
+          <IconButton 
+            icon={<List className="w-4 h-4" />} 
+            tooltip="List view" 
+            variant={viewMode === "list" ? "secondary" : "ghost"} 
+            size="sm"
+            onClick={() => setViewMode("list")}
+          />
+        </div>
+      </SearchToolbar>
+
+      {loading ? (
+        viewMode === "grid" ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+            {[...Array(6)].map((_, i) => (
+              <UniversityCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          <DataTable columns={columns} rows={[]} isLoading={true} renderRow={() => null} />
+        )
+      ) : viewMode === "grid" ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+          {universities.map((uni) => (
+            <UniversityCard
+              key={uni.id}
+              university={uni}
+              lang={lang}
+              isSelected={selectedIds.has(uni.id)}
+              onToggle={toggleOne}
+              onEdit={openModal}
+              onDelete={deleteUniversity}
+            />
+          ))}
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={universities}
+          renderRow={(uni) => (
+            <tr key={uni.id} className="border-b border-border hover:bg-surface-raised/50 transition-colors group">
+              <td className="px-4 py-4">
+                <input 
+                  type="checkbox" 
+                  checked={selectedIds.has(uni.id)} 
+                  onChange={() => toggleOne(uni.id)}
+                  className="w-4 h-4 rounded border-border bg-surface-base text-primary focus:ring-primary/20"
+                />
+              </td>
+              <td className="px-4 py-4 font-mono text-text-secondary text-xs">#{uni.id}</td>
+              <td className="px-4 py-4">
+                {uni.logoUrl ? (
+                  <img src={uni.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover bg-surface-raised" />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                    {uni.nameRu[0]}
+                  </div>
+                )}
+              </td>
+              <td className="px-4 py-4">
+                <p className="text-text font-medium truncate">{uni.nameRu}</p>
+                <p className="text-text-secondary text-xs">{uni.cityRu}</p>
+              </td>
+              <td className="px-4 py-4">
+                <Badge variant="outline">{uni.cityRu}</Badge>
+              </td>
+              <td className="px-4 py-4">
+                <Badge variant="secondary">{uni.programs.length} progs</Badge>
+              </td>
+              <td className="px-4 py-4">
+                <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                  <IconButton icon={<Pencil className="w-4 h-4" />} tooltip={t("common.edit", lang)} onClick={() => openModal(uni)} />
+                  <IconButton icon={<Trash2 className="w-4 h-4" />} tooltip={t("common.delete", lang)} variant="danger" onClick={() => deleteUniversity(uni.id)} />
+                </div>
+              </td>
+            </tr>
+          )}
+        />
+      )}
+
+      <Pagination
+        page={page}
+        totalPages={Math.ceil(total / pageSize)}
+        onPageChange={setPage}
         lang={lang}
-        viewMode={viewMode}
-        setViewMode={setViewMode}
       />
 
       <BulkActionsBar
         selectedCount={selectedIds.size}
-        lang={lang}
         onClear={cancelSelection}
-        onEdit={() => alert("Bulk edit coming soon")}
-        onDelete={() => setIsConfirmOpen(true)}
-        onExport={handleExport}
+        actions={bulkActions}
+        lang={lang}
       />
 
       <ConfirmDialog
-        isOpen={isConfirmOpen}
-        onClose={() => setIsConfirmOpen(false)}
-        onConfirm={handleBulkDelete}
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
         title={t("admin.confirm.delete.title", lang)}
         description={t("admin.confirm.delete.description", lang, { count: selectedIds.size })}
         warning={t("admin.confirm.delete.warning", lang)}
-        lang={lang}
+        confirmLabel={t("admin.confirm.delete.confirm", lang)}
+        cancelLabel={t("common.cancel", lang)}
+        variant="danger"
+        onConfirm={handleBulkDelete}
         isLoading={isDeletingBulk}
       />
-
-
-
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 auto-rows-fr">
-          {[...Array(6)].map((_, i) => (
-            <UniversityCardSkeleton key={i} />
-          ))}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-8 auto-rows-fr">
-            {universities.map((uni) => (
-              <UniversityCard
-                key={uni.id}
-                university={uni}
-                lang={lang}
-                isSelected={selectedIds.has(uni.id)}
-                onToggle={toggleOne}
-                onEdit={openModal}
-                onDelete={deleteUniversity}
-              />
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {total > pageSize && (
-            <div className="flex items-center justify-center gap-4 py-4 border-t border-slate-800">
-              <button
-                disabled={page === 1}
-                onClick={() => setPage(p => Math.max(1, p - 1))}
-                className="px-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors"
-              >
-                {t("admin.common.prev", lang)}
-              </button>
-              <div className="text-slate-400 text-sm">
-                {t("admin.common.page", lang)} {page} {t("admin.common.of", lang)} {Math.ceil(total / pageSize)}
-                <span className="ml-2 text-slate-500">({total} total)</span>
-              </div>
-              <button
-                disabled={page * pageSize >= total}
-                onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 bg-slate-800 border border-slate-700 text-white rounded-lg disabled:opacity-50 hover:bg-slate-700 transition-colors"
-              >
-                {t("admin.common.next", lang)}
-              </button>
-            </div>
-          )}
-        </>
-      )}
 
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4">
