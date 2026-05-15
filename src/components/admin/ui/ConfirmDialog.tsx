@@ -17,6 +17,7 @@ interface ConfirmDialogProps {
   icon?: React.ReactNode;
   onConfirm: () => void;
   isLoading?: boolean;
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -30,7 +31,8 @@ export function ConfirmDialog({
   variant = "danger",
   icon,
   onConfirm,
-  isLoading
+  isLoading,
+  children
 }: ConfirmDialogProps) {
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -81,6 +83,8 @@ export function ConfirmDialog({
                         </button>
                       </DialogPrimitive.Close>
                     </div>
+
+                    {children}
 
                     <div className="flex justify-end gap-3 mt-8">
                       <DialogPrimitive.Close asChild>

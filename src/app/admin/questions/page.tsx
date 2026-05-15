@@ -7,10 +7,17 @@ import { t } from "@/lib/i18n";
 import { MANDATORY_SUBJECTS, PROFILE_SUBJECTS } from "@/domain/tests/rules";
 
 import { useAdminQuestions } from "@/hooks/useAdminQuestions";
+import { SearchToolbar } from "@/components/admin/ui/SearchToolbar";
+import { DataTable, type Column } from "@/components/admin/ui/DataTable";
+import { BulkActionsBar, type BulkAction } from "@/components/admin/ui/BulkActionsBar";
+import { ConfirmDialog } from "@/components/admin/ui/ConfirmDialog";
+import { Badge } from "@/components/admin/ui/Badge";
+import { IconButton } from "@/components/admin/ui/IconButton";
+import { Pagination } from "@/components/admin/ui/Pagination";
+import { RefreshCw, Sparkles, Upload, Plus, Eye, Pencil, Trash2, Download, Edit, AlertTriangle } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Spinner } from "@/components/Spinner";
-import { SelectAllCheckbox } from "@/components/admin/SelectAllCheckbox";
-import { BulkActionBar } from "@/components/admin/BulkActionBar";
-import { RefreshButton } from "@/components/admin/RefreshButton";
+import { Question as QuestionType } from "@/hooks/useAdminQuestions";
 
 const allSubjects = [...MANDATORY_SUBJECTS, ...PROFILE_SUBJECTS];
 
@@ -73,6 +80,10 @@ export default function AdminQuestions() {
   const { authHeaders } = useApp();
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [previewQuestion, setPreviewQuestion] = useState<QuestionType | null>(null);
+  const [difficulty, setDifficulty] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
   const toggleOne = (id: number) => {
     setSelectedIds(prev => {
@@ -94,14 +105,6 @@ export default function AdminQuestions() {
   const cancelSelection = () => setSelectedIds(new Set());
 
   const handleBulkDelete = async () => {
-    const count = selectedIds.size;
-    if (count === 0) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to delete ${count} question${count > 1 ? "s" : ""}? This action cannot be undone.`
-    );
-    if (!confirmed) return;
-
     setIsDeletingBulk(true);
     try {
       const res = await fetch("/api/admin/questions/bulk-delete", {
@@ -115,10 +118,10 @@ export default function AdminQuestions() {
         throw new Error(error.error || "Failed to delete");
       }
 
-      const result = await res.json();
+      await res.json();
       setSelectedIds(new Set());
+      setIsConfirmOpen(false);
       await fetchQuestions();
-      alert(`Successfully deleted ${result.data.deletedCount} question(s)`);
     } catch (error: any) {
       console.error("Bulk delete failed:", error);
       alert(`Error: ${error.message}`);
@@ -127,10 +130,67 @@ export default function AdminQuestions() {
     }
   };
 
+  function DifficultyBadge({ level }: { level: string }) {
+    const config = {
+      easy: { variant: "success" as const, label: t("common.difficulty.easy", lang) },
+      medium: { variant: "warning" as const, label: t("common.difficulty.medium", lang) },
+      hard: { variant: "danger" as const, label: t("common.difficulty.hard", lang) },
+    }[level as "easy" | "medium" | "hard"] || { variant: "default" as const, label: level };
+
+    return (
+      <Badge variant={config.variant} className="gap-1.5">
+        <span className="w-1.5 h-1.5 rounded-full bg-current" />
+        {config.label}
+      </Badge>
+    );
+  }
+
+  const columns: Column<QuestionType>[] = [
+    { key: "select", width: 48, label: (
+      <input 
+        type="checkbox" 
+        checked={selectedIds.size === questions.length && questions.length > 0} 
+        onChange={toggleAll}
+        className="w-4 h-4 rounded border-border bg-surface-raised text-primary focus:ring-primary/20"
+      />
+    )},
+    { key: "id", label: "ID", width: 80 },
+    { key: "subject", label: t("admin.questions.subject", lang), width: 140 },
+    { key: "question", label: t("admin.questions.question", lang), flex: 1 },
+    { key: "answer", label: t("admin.questions.answer", lang), width: 80 },
+    { key: "difficulty", label: t("admin.questions.difficulty", lang), width: 120 },
+    { key: "actions", width: 120, label: "" },
+  ];
+
+  const bulkActions: BulkAction[] = [
+    { 
+      key: "export", 
+      icon: <Download className="w-4 h-4" />, 
+      label: t("admin.bulk.export", lang), 
+      onClick: () => alert("Export coming soon") 
+    },
+    { 
+      key: "edit", 
+      icon: <Edit className="w-4 h-4" />, 
+      label: t("admin.bulk.edit", lang), 
+      onClick: () => alert("Bulk edit coming soon") 
+    },
+    { 
+      key: "delete", 
+      icon: <Trash2 className="w-4 h-4" />, 
+      label: t("admin.bulk.delete", lang), 
+      variant: "danger", 
+      onClick: () => setIsConfirmOpen(true) 
+    },
+  ];
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && selectedIds.size > 0) {
         cancelSelection();
+      }
+      if (e.key === "Delete" && selectedIds.size > 0) {
+        setIsConfirmOpen(true);
       }
       if ((e.ctrlKey || e.metaKey) && e.key === "a") {
         if (document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA") return;
@@ -144,195 +204,250 @@ export default function AdminQuestions() {
   }, [selectedIds.size, questions.length]);
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">{t("admin.questions.title", lang)}</h1>
+    <>
+    <div className="p-6">
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-text mb-1">{t("admin.questions.title", lang)}</h1>
+          <p className="text-text-secondary text-sm">Manage and organize your question database</p>
+        </div>
         <div className="flex items-center gap-2">
-          <RefreshButton onRefresh={fetchQuestions} />
-          <button
+          <IconButton 
+            icon={<RefreshCw className={cn("w-4 h-4", loading && "animate-spin")} />} 
+            tooltip={t("common.refresh", lang)} 
+            onClick={fetchQuestions} 
+          />
+          
+          <button 
             onClick={() => setShowAiModal(true)}
-            className="bg-purple-600/20 text-purple-400 border border-purple-600/50 px-4 py-2 rounded-lg font-medium hover:bg-purple-600/30 transition-colors flex items-center gap-2 text-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-purple-500/20 active:scale-95"
           >
+            <Sparkles className="w-4 h-4" />
             {t("admin.questions.generateAi", lang)}
           </button>
-          <button
-            onClick={() => {
-              setShowBulkModal(true);
-              setBulkJson("");
-              setBulkParsed(null);
-              setBulkParseError("");
-              setBulkResult(null);
-              setBulkErrors([]);
-            }}
-            className="border border-slate-600 text-slate-300 px-4 py-2 rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 text-sm"
+          
+          <button 
+            onClick={() => setShowBulkModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-surface-base hover:bg-surface-raised border border-border text-text text-sm font-semibold rounded-xl transition-all active:scale-95"
           >
+            <Upload className="w-4 h-4" />
             {t("admin.questions.bulkImport", lang)}
           </button>
-          <button
+          
+          <button 
             onClick={openCreate}
-            className="bg-primary text-white px-4 py-2 rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2"
+            className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-xl transition-all shadow-lg shadow-primary/20 active:scale-95"
           >
-            <span className="text-lg">+</span> {t("admin.questions.add", lang)}
+            <Plus className="w-4 h-4" />
+            {t("admin.questions.add", lang)}
           </button>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        <select
-          value={filterSubject}
+      <SearchToolbar
+        search={search}
+        onSearchChange={(val) => {
+          setSearch(val);
+          setPage(1);
+        }}
+        placeholder={t("admin.questions.search", lang)}
+      >
+        <select 
+          value={filterSubject} 
           onChange={(e) => {
             setFilterSubject(e.target.value);
             setPage(1);
           }}
-          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white"
+          className="bg-surface-base border border-border rounded-xl px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all min-w-[160px]"
         >
-          <option value="">{t("admin.questions.filter.allSubjects", lang)}</option>
-          {allSubjects.map((s) => (
-            <option key={s} value={s}>
-              {getSubjectName(s)}
-            </option>
+          <option value="">{t("admin.questions.allSubjects", lang)}</option>
+          {allSubjects.map(s => (
+            <option key={s} value={s}>{getSubjectName(s)}</option>
           ))}
         </select>
-        <input
-          type="text"
-          placeholder={t("admin.common.search", lang)}
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
-          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-400 w-64"
-        />
-      </div>
 
-      <BulkActionBar
-        selectedCount={selectedIds.size}
-        onDelete={handleBulkDelete}
-        onCancel={cancelSelection}
-        isDeleting={isDeletingBulk}
+        <select 
+          value={difficulty} 
+          onChange={(e) => setDifficulty(e.target.value)}
+          className="bg-surface-base border border-border rounded-xl px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all min-w-[140px]"
+        >
+          <option value="">{t("admin.questions.allDifficulty", lang)}</option>
+          <option value="easy">{t("common.difficulty.easy", lang)}</option>
+          <option value="medium">{t("common.difficulty.medium", lang)}</option>
+          <option value="hard">{t("common.difficulty.hard", lang)}</option>
+        </select>
+
+        <select 
+          value={sortBy} 
+          onChange={(e) => setSortBy(e.target.value)}
+          className="bg-surface-base border border-border rounded-xl px-3 py-2 text-sm text-text focus:outline-none focus:ring-1 focus:ring-primary/20 transition-all min-w-[140px]"
+        >
+          <option value="newest">{t("common.sort.newest", lang)}</option>
+          <option value="oldest">{t("common.sort.oldest", lang)}</option>
+          <option value="idAsc">{t("common.sort.idAsc", lang)}</option>
+        </select>
+      </SearchToolbar>
+
+      <DataTable
+        columns={columns}
+        rows={questions}
+        isLoading={loading}
+        renderRow={(q) => (
+          <tr 
+            key={q.id} 
+            className={cn(
+              "border-b border-border hover:bg-surface-raised/50 transition-colors cursor-pointer group",
+              selectedIds.has(q.id) && "bg-primary/5"
+            )}
+            onClick={(e) => {
+              if (!(e.target as HTMLElement).closest("button, input")) {
+                setPreviewQuestion(q);
+              }
+            }}
+            aria-selected={selectedIds.has(q.id)}
+          >
+            <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+              <input 
+                type="checkbox" 
+                checked={selectedIds.has(q.id)} 
+                onChange={() => toggleOne(q.id)}
+                className="w-4 h-4 rounded border-border bg-surface-base text-primary focus:ring-primary/20 cursor-pointer"
+              />
+            </td>
+            <td className="px-4 py-4 font-mono text-text-secondary text-xs">#{q.id}</td>
+            <td className="px-4 py-4">
+              <Badge variant="info">{getSubjectName(q.subject)}</Badge>
+            </td>
+            <td className="px-4 py-4 max-w-md">
+              <p className="text-text font-medium truncate group-hover:text-primary transition-colors">
+                {q.questionTextRu}
+              </p>
+              {q.topic && <p className="text-text-secondary text-xs mt-0.5">{q.topic}</p>}
+            </td>
+            <td className="px-4 py-4">
+              <Badge variant="outline" className="font-mono">
+                {String.fromCharCode(65 + q.correctAnswer)}
+              </Badge>
+            </td>
+            <td className="px-4 py-4">
+              <DifficultyBadge level={q.difficulty} />
+            </td>
+            <td className="px-4 py-4" onClick={(e) => e.stopPropagation()}>
+              <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                <IconButton 
+                  icon={<Eye className="w-4 h-4" />} 
+                  tooltip={t("common.view", lang)} 
+                  onClick={() => setPreviewQuestion(q)} 
+                />
+                <IconButton 
+                  icon={<Pencil className="w-4 h-4" />} 
+                  tooltip={t("common.edit", lang)} 
+                  onClick={() => openEdit(q)} 
+                />
+                <IconButton 
+                  icon={<Trash2 className="w-4 h-4" />} 
+                  tooltip={t("common.delete", lang)} 
+                  variant="danger" 
+                  onClick={() => {
+                    setSelectedIds(new Set([q.id]));
+                    setIsConfirmOpen(true);
+                  }} 
+                />
+              </div>
+            </td>
+          </tr>
+        )}
       />
-       {/* Table */}
-       <div className="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
-        {loading ? (
-          <div className="flex items-center justify-center h-48">
-            <Spinner size="md" />
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-slate-700/50">
-                <tr className="text-left text-slate-300">
-                  <th className="px-4 py-3 font-medium w-12">
-                    <SelectAllCheckbox
-                      totalCount={questions.length}
-                      selectedCount={selectedIds.size}
-                      onToggleAll={toggleAll}
-                    />
-                  </th>
-                  <th className="px-4 py-3 font-medium">ID</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.questions.form.subject", lang).replace(" *", "")}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.question", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.answer", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.questions.table.difficulty", lang)}</th>
-                  <th className="px-4 py-3 font-medium">{t("admin.common.actions", lang)}</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {questions.map((q) => (
-                  <tr 
-                    key={q.id} 
-                    className={`hover:bg-slate-700/30 transition-colors ${selectedIds.has(q.id) ? "bg-blue-600/10" : ""}`}
-                  >
-                    <td className="px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedIds.has(q.id)}
-                        onChange={() => toggleOne(q.id)}
-                        className="w-4 h-4 rounded border-slate-600 text-blue-600 focus:ring-blue-500 cursor-pointer bg-slate-700"
-                      />
-                    </td>
-                    <td className="px-4 py-3 text-slate-400">{q.id}</td>
-                    <td className="px-4 py-3">
-                      <span className="text-xs bg-primary/20 text-primary px-2 py-1 rounded">
-                        {getSubjectName(q.subject)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3 text-white max-w-xs truncate">
-                      {q.questionTextRu}
-                    </td>
-                    <td className="px-4 py-3 text-slate-300">
-                      {String.fromCharCode(65 + q.correctAnswer)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={`text-xs px-2 py-1 rounded ${
-                          q.difficulty === "easy"
-                            ? "bg-success/20 text-success"
-                            : q.difficulty === "hard"
-                            ? "bg-danger/20 text-danger"
-                            : "bg-warning/20 text-warning"
-                        }`}
-                      >
-                        {t(`admin.questions.difficulty.${q.difficulty}` as any, lang)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => openEdit(q)}
-                          className="text-xs font-medium px-2 py-1 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
-                        >
-                          {t("admin.common.edit", lang)}
-                        </button>
-                        <button
-                          onClick={() => handleDelete(q.id)}
-                          className="text-xs font-medium px-2 py-1 rounded bg-danger/10 text-danger hover:bg-danger/20 transition-colors"
-                        >
-                          {t("admin.users.actions.delete", lang)}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {questions.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-4 py-8 text-center text-slate-400"
-                    >
-                      {t("admin.common.noData", lang)}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        onPageChange={setPage}
+        lang={lang}
+      />
+
+      <BulkActionsBar
+        selectedCount={selectedIds.size}
+        onClear={cancelSelection}
+        actions={bulkActions}
+        lang={lang}
+      />
+
+      <ConfirmDialog
+        open={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={t("admin.confirm.delete.title", lang)}
+        description={t("admin.confirm.delete.description", lang, { count: selectedIds.size })}
+        warning={t("admin.confirm.delete.warning", lang)}
+        confirmLabel={t("admin.confirm.delete.confirm", lang)}
+        cancelLabel={t("common.cancel", lang)}
+        variant="danger"
+        onConfirm={handleBulkDelete}
+        isLoading={isDeletingBulk}
+      />
+
+      {/* Question Preview Modal */}
+      <ConfirmDialog
+        open={!!previewQuestion}
+        onOpenChange={(open) => !open && setPreviewQuestion(null)}
+        title="Question Preview"
+        description=""
+        confirmLabel={t("common.edit", lang)}
+        cancelLabel={t("common.cancel", lang)}
+        variant="info"
+        icon={<Eye className="w-6 h-6" />}
+        onConfirm={() => {
+          if (previewQuestion) {
+            openEdit(previewQuestion);
+            setPreviewQuestion(null);
+          }
+        }}
+      >
+        {previewQuestion && (
+          <div className="mt-4 space-y-4">
+            <div className="flex gap-2">
+              <Badge variant="info">{getSubjectName(previewQuestion.subject)}</Badge>
+              <DifficultyBadge level={previewQuestion.difficulty} />
+            </div>
+            
+            <h3 className="text-lg font-bold text-text leading-snug">
+              {previewQuestion.questionTextRu}
+            </h3>
+
+            {previewQuestion.imageUrl && (
+              <img 
+                src={previewQuestion.imageUrl} 
+                alt="Question" 
+                className="rounded-lg max-h-48 object-contain bg-surface-raised"
+              />
+            )}
+
+            <div className="grid grid-cols-1 gap-2">
+              {previewQuestion.optionsRu.map((opt, i) => (
+                <div 
+                  key={i}
+                  className={cn(
+                    "p-3 rounded-xl border text-sm transition-all",
+                    i === previewQuestion.correctAnswer 
+                      ? "bg-success/10 border-success/30 text-success font-semibold" 
+                      : "bg-surface-raised border-border text-text-secondary"
+                  )}
+                >
+                  <span className="font-mono mr-2">{String.fromCharCode(65 + i)}.</span>
+                  {opt}
+                </div>
+              ))}
+            </div>
+
+            {previewQuestion.topic && (
+              <div className="bg-surface-raised p-3 rounded-xl border border-border">
+                <p className="text-xs font-bold text-text uppercase tracking-wider mb-1">Topic</p>
+                <p className="text-sm text-text-secondary">{previewQuestion.topic}</p>
+              </div>
+            )}
           </div>
         )}
-      </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-6">
-          <button
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
-          >
-            ←
-          </button>
-          <span className="text-slate-300 text-sm">
-            {page} / {totalPages}
-          </span>
-          <button
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-            className="px-3 py-1 rounded bg-slate-700 text-white text-sm disabled:opacity-50"
-          >
-            →
-          </button>
-        </div>
-      )}
+      </ConfirmDialog>
 
       {/* Modal */}
       {showModal && (
@@ -819,5 +934,6 @@ export default function AdminQuestions() {
         </div>
       )}
     </div>
+    </>
   );
 }
