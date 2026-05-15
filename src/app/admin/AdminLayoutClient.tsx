@@ -53,6 +53,17 @@ export function AdminLayoutClient({
       .catch(() => setIsAdmin(false));
   }, [user, token, router, authHeaders]);
 
+  // Handle Service Worker in Admin Panel
+  useEffect(() => {
+    if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        if (registrations.length > 0) {
+          console.log("[Admin] Service Worker found, excluding admin routes from interception");
+        }
+      });
+    }
+  }, []);
+
   if (isAdmin === null) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">

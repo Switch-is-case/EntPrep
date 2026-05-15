@@ -17,23 +17,26 @@ self.addEventListener('install', (event) => {
       return cache.addAll(ASSETS_TO_CACHE);
     })
   );
-  self.skipWaiting();
+  self.skipWaiting(); // Force the waiting service worker to become the active service worker
 });
 
 // 2. Activate - Clean up old caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    Promise.all([
+      self.clientsClaim(), // Become available to all clients immediately
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+          cacheNames.map((cacheName) => {
+            if (cacheName !== CACHE_NAME) {
+              console.log('PWA: Clearing old cache:', cacheName);
+              return caches.delete(cacheName);
+            }
+          })
+        );
+      })
+    ])
   );
-  self.clientsClaim();
 });
 
 // 3. Fetch - Strategy implementation
@@ -41,9 +44,24 @@ self.addEventListener('fetch', (event) => {
   // Ignore non-GET requests
   if (event.request.method !== 'GET') return;
 
+  const url = new URL(event.request.url);
+
+  // EXCLUDE ADMIN AND API ADMIN
+  if (url.pathname.startsWith('/admin') || url.pathname.startsWith('/api/admin')) {
+    return; // Let the browser handle these directly
+  }
+
   // Ignore API requests (NetworkOnly)
-  if (event.request.url.includes('/api/')) {
-    event.respondWith(fetch(event.request));
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(event.request).catch((err) => {
+        console.error('PWA: API Fetch failed:', err);
+        return new Response(JSON.stringify({ error: 'Offline' }), {
+          status: 503,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      })
+    );
     return;
   }
 
@@ -61,8 +79,10 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((response) => {
       return response || fetch(event.request).then((fetchResponse) => {
-        // Optionally cache new assets here
         return fetchResponse;
+      }).catch((err) => {
+        console.error('PWA: Static asset fetch failed:', err);
+        // We could return a placeholder image or similar here if needed
       });
     })
   );
