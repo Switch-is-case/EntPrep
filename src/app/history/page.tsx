@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/Providers";
-import { t, tSubject } from "@/lib/i18n";
+import { t, tSubject, pickLocalized } from "@/lib/i18n";
 
 import { useHistory } from "@/hooks/useHistory";
 import { Spinner } from "@/components/Spinner";
@@ -65,7 +65,7 @@ export default function HistoryPage() {
               <option value="all">{t("filters.allSubjects", lang)}</option>
               {allSubjects.map((sub, idx) => (
                 <option key={`${sub.id}-${idx}`} value={sub.slug || `id-${sub.id}`}>
-                  {tSubject(sub.nameKz || sub.slug, lang) || "—"}
+                  {tSubject(sub.nameRu || sub.slug, lang) || "—"}
                 </option>
               ))}
             </select>
@@ -102,7 +102,7 @@ export default function HistoryPage() {
                     {new Date(s.startedAt).toLocaleDateString(lang === "kz" ? "kk-KZ" : lang === "ru" ? "ru-RU" : "en-US")}
                     {" · "}
                     {new Date(s.startedAt).toLocaleTimeString([], {hour: "2-digit", minute: "2-digit"})}
-                    {s.subjects && s.subjects.length > 0 && ` · ${s.subjects.map(sub => tSubject(sub.nameKz || sub.slug, lang)).join(", ")}`}
+                    {s.subjects && s.subjects.length > 0 && ` · ${s.subjects.map(sub => tSubject(sub.nameRu || sub.slug, lang)).join(", ")}`}
                   </div>
                 </div>
 

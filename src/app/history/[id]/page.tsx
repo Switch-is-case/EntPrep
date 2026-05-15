@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useApp } from "@/components/Providers";
-import { t, tSubject } from "@/lib/i18n";
+import { t, tSubject, pickLocalized } from "@/lib/i18n";
 import { useHistoryReview } from "@/hooks/useHistoryReview";
 import { Spinner } from "@/components/Spinner";
 import { QuestionNavigator } from "@/components/exam/QuestionNavigator";
@@ -73,7 +73,7 @@ export default function HistoryReviewPage() {
     
     return session.subjects.map((s: any) => ({
       id: s.id,
-      name: tSubject(s.nameKz || s.nameRu || s.slug || "—", lang),
+      name: tSubject(s.nameRu || s.nameKz || s.slug || "—", lang),
       questions: map.get(s.id) || []
     })).filter(s => s.questions.length > 0);
   }, [questions, session, lang]);
@@ -117,7 +117,11 @@ export default function HistoryReviewPage() {
   };
 
   const accentBg = "bg-primary";
-  const testTypeLabel = session.testType === "diagnostic" ? "Diagnostic" : session.testType === "practice" ? "Practice" : "Mock Exam";
+  const testTypeLabel = session.testType === "diagnostic" 
+    ? t("history.typeDiagnostic", lang) 
+    : session.testType === "practice" 
+    ? t("history.typePractice", lang) 
+    : t("history.typeFull", lang);
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useApp, type User } from "@/components/Providers";
-import { t, tSubject, type Lang } from "@/lib/i18n";
+import { t, tSubject, pickLocalized, type Lang } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -256,7 +256,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                   >
                     <option value="">{t("profile.selectUniversity", lang)}</option>
                     {universitiesData.map(u => (
-                      <option key={u.id} value={u.id}>{lang === "ru" ? u.nameRu : u.nameKz}</option>
+                      <option key={u.id} value={u.id}>{pickLocalized(u, "name", lang)}</option>
                     ))}
                   </select>
                 </div>
@@ -277,7 +277,7 @@ function ProfileForm({ user, lang, combinations, universitiesData }: {
                             : "border-slate-200 text-slate-600 hover:border-primary/40"
                           }`}
                         >
-                          {lang === "ru" ? p.nameRu : p.nameKz}
+                          {pickLocalized(p, "name", lang)}
                         </button>
                       ))}
                     </div>

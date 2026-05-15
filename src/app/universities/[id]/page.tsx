@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { useApp } from "@/components/Providers";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
-import { t } from "@/lib/i18n";
+import { t, pickLocalized, tCity, tSubjectCombo, tLanguageBadge } from "@/lib/i18n";
 import Image from "next/image";
 import { Building } from "lucide-react";
 
@@ -50,7 +50,7 @@ export default function UniversityDetailPage() {
             {uni.logoUrl ? (
               <Image 
                 src={uni.logoUrl} 
-                alt={lang === "ru" ? uni.nameRu : uni.nameKz} 
+                alt={pickLocalized(uni, "name", lang)} 
                 width={128} 
                 height={128} 
                 className="w-full h-full object-cover"
@@ -61,11 +61,11 @@ export default function UniversityDetailPage() {
           </div>
           <div>
             <div className="inline-block px-3 py-1 rounded-full bg-primary/8 text-primary text-xs font-black uppercase tracking-wider mb-4">
-              {uni.cityRu}, {t("common.kazakhstan", lang)}
+              {tCity(uni, lang)}, {t("common.kazakhstan", lang)}
             </div>
-            <h1 className="text-4xl font-black text-text leading-tight mb-4">{lang === "ru" ? uni.nameRu : uni.nameKz}</h1>
+            <h1 className="text-4xl font-black text-text leading-tight mb-4">{pickLocalized(uni, "name", lang)}</h1>
             <p className="text-text-secondary text-lg max-w-2xl leading-relaxed">
-              {lang === "ru" ? uni.descriptionRu : uni.descriptionKz}
+              {pickLocalized(uni, "description", lang)}
             </p>
           </div>
         </div>
@@ -81,14 +81,14 @@ export default function UniversityDetailPage() {
             <div>
               <div className="flex items-center gap-2 mb-2">
                 <span className="px-2.5 py-0.5 rounded-lg bg-slate-100 text-[10px] font-bold text-slate-600 uppercase tracking-tight">
-                  {prog.combination?.subject1?.nameRu} + {prog.combination?.subject2?.nameRu}
+                  {tSubjectCombo(`${prog.combination?.subject1?.nameRu} + ${prog.combination?.subject2?.nameRu}`, lang)}
                 </span>
                 <span className="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-[10px] font-bold text-indigo-600 uppercase tracking-tight">
-                  {prog.language === "en" ? "English" : "KZ/RU"}
+                  {tLanguageBadge(prog.language, lang)}
                 </span>
               </div>
               <h3 className="text-lg font-bold text-text leading-tight">
-                {lang === "ru" ? prog.nameRu : prog.nameKz}
+                {pickLocalized(prog, "name", lang)}
               </h3>
             </div>
 

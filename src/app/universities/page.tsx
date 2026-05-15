@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useApp } from "@/components/Providers";
-import { t } from "@/lib/i18n";
+import { t, tCity, pickLocalized, tSubjectCombo } from "@/lib/i18n";
 import { Spinner } from "@/components/Spinner";
 import Link from "next/link";
 import Image from "next/image";
@@ -46,7 +46,12 @@ export default function UniversitiesPage() {
     return () => clearTimeout(timer);
   }, [search, city, user?.targetCombinationId]);
 
-  const cities = ["Алматы", "Астана", "Шымкент", "Караганда", "Павлодар", "Каскелен"];
+  const cities = [
+    "Астана", "Алматы", "Шымкент", "Караганда", "Актобе", 
+    "Тараз", "Павлодар", "Усть-Каменогорск", "Семей", "Атырау", 
+    "Костанай", "Кызылорда", "Уральск", "Петропавловск", 
+    "Талдыкорган", "Туркестан", "Кокшетау", "Актау", "Каскелен"
+  ];
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -76,7 +81,7 @@ export default function UniversitiesPage() {
             className="px-4 py-3 rounded-xl border border-slate-200 focus:border-primary outline-none text-sm transition-colors bg-white font-bold text-slate-700"
           >
             <option value="">{t("filters.allCities", lang)}</option>
-            {cities.map(c => <option key={c} value={c}>{c}</option>)}
+            {cities.map(c => <option key={c} value={c}>{tCity(c, lang)}</option>)}
           </select>
         </div>
       </div>
@@ -111,20 +116,24 @@ export default function UniversitiesPage() {
                     )}
                   </div>
                   <div className="px-3 py-1 rounded-lg bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest">
-                    {lang === "ru" ? uni.cityRu : uni.cityKz}
+                    {tCity(uni, lang)}
                   </div>
                 </div>
 
                 <h3 className="text-lg font-bold text-slate-900 leading-tight mb-4 group-hover:text-primary transition-colors">
-                  {lang === "ru" ? uni.nameRu : uni.nameKz}
+                  {pickLocalized(uni, "name", lang)}
                 </h3>
 
                 <div className="space-y-2 mt-6">
                   {uni.programs.slice(0, 2).map((prog: any) => (
                     <div key={prog.id} className="bg-slate-50 rounded-xl p-3 border border-slate-100">
-                      <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{prog.combination?.subject1?.nameRu} + {prog.combination?.subject2?.nameRu}</div>
+                      <div className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+                        {tSubjectCombo(`${prog.combination?.subject1?.nameRu} + ${prog.combination?.subject2?.nameRu}`, lang)}
+                      </div>
                       <div className="flex justify-between items-center">
-                        <div className="text-xs font-bold text-slate-700 line-clamp-1 flex-1 pr-2">{lang === "ru" ? prog.nameRu : prog.nameKz}</div>
+                        <div className="text-xs font-bold text-slate-700 line-clamp-1 flex-1 pr-2">
+                          {pickLocalized(prog, "name", lang)}
+                        </div>
                         <div className="text-right shrink-0">
                           <div className="text-sm font-bold text-primary">{prog.scoreHistory?.[0]?.grantScore || "—"}</div>
                         </div>

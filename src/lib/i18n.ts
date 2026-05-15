@@ -35,6 +35,28 @@ export const translations = {
     "Құқық негіздері": { kz: "Құқық негіздері", ru: "Право", en: "Law" },
   },
 
+  cities: {
+    "Астана": { kz: "Астана", ru: "Астана", en: "Astana" },
+    "Алматы": { kz: "Алматы", ru: "Алматы", en: "Almaty" },
+    "Шымкент": { kz: "Шымкент", ru: "Шымкент", en: "Shymkent" },
+    "Караганда": { kz: "Қарағанды", ru: "Караганда", en: "Karaganda" },
+    "Актобе": { kz: "Ақтөбе", ru: "Актобе", en: "Aktobe" },
+    "Тараз": { kz: "Тараз", ru: "Тараз", en: "Taraz" },
+    "Павлодар": { kz: "Павлодар", ru: "Павлодар", en: "Pavlodar" },
+    "Усть-Каменогорск": { kz: "Өскемен", ru: "Усть-Каменогорск", en: "Ust-Kamenogorsk" },
+    "Семей": { kz: "Семей", ru: "Семей", en: "Semey" },
+    "Атырау": { kz: "Атырау", ru: "Атырау", en: "Atyrau" },
+    "Костанай": { kz: "Қостанай", ru: "Костанай", en: "Kostanay" },
+    "Кызылорда": { kz: "Қызылорда", ru: "Кызылорда", en: "Kyzylorda" },
+    "Уральск": { kz: "Орал", ru: "Уральск", en: "Uralsk" },
+    "Петропавловск": { kz: "Петропавл", ru: "Петропавловск", en: "Petropavlovsk" },
+    "Талдыкорган": { kz: "Талдықорған", ru: "Талдыкорган", en: "Taldykorgan" },
+    "Туркестан": { kz: "Түркістан", ru: "Туркестан", en: "Turkestan" },
+    "Кокшетау": { kz: "Көкшетау", ru: "Кокшетау", en: "Kokshetau" },
+    "Актау": { kz: "Ақтау", ru: "Актау", en: "Aktau" },
+    "Каскелен": { kz: "Қаскелең", ru: "Каскелен", en: "Kaskelen" },
+  },
+
   // Roadmap
   "roadmap.emptyTitle": { kz: "Сізде әлі оқу жоспары жоқ", ru: "У вас ещё нет плана обучения", en: "You don't have a study plan yet" },
   "roadmap.emptyDesc": { kz: "Біздің AI сіздің біліміңізді талдап, жетістікке жетелейтін жеке жоспар құруы үшін Пробный ЕНТ-дан өтіңіз.", ru: "Пройдите Пробный ЕНТ, чтобы наш AI проанализировал ваши знания и создал персональный путь к успеху.", en: "Take a Mock Exam so our AI can analyze your knowledge and create a personalized path to success." },
@@ -791,6 +813,85 @@ export function tSubjectCombo(combined: string | undefined | null, lang: Lang): 
     .split(/\s*\+\s*/)
     .map(part => tSubject(part, lang))
     .join(" + ");
+}
+
+/**
+ * Универсальный хелпер для выбора локализованного поля (nameRu, nameKz, nameEn).
+ * С поддержкой fallback и логированием в dev mode.
+ */
+export function pickLocalized<T extends Record<string, any>>(
+  obj: T | undefined | null,
+  fieldBase: string,
+  lang: Lang,
+  fallbackLang: Lang = "ru"
+): string {
+  if (!obj) return "";
+  
+  const langSuffix = lang === "kz" ? "Kz" : lang === "en" ? "En" : "Ru";
+  const fallbackSuffix = fallbackLang === "kz" ? "Kz" : fallbackLang === "en" ? "En" : "Ru";
+  
+  const primary = obj[`${fieldBase}${langSuffix}`];
+  const fallback = obj[`${fieldBase}${fallbackSuffix}`];
+  
+  // Логирование отсутствующих переводов на английский в dev mode
+  if (lang === "en" && !primary && fallback) {
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+      console.warn(`[i18n] Missing EN translation for ${fieldBase}, using ${fallbackLang} fallback:`, fallback);
+    }
+  }
+  
+  return (primary || fallback || "").toString().trim();
+}
+
+/**
+ * Переводит название города.
+ * Если передан объект (из БД), использует его.
+ * Если передана строка, ищет в словаре cities.
+ */
+export function tCity(name: string | any | undefined | null, lang: Lang): string {
+  if (!name) return "";
+  
+  // Если это объект с полями cityRu, cityKz, cityEn (из БД)
+  if (typeof name === "object" && (name.cityRu || name.cityKz || name.cityEn)) {
+    return pickLocalized(name, "city", lang);
+  }
+
+  // Если это просто строка
+  if (typeof name === "string") {
+    const trimmed = name.trim();
+    const entry = (translations as any).cities?.[trimmed];
+    if (entry) {
+      return entry[lang] || trimmed;
+    }
+    
+    // В dev mode логируем отсутствие перевода города
+    if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+      console.warn(`[i18n] Missing city translation for: "${trimmed}"`);
+    }
+    return trimmed;
+  }
+
+  return "";
+}
+
+/**
+ * Переводит код языка обучения в читаемый бейдж.
+ */
+export function tLanguageBadge(code: string | undefined | null, lang: Lang): string {
+  if (!code) return "";
+  
+  const mapping: Record<string, LocalizedString> = {
+    "kz": { kz: "ҚАЗ", ru: "КАЗ", en: "KZ" },
+    "ru": { kz: "ОРЫС", ru: "РУС", en: "RU" },
+    "en": { kz: "АҒЫЛ", ru: "АНГЛ", en: "EN" },
+    "kz_ru": { kz: "ҚАЗ/ОРЫС", ru: "КАЗ/РУС", en: "KZ/RU" },
+    "kz_en": { kz: "ҚАЗ/АҒЫЛ", ru: "ҚАЗ/АНГЛ", en: "KZ/EN" },
+  };
+
+  const entry = mapping[code.toLowerCase()];
+  if (entry) return entry[lang];
+  
+  return code.toUpperCase();
 }
 
 export type LocalizedString = {
